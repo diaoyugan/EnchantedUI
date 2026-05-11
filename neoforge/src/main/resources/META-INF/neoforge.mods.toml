@@ -13,8 +13,8 @@ authors = "钓鱼竿呀(diaoyugan), momo(HarukaB, aka AYARI on modrinth)"
 description = "Allow you to mine multiple blocks at the same time"
 
 # ===== 联系信息（fabric 的 contact 对应）=====
-displayURL = "https://modrinth.com/mod/veinmine"
-issueTrackerURL = "https://github.com/diaoyugan/Veinmine/issues"
+displayURL = ""
+issueTrackerURL = ""
 
 # ===== Mixin =====
 [[mixins]]
