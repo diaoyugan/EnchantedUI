@@ -1,0 +1,34 @@
+package top.diaoyugan.enchanted_ui.client.gui.widget.option;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.network.chat.Component;
+
+public class TextWidget extends AbstractWidget {
+
+    public TextWidget(int x, int y, Component title) {
+        super(x, y, 200, 12, title);
+        this.active = false;
+    }
+
+    @Override
+    protected void extractWidgetRenderState(GuiGraphicsExtractor guiGraphicsExtractor, int i, int i1, float v) {
+        guiGraphicsExtractor.text(
+                Minecraft.getInstance().font,
+                getMessage(),
+                getX(),
+                getY(),
+                0xFFFFFFFF,
+                false
+        );
+    }
+
+    @Override
+    protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
+
+    }
+}
+
+

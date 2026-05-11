@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${version}",
+  "name": "Vein Mine",
+  "description": "A mod that allows you to mine veins of blocks",
+  "authors": [
+    "钓鱼竿呀(diaoyugan)",
+    "momo(HarukaB,aka AYARI on modrinth)"
+  ],
+  "contact": {
+    "sources": "https://github.com/diaoyugan/Veinmine",
+    "issues": "https://github.com/diaoyugan/Veinmine/issues",
+    "email": "diaoyugan666@qq.com",
+    "homepage": "https://modrinth.com/mod/veinmine"
+  },
+  "license": "${license}",
+  "icon": "assets/${mod_id}/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "top.diaoyugan.enchanted_ui.client.EnchantedUIClient"
+    ],
+    "modmenu": [
+      "top.diaoyugan.enchanted_ui.client.configScreen.ModMenuIntegration"
+    ]
+  },
+  "mixins": [
+    "${mod_id}.mixins.json",
+    "${mod_id}.fabric.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "fabric-api": ">=${fabric_version}",
+    "minecraft": ">=${fabric_minecraft_version}",
+    "java": ">=${java_version}"
+  },
+  "suggests": {
+  },
+  "custom": {
+    "modmenu": {
+      "update_checker": true,
+      "links": {
+        "Discord": "https://discord.gg/zMb8SRwUyN",
+        "Modrinth": "https://modrinth.com/mod/veinmine"
+      }
+    }
+  }
+}

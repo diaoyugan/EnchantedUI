@@ -1,0 +1,36 @@
+---
+name: Bug report
+about: Report a bug to help us fix issues
+title: "[BUG]"
+labels: bug
+assignees: ''
+
+---
+
+**Mod Version:**  
+e.g. `1.1.0`
+
+**Minecraft Version:**  
+e.g. `1.21.4`
+
+**Loader and Loader Version:**  
+e.g. `Fabric: 0.15.10`
+
+---
+**Describe the bug:**  
+What happened? What did you expect to happen?
+
+---
+**Steps to reproduce:**  
+
+---
+**Crash Report / Log:**  
+Please paste relevant logs or crash reports here, or link to a Gist/Pastebin if it's long.
+
+---
+**Other Mods Installed:**  
+List any other mods that may be related (especially rendering mods like Sodium, Iris, etc.)
+
+---
+**Additional context (optional):**  
+Any other info that might help?
