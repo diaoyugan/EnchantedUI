@@ -35,3 +35,11 @@ artifacts {
     commonResources sourceSets.main.resources.sourceDirectories.singleFile
 }
 
+publishing {
+    publications {
+        named('mavenJava', MavenPublication) {
+            artifactId = "${mod_id}-common-${minecraft_version}"
+        }
+    }
+}
+

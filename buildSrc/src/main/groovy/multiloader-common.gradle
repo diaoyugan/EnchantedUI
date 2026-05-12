@@ -4,7 +4,7 @@ plugins {
 }
 
 base {
-    archivesName = "${mod_name}-${project.name}-${minecraft_version}"
+    archivesName = "${mod_id}-${project.name}-${minecraft_version}"
 }
 
 java {
@@ -99,7 +99,16 @@ publishing {
     }
     repositories {
         maven {
-            url System.getenv('local_maven_url')
+            name = 'internalTesting'
+            url = rootProject.layout.buildDirectory.dir('test-maven')
+        }
+        maven {
+            def localMavenUrl = System.getenv('local_maven_url')
+            if (localMavenUrl != null && !localMavenUrl.isBlank()) {
+                url localMavenUrl
+            } else {
+                url rootProject.layout.buildDirectory.dir('unused-maven-repo')
+            }
         }
     }
 }
