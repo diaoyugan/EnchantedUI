@@ -1,5 +1,7 @@
 # Enchanted UI
 
+English | [简体中文](readme_zhcn.md)
+
 A Minecraft GUI framework for building modular and composable UI
 screens.
 

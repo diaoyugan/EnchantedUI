@@ -1,5 +1,7 @@
 # Enchanted UI
 
+[English](readme.md) | 简体中文
+
 一个用于 Minecraft 的 GUI 框架，用于构建模块化、可组合的 UI 界面。
 
 > ⚠️ 早期开发版本\
