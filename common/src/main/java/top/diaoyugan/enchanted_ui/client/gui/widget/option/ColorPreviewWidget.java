@@ -18,7 +18,7 @@ public class ColorPreviewWidget extends AbstractWidget {
     public ColorPreviewWidget(int x, int y, int width, int height,
                               Supplier<Integer> red, Supplier<Integer> green,
                               Supplier<Integer> blue, Supplier<Integer> alpha) {
-        super(x, y, width, height, Component.translatable("vm.config.color_preview"));
+        super(x, y, width, height, Component.translatable("eui.config.color_preview"));
         this.red = red;
         this.green = green;
         this.blue = blue;

@@ -118,7 +118,7 @@ public class DemoScreen extends UiTabbedScreen {
                         v -> passes = v,
                         false
                 );
-                passesSlider.setCustomValueKey("vm.config.value.times");
+                passesSlider.setCustomValueKey("eui.config.value.times");
                 passesSlider.tooltip(Component.literal("Demonstrates custom translated slider value text"));
             }
         }));

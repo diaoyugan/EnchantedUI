@@ -116,7 +116,7 @@ public class KeyBindingButtonWidget extends Button.Plain {
     public void refreshMessage() {
         if (listening) {
             setMessage(Component.translatable(
-                    "vm.config.keybind.listening",
+                    "eui.config.keybind.listening",
                     label
             ));
             return;
@@ -133,7 +133,7 @@ public class KeyBindingButtonWidget extends Button.Plain {
         }
 
         setMessage(Component.translatable(
-                "vm.config.keybind.current",
+                "eui.config.keybind.current",
                 label,
                 keyName
         ));

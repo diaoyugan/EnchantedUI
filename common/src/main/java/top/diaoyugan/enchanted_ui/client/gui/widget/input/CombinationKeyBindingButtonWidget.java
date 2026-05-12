@@ -122,14 +122,14 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
 
         if (listening) {
             return Component.translatable(
-                    "vm.config.keybind.listening",
+                    "eui.config.keybind.listening",
                     label
             );
         }
 
         if (keys.isEmpty()) {
             return Component.translatable(
-                    "vm.config.keybind.none",
+                    "eui.config.keybind.none",
                     label
             );
         }
@@ -141,7 +141,7 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
                 .collect(Collectors.joining(" + "));
 
         return Component.translatable(
-                "vm.config.keybind.current",
+                "eui.config.keybind.current",
                 label,
                 text
         );

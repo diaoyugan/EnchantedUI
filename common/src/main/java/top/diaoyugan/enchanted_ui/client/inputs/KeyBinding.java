@@ -14,7 +14,7 @@ public final class KeyBinding {
     }
 
     public static final KeyMapping ACTIVATION_KEY = new KeyMapping(
-            "key.vm.switch",
+            "key.eui.switch",
             InputConstants.KEY_V,
             KeyMapping.Category.MISC
     );
