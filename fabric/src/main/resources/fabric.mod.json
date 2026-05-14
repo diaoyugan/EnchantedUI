@@ -9,6 +9,8 @@
     "momo(HarukaB,aka AYARI on modrinth)"
   ],
   "contact": {
+    "sources": "https://github.com/diaoyugan/EnchantedUI",
+    "issues": "https://github.com/diaoyugan/EnchantedUI/issues",
     "email": "diaoyugan666@qq.com"
   },
   "license": "${license}",
