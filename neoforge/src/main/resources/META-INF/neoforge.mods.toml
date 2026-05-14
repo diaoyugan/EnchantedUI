@@ -5,23 +5,24 @@ license = "${license}"
 [[mods]]
 modId = "${mod_id}"
 version = "${version}"
-displayName = "Vein Mine"
+displayName = "Enchanted UI"
 logoFile = "assets/${mod_id}/icon.png"
+modType="LIBRARY"
 
 authors = "钓鱼竿呀(diaoyugan), momo(HarukaB, aka AYARI on modrinth)"
 
-description = "Allow you to mine multiple blocks at the same time"
+description = "A Minecraft GUI API for building modular and composable UI screens."
 
 # ===== 联系信息（fabric 的 contact 对应）=====
 displayURL = ""
 issueTrackerURL = ""
 
 # ===== Mixin =====
-[[mixins]]
-config = "${mod_id}.mixins.json"
-
-[[mixins]]
-config = "${mod_id}.neoforge.mixins.json"
+#[[mixins]]
+#config = "${mod_id}.mixins.json"
+#
+#[[mixins]]
+#config = "${mod_id}.neoforge.mixins.json"
 
 # ===== 依赖 =====
 [[dependencies."${mod_id}"]]
@@ -29,14 +30,14 @@ modId = "neoforge"
 type = "required"
 versionRange = "[${neoforge_version},)"
 ordering = "NONE"
-side = "BOTH"
+side = "CLIENT"
 
 [[dependencies."${mod_id}"]]
 modId = "minecraft"
 type = "required"
 versionRange = "[${minecraft_version},)"
 ordering = "NONE"
-side = "BOTH"
+side = "CLIENT"
 
 
 # Features are specific properties of the game environment, that you may want to declare you require. This example declares
