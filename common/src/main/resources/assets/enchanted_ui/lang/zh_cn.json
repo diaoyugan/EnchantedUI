@@ -1,7 +1,7 @@
 {
   "modmenu.nameTranslation.enchanted_ui": "Enchanted UI",
-  "modmenu.descriptionTranslation.enchanted_ui": "",
-  "modmenu.summaryTranslation.enchanted_ui": "",
+  "modmenu.descriptionTranslation.enchanted_ui": "一个用于 Minecraft 的 GUI API，用于构建模块化、可组合的 UI 界面。",
+  "modmenu.summaryTranslation.enchanted_ui": "一个用于 Minecraft 的 GUI API。",
   "eui.config.value.block": "%d 个方块",
   "eui.config.value.durability": "%d 点耐久度",
   "eui.config.value.times": "%d 次",

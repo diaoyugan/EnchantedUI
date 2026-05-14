@@ -1,7 +1,7 @@
 {
   "modmenu.nameTranslation.enchanted_ui": "Enchanted UI",
-  "modmenu.descriptionTranslation.enchanted_ui": "",
-  "modmenu.summaryTranslation.enchanted_ui": "",
+  "modmenu.descriptionTranslation.enchanted_ui": "A Minecraft GUI API for building modular and composable UI screens.",
+  "modmenu.summaryTranslation.enchanted_ui": "A Minecraft GUI API.",
 
   "eui.config.color_preview": "Color preview",
 
