@@ -5,6 +5,18 @@ This project now exposes two practical artifacts for local integration testing:
 - `enchanted_ui-common-<minecraft_version>`: plain library jar for embedding into another mod
 - `enchanted_ui-fabric-<minecraft_version>`: Fabric runtime mod jar for standalone installation or jar-in-jar use
 
+When writing integration code, prefer the public API package:
+
+```text
+top.diaoyugan.enchanted_ui.api.client.gui
+```
+
+Avoid building new integrations directly on top of internal implementation packages such as:
+
+```text
+top.diaoyugan.enchanted_ui.client.gui.builder
+```
+
 ## Publish local test artifacts
 
 Run:
