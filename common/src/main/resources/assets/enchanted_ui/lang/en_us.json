@@ -19,5 +19,10 @@
 
   "eui.config.keybind.current": "%s: %s",
   "eui.config.keybind.none": "%s: None",
-  "eui.config.keybind.listening": "%s: Press keys..."
+  "eui.config.keybind.listening": "%s: Press keys...",
+  "eui.dropdown.empty": "No entries",
+  "eui.dropdown.add": "Add",
+  "eui.select.none": "None",
+  "eui.dialog.confirm": "Confirm",
+  "eui.validation.duplicate_entry": "This entry already exists."
 }

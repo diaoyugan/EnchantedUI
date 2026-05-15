@@ -16,9 +16,12 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class CombinationKeyBindingButtonWidget extends Button.Plain {
+    private static final String DEFAULT_LISTENING_TRANSLATION_KEY = "eui.config.keybind.listening";
+
     private final Component label;
     private final Supplier<Set<Integer>> getter;
     private final Consumer<Set<Integer>> setter;
+    private final String listeningTranslationKey;
 
     private boolean listening = false;
 
@@ -30,6 +33,28 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
             Component label,
             Supplier<Set<Integer>> getter,
             Consumer<Set<Integer>> setter
+    ) {
+        this(
+                x,
+                y,
+                width,
+                height,
+                label,
+                getter,
+                setter,
+                DEFAULT_LISTENING_TRANSLATION_KEY
+        );
+    }
+
+    public CombinationKeyBindingButtonWidget(
+            int x,
+            int y,
+            int width,
+            int height,
+            Component label,
+            Supplier<Set<Integer>> getter,
+            Consumer<Set<Integer>> setter,
+            String listeningTranslationKey
     ) {
         super(
                 x,
@@ -44,6 +69,7 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
         this.label = label;
         this.getter = getter;
         this.setter = setter;
+        this.listeningTranslationKey = listeningTranslationKey;
 
         refreshMessage();
     }
@@ -122,7 +148,7 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
 
         if (listening) {
             return Component.translatable(
-                    "eui.config.keybind.listening",
+                    listeningTranslationKey,
                     label
             );
         }

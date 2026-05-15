@@ -27,6 +27,31 @@ public final class UiFormPage implements UiPage {
             }
 
             @Override
+            public void onOpen(UI.Form form) {
+                spec.onOpen(wrap(form));
+            }
+
+            @Override
+            public void onClose(UI.Form form) {
+                spec.onClose(wrap(form));
+            }
+
+            @Override
+            public void onShow(UI.Form form) {
+                spec.onShow(wrap(form));
+            }
+
+            @Override
+            public void onHide(UI.Form form) {
+                spec.onHide(wrap(form));
+            }
+
+            @Override
+            public void onPageChanged(UI.Form form, int previousPage, int currentPage) {
+                spec.onPageChanged(wrap(form), previousPage, currentPage);
+            }
+
+            @Override
             public void onSave(UI.Form form) {
                 spec.onSave(wrap(form));
             }
@@ -63,6 +88,31 @@ public final class UiFormPage implements UiPage {
     @Override
     public void onSave() {
         delegate.onSave();
+    }
+
+    @Override
+    public void onOpen() {
+        delegate.onOpen();
+    }
+
+    @Override
+    public void onClose() {
+        delegate.onClose();
+    }
+
+    @Override
+    public void onShow() {
+        delegate.onShow();
+    }
+
+    @Override
+    public void onHide() {
+        delegate.onHide();
+    }
+
+    @Override
+    public void onPageChanged(int previousPage, int currentPage) {
+        delegate.onPageChanged(previousPage, currentPage);
     }
 
     @Override

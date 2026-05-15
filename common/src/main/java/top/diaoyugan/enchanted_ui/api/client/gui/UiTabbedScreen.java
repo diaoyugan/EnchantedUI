@@ -7,18 +7,40 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import org.jetbrains.annotations.Nullable;
-import top.diaoyugan.enchanted_ui.client.gui.builder.UI;
+import top.diaoyugan.enchanted_ui.client.gui.screen.base.BaseTabbedScreen;
 
-public class UiTabbedScreen extends UI.TabbedScreen {
+public class UiTabbedScreen extends BaseTabbedScreen {
 
-    private static UI.Page adapt(UiPage page) {
-        if (page instanceof UiFormPage formPage) {
-            return formPage.delegate();
-        }
-        return new UI.Page() {
+    private static BaseTabbedScreen.Page adapt(UiPage page) {
+        return new BaseTabbedScreen.Page() {
             @Override
-            public java.util.List<net.minecraft.client.gui.components.AbstractWidget> build(UI.BuildContext ctx) {
+            public java.util.List<net.minecraft.client.gui.components.AbstractWidget> build(BaseTabbedScreen.BuildContext ctx) {
                 return page.build(new UiBuildContext(ctx));
+            }
+
+            @Override
+            public void onOpen() {
+                page.onOpen();
+            }
+
+            @Override
+            public void onClose() {
+                page.onClose();
+            }
+
+            @Override
+            public void onShow() {
+                page.onShow();
+            }
+
+            @Override
+            public void onHide() {
+                page.onHide();
+            }
+
+            @Override
+            public void onPageChanged(int previousPage, int currentPage) {
+                page.onPageChanged(previousPage, currentPage);
             }
 
             @Override
@@ -38,7 +60,7 @@ public class UiTabbedScreen extends UI.TabbedScreen {
         };
     }
 
-    private static UI.BottomBar adapt(UiBottomBar bottomBar) {
+    private static BaseTabbedScreen.BottomBar adapt(UiBottomBar bottomBar) {
         return (screen, centerX, bottomY) -> bottomBar.add((UiTabbedScreen) screen, centerX, bottomY);
     }
 
@@ -64,5 +86,31 @@ public class UiTabbedScreen extends UI.TabbedScreen {
     public UiTabbedScreen bottomBar(UiBottomBar bottomBar) {
         super.bottomBar(adapt(bottomBar));
         return this;
+    }
+
+    public void showToast(Component message) {
+        super.showToast(message);
+    }
+
+    public void showToast(Component message, int durationTicks) {
+        super.showToast(message, durationTicks);
+    }
+
+    public void showDialog(Component title, java.util.List<Component> lines, UiDialogAction... actions) {
+        super.showDialog(
+                title,
+                lines,
+                java.util.Arrays.stream(actions)
+                        .map(action -> new BaseTabbedScreen.DialogAction(action.label(), action.action(), action.closeAfterRun()))
+                        .toArray(BaseTabbedScreen.DialogAction[]::new)
+        );
+    }
+
+    public void showConfirm(Component title, Component message, Runnable confirmAction) {
+        super.showConfirm(title, message, confirmAction);
+    }
+
+    public void closeDialog() {
+        super.closeDialog();
     }
 }

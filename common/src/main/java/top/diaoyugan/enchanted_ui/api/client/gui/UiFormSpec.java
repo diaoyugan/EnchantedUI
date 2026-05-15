@@ -5,6 +5,21 @@ import net.minecraft.client.input.KeyEvent;
 public interface UiFormSpec {
     void build(UiForm form);
 
+    default void onOpen(UiForm form) {
+    }
+
+    default void onClose(UiForm form) {
+    }
+
+    default void onShow(UiForm form) {
+    }
+
+    default void onHide(UiForm form) {
+    }
+
+    default void onPageChanged(UiForm form, int previousPage, int currentPage) {
+    }
+
     default void onSave(UiForm form) {
     }
 

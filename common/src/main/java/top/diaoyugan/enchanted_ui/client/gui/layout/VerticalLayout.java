@@ -20,6 +20,14 @@ public class VerticalLayout {
         return y;
     }
 
+    public int gap() {
+        return gap;
+    }
+
+    public void setY(int y) {
+        this.y = y;
+    }
+
     public void next(int height) {
         y += height + gap;
     }

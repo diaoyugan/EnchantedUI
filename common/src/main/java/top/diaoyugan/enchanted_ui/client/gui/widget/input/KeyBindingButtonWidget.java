@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class KeyBindingButtonWidget extends Button.Plain {
+    private static final String DEFAULT_LISTENING_TRANSLATION_KEY = "eui.config.keybind.listening";
 
     private final Component label;
 
@@ -25,6 +26,7 @@ public class KeyBindingButtonWidget extends Button.Plain {
     @Nullable
     private final KeyMapping vanillaKeyMapping;
 
+    private final String listeningTranslationKey;
     private boolean listening = false;
     private final boolean syncVanilla;
 
@@ -38,6 +40,32 @@ public class KeyBindingButtonWidget extends Button.Plain {
             @Nullable Supplier<Component> displaySupplier,
             @Nullable KeyMapping vanillaKeyMapping,
             boolean syncVanilla
+    ) {
+        this(
+                x,
+                y,
+                width,
+                height,
+                label,
+                setter,
+                displaySupplier,
+                vanillaKeyMapping,
+                syncVanilla,
+                DEFAULT_LISTENING_TRANSLATION_KEY
+        );
+    }
+
+    public KeyBindingButtonWidget(
+            int x,
+            int y,
+            int width,
+            int height,
+            Component label,
+            Consumer<InputConstants.Key> setter,
+            @Nullable Supplier<Component> displaySupplier,
+            @Nullable KeyMapping vanillaKeyMapping,
+            boolean syncVanilla,
+            String listeningTranslationKey
     ) {
         super(
                 x,
@@ -54,6 +82,7 @@ public class KeyBindingButtonWidget extends Button.Plain {
         this.displaySupplier = displaySupplier;
         this.vanillaKeyMapping = vanillaKeyMapping;
         this.syncVanilla = syncVanilla;
+        this.listeningTranslationKey = listeningTranslationKey;
 
         refreshMessage();
     }
@@ -116,7 +145,7 @@ public class KeyBindingButtonWidget extends Button.Plain {
     public void refreshMessage() {
         if (listening) {
             setMessage(Component.translatable(
-                    "eui.config.keybind.listening",
+                    listeningTranslationKey,
                     label
             ));
             return;
