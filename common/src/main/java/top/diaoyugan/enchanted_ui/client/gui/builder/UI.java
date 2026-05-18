@@ -9,7 +9,7 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
-import top.diaoyugan.enchanted_ui.api.client.gui.UiTextValidator;
+import top.diaoyugan.enchanted_ui.api.client.gui.UITextValidator;
 import top.diaoyugan.enchanted_ui.client.gui.layout.HorizontalLayout;
 import top.diaoyugan.enchanted_ui.client.gui.layout.VerticalLayout;
 import top.diaoyugan.enchanted_ui.client.gui.screen.base.BaseTabbedScreen;
@@ -261,11 +261,8 @@ public final class UI {
         private final int contentWidth;
         private final VerticalLayout layout;
         private final List<AbstractWidget> widgets;
-        private final List<Runnable> savers;
-        private final List<BooleanSupplier> validators;
-        private final List<BooleanSupplier> dirtyTrackers;
-        private final List<Runnable> resetters;
-        private final List<Runnable> cleanMarkers;
+        private final FormStateController state;
+        private final FormInputFactory inputs;
 
         public Form(BuildContext ctx, int contentWidth, int startY, int gap) {
             this(
@@ -273,11 +270,7 @@ public final class UI {
                     contentWidth,
                     ctx.vertical(contentWidth, startY, gap),
                     new ArrayList<>(),
-                    new ArrayList<>(),
-                    new ArrayList<>(),
-                    new ArrayList<>(),
-                    new ArrayList<>(),
-                    new ArrayList<>()
+                    new FormStateController()
             );
         }
 
@@ -286,21 +279,14 @@ public final class UI {
                 int contentWidth,
                 VerticalLayout layout,
                 List<AbstractWidget> widgets,
-                List<Runnable> savers,
-                List<BooleanSupplier> validators,
-                List<BooleanSupplier> dirtyTrackers,
-                List<Runnable> resetters,
-                List<Runnable> cleanMarkers
+                FormStateController state
         ) {
             this.ctx = Objects.requireNonNull(ctx, "ctx");
             this.contentWidth = contentWidth;
             this.layout = layout;
             this.widgets = widgets;
-            this.savers = savers;
-            this.validators = validators;
-            this.dirtyTrackers = dirtyTrackers;
-            this.resetters = resetters;
-            this.cleanMarkers = cleanMarkers;
+            this.state = state;
+            this.inputs = new FormInputFactory(contentWidth, layout, widgets, state);
         }
 
         public BuildContext ctx() {
@@ -320,48 +306,27 @@ public final class UI {
         }
 
         public boolean validate() {
-            boolean valid = true;
-            for (BooleanSupplier validator : validators) {
-                valid &= validator.getAsBoolean();
-            }
-            return valid;
+            return state.validate();
         }
 
         public boolean runSavers() {
-            if (!validate()) {
-                return false;
-            }
-            for (Runnable saver : savers) saver.run();
-            return true;
+            return state.runSavers();
         }
 
         public boolean save() {
-            if (!runSavers()) {
-                return false;
-            }
-            markClean();
-            return true;
+            return state.save();
         }
 
         public boolean hasUnsavedChanges() {
-            for (BooleanSupplier tracker : dirtyTrackers) {
-                if (tracker.getAsBoolean()) {
-                    return true;
-                }
-            }
-            return false;
+            return state.hasUnsavedChanges();
         }
 
         public void reload() {
-            for (Runnable resetter : resetters) {
-                resetter.run();
-            }
+            state.reload();
         }
 
         public void markClean() {
-            for (Runnable marker : cleanMarkers) {
-                marker.run();
-            }
+            state.markClean();
         }
 
         public void tick() {
@@ -406,11 +371,7 @@ public final class UI {
                     Math.max(40, contentWidth - indent),
                     new VerticalLayout(layout.x() + indent, layout.y(), layout.gap()),
                     widgets,
-                    savers,
-                    validators,
-                    dirtyTrackers,
-                    resetters,
-                    cleanMarkers
+                    state
             );
             builder.accept(nested);
             layout.setY(nested.layout.y());
@@ -562,7 +523,7 @@ public final class UI {
                 IntConsumer setter,
                 boolean percentage
         ) {
-            return intSlider(label, contentWidth, min, max, getter, setter, percentage);
+            return inputs.intSlider(label, min, max, getter, setter, percentage);
         }
 
         public NumericSliderOptionWidget intSlider(
@@ -574,18 +535,7 @@ public final class UI {
                 IntConsumer setter,
                 boolean percentage
         ) {
-            NumericSliderOptionWidget w = numericSlider(
-                    layout.x(), layout.y(),
-                    width,
-                    label,
-                    min,
-                    max,
-                    1.0D,
-                    getter::getAsInt,
-                    value -> setter.accept((int) Math.round(value)),
-                    percentage
-            );
-            return w;
+            return inputs.intSlider(label, width, min, max, getter, setter, percentage);
         }
 
         public NumericSliderOptionWidget longSlider(
@@ -597,7 +547,7 @@ public final class UI {
                 LongConsumer setter,
                 boolean percentage
         ) {
-            return longSlider(label, contentWidth, min, max, step, getter, setter, percentage);
+            return inputs.longSlider(label, min, max, step, getter, setter, percentage);
         }
 
         public NumericSliderOptionWidget longSlider(
@@ -610,18 +560,7 @@ public final class UI {
                 LongConsumer setter,
                 boolean percentage
         ) {
-            return numericSlider(
-                    layout.x(),
-                    layout.y(),
-                    width,
-                    label,
-                    min,
-                    max,
-                    Math.max(1L, step),
-                    getter::getAsLong,
-                    value -> setter.accept(Math.round(value)),
-                    percentage
-            );
+            return inputs.longSlider(label, width, min, max, step, getter, setter, percentage);
         }
 
         public NumericSliderOptionWidget floatSlider(
@@ -633,7 +572,7 @@ public final class UI {
                 Consumer<Float> setter,
                 boolean percentage
         ) {
-            return floatSlider(label, contentWidth, min, max, step, getter, setter, percentage);
+            return inputs.floatSlider(label, min, max, step, getter, setter, percentage);
         }
 
         public NumericSliderOptionWidget floatSlider(
@@ -646,18 +585,7 @@ public final class UI {
                 Consumer<Float> setter,
                 boolean percentage
         ) {
-            return numericSlider(
-                    layout.x(),
-                    layout.y(),
-                    width,
-                    label,
-                    min,
-                    max,
-                    step,
-                    () -> getter.get(),
-                    value -> setter.accept((float) value),
-                    percentage
-            );
+            return inputs.floatSlider(label, width, min, max, step, getter, setter, percentage);
         }
 
         public NumericSliderOptionWidget doubleSlider(
@@ -669,7 +597,7 @@ public final class UI {
                 DoubleConsumer setter,
                 boolean percentage
         ) {
-            return doubleSlider(label, contentWidth, min, max, step, getter, setter, percentage);
+            return inputs.doubleSlider(label, min, max, step, getter, setter, percentage);
         }
 
         public NumericSliderOptionWidget doubleSlider(
@@ -682,18 +610,7 @@ public final class UI {
                 DoubleConsumer setter,
                 boolean percentage
         ) {
-            return numericSlider(
-                    layout.x(),
-                    layout.y(),
-                    width,
-                    label,
-                    min,
-                    max,
-                    step,
-                    getter,
-                    setter,
-                    percentage
-            );
+            return inputs.doubleSlider(label, width, min, max, step, getter, setter, percentage);
         }
 
         public ValidatedTextFieldWidget textField(
@@ -701,16 +618,16 @@ public final class UI {
                 Supplier<String> getter,
                 Consumer<String> setter
         ) {
-            return textField(label, contentWidth, getter, setter, UiTextValidator.alwaysValid());
+            return inputs.textField(label, getter, setter);
         }
 
         public ValidatedTextFieldWidget textField(
                 Component label,
                 Supplier<String> getter,
                 Consumer<String> setter,
-                UiTextValidator validator
+                UITextValidator validator
         ) {
-            return textField(label, contentWidth, getter, setter, validator);
+            return inputs.textField(label, getter, setter, validator);
         }
 
         public ValidatedTextFieldWidget textField(
@@ -718,25 +635,9 @@ public final class UI {
                 int width,
                 Supplier<String> getter,
                 Consumer<String> setter,
-                UiTextValidator validator
+                UITextValidator validator
         ) {
-            title(label);
-            ValidatedTextFieldWidget box = new ValidatedTextFieldWidget(
-                    layout.x(),
-                    layout.y(),
-                    width,
-                    20,
-                    label,
-                    validator
-            );
-            box.setValue(getter.get());
-            box.validateNow();
-            trackWidgetValue(box::getValue, box::setValue, Function.identity());
-            widgets.add(box);
-            validators.add(box::validateNow);
-            savers.add(() -> setter.accept(box.getValue()));
-            layout.next(20);
-            return box;
+            return inputs.textField(label, width, getter, setter, validator);
         }
 
         public ValidatedTextFieldWidget intField(
@@ -744,7 +645,7 @@ public final class UI {
                 IntSupplier getter,
                 IntConsumer setter
         ) {
-            return intField(label, contentWidth, Integer.MIN_VALUE, Integer.MAX_VALUE, getter, setter);
+            return inputs.intField(label, getter, setter);
         }
 
         public ValidatedTextFieldWidget intField(
@@ -754,7 +655,7 @@ public final class UI {
                 IntSupplier getter,
                 IntConsumer setter
         ) {
-            return intField(label, contentWidth, min, max, getter, setter);
+            return inputs.intField(label, min, max, getter, setter);
         }
 
         public ValidatedTextFieldWidget intField(
@@ -763,7 +664,7 @@ public final class UI {
                 IntSupplier getter,
                 IntConsumer setter
         ) {
-            return intField(label, width, Integer.MIN_VALUE, Integer.MAX_VALUE, getter, setter);
+            return inputs.intField(label, width, getter, setter);
         }
 
         public ValidatedTextFieldWidget intField(
@@ -774,13 +675,7 @@ public final class UI {
                 IntSupplier getter,
                 IntConsumer setter
         ) {
-            return typedTextField(
-                    label,
-                    width,
-                    () -> Integer.toString(getter.getAsInt()),
-                    value -> setter.accept(Integer.parseInt(value)),
-                    value -> validateInt(label, value, min, max)
-            );
+            return inputs.intField(label, width, min, max, getter, setter);
         }
 
         public ValidatedTextFieldWidget doubleField(
@@ -788,7 +683,7 @@ public final class UI {
                 DoubleSupplier getter,
                 DoubleConsumer setter
         ) {
-            return doubleField(label, contentWidth, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, getter, setter);
+            return inputs.doubleField(label, getter, setter);
         }
 
         public ValidatedTextFieldWidget doubleField(
@@ -798,7 +693,7 @@ public final class UI {
                 DoubleSupplier getter,
                 DoubleConsumer setter
         ) {
-            return doubleField(label, contentWidth, min, max, getter, setter);
+            return inputs.doubleField(label, min, max, getter, setter);
         }
 
         public ValidatedTextFieldWidget doubleField(
@@ -807,7 +702,7 @@ public final class UI {
                 DoubleSupplier getter,
                 DoubleConsumer setter
         ) {
-            return doubleField(label, width, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, getter, setter);
+            return inputs.doubleField(label, width, getter, setter);
         }
 
         public ValidatedTextFieldWidget doubleField(
@@ -818,13 +713,7 @@ public final class UI {
                 DoubleSupplier getter,
                 DoubleConsumer setter
         ) {
-            return typedTextField(
-                    label,
-                    width,
-                    () -> formatDouble(getter.getAsDouble()),
-                    value -> setter.accept(Double.parseDouble(value)),
-                    value -> validateDouble(label, value, min, max)
-            );
+            return inputs.doubleField(label, width, min, max, getter, setter);
         }
 
         public MultiLineEditBox textArea(
@@ -833,26 +722,7 @@ public final class UI {
                 Supplier<String> getter,
                 Consumer<String> setter
         ) {
-            MultiLineEditBox box = MultiLineEditBox.builder()
-                    .setX(layout.x())
-                    .setY(layout.y())
-                    .setShowBackground(true)
-                    .setShowDecorations(true)
-                    .build(
-                            Minecraft.getInstance().font,
-                            contentWidth,
-                            height,
-                            label
-                    );
-
-            box.setValue(getter.get());
-            trackWidgetValue(box::getValue, box::setValue, Function.identity());
-
-            widgets.add(box);
-            savers.add(() -> setter.accept(box.getValue()));
-
-            layout.next(height);
-            return box;
+            return inputs.textArea(label, height, getter, setter);
         }
 
         public KeyBindingButtonWidget keyBinding(
@@ -863,15 +733,7 @@ public final class UI {
                 KeyMapping vanillaKeyMapping,
                 boolean syncVanilla
         ) {
-            return keyBinding(
-                    label,
-                    getter,
-                    setter,
-                    displaySupplier,
-                    vanillaKeyMapping,
-                    syncVanilla,
-                    "eui.config.keybind.listening"
-            );
+            return inputs.keyBinding(label, getter, setter, displaySupplier, vanillaKeyMapping, syncVanilla);
         }
 
         public KeyBindingButtonWidget keyBinding(
@@ -883,21 +745,7 @@ public final class UI {
                 boolean syncVanilla,
                 String listeningTranslationKey
         ) {
-            KeyBindingButtonWidget w = new KeyBindingButtonWidget(
-                    layout.x(), layout.y(),
-                    contentWidth, 20,
-                    label,
-                    getter,
-                    setter,
-                    displaySupplier,
-                    vanillaKeyMapping,
-                    syncVanilla,
-                    listeningTranslationKey
-            );
-            trackModelValue(getter, w::applyExternalKey, Function.identity(), w::refreshMessage);
-            widgets.add(w);
-            layout.next(20);
-            return w;
+            return inputs.keyBinding(label, getter, setter, displaySupplier, vanillaKeyMapping, syncVanilla, listeningTranslationKey);
         }
 
         public CombinationKeyBindingButtonWidget combinationKeyBinding(
@@ -905,12 +753,7 @@ public final class UI {
                 Supplier<Set<Integer>> getter,
                 Consumer<Set<Integer>> setter
         ) {
-            return combinationKeyBinding(
-                    label,
-                    getter,
-                    setter,
-                    "eui.config.keybind.listening"
-            );
+            return inputs.combinationKeyBinding(label, getter, setter);
         }
 
         public CombinationKeyBindingButtonWidget combinationKeyBinding(
@@ -919,18 +762,7 @@ public final class UI {
                 Consumer<Set<Integer>> setter,
                 String listeningTranslationKey
         ) {
-            CombinationKeyBindingButtonWidget w = new CombinationKeyBindingButtonWidget(
-                    layout.x(), layout.y(),
-                    contentWidth, 20,
-                    label,
-                    getter,
-                    setter,
-                    listeningTranslationKey
-            );
-            trackModelValue(getter, setter, value -> value == null ? Set.of() : new LinkedHashSet<>(value), null);
-            widgets.add(w);
-            layout.next(20);
-            return w;
+            return inputs.combinationKeyBinding(label, getter, setter, listeningTranslationKey);
         }
 
         public ColorGroup rgbaSlidersWithPreview(
@@ -945,43 +777,15 @@ public final class UI {
                 IntConsumer aSetter,
                 boolean alphaAsPercentage
         ) {
-            title(title);
-
-            int sliderWidth = 90;
-            int sliderHeight = 20;
-            int previewHeight = (sliderHeight * 4) + 24;
-
-            NumericSliderOptionWidget r = intSlider(Component.literal("R"), sliderWidth, 0, 255, () -> rGetter.get(), rSetter, false);
-            int previewX = layout.x() + sliderWidth;
-
-            ColorPreviewWidget preview = new ColorPreviewWidget(
-                    previewX + 20,
-                    r.getY(),
-                    sliderWidth,
-                    previewHeight,
-                    rGetter::get,
-                    gGetter::get,
-                    bGetter::get,
-                    aGetter::get
-            );
-            widgets.add(preview);
-
-            NumericSliderOptionWidget g = intSlider(Component.literal("G"), sliderWidth, 0, 255, () -> gGetter.get(), gSetter, false);
-            NumericSliderOptionWidget b = intSlider(Component.literal("B"), sliderWidth, 0, 255, () -> bGetter.get(), bSetter, false);
-            NumericSliderOptionWidget a = intSlider(Component.literal("A"), sliderWidth, 0, 255, () -> aGetter.get(), aSetter, alphaAsPercentage);
-
-            return new ColorGroup(r, g, b, a, preview);
+            return inputs.rgbaSlidersWithPreview(title, rGetter, rSetter, gGetter, gSetter, bGetter, bSetter, aGetter, aSetter, alphaAsPercentage);
         }
 
         public DropdownListWidget dropdownList(Component label, Supplier<List<Component>> entriesSupplier) {
-            return dropdownList(label, contentWidth, entriesSupplier, 5);
+            return inputs.dropdownList(label, entriesSupplier);
         }
 
         public DropdownListWidget dropdownList(Component label, int width, Supplier<List<Component>> entriesSupplier, int visibleRows) {
-            DropdownListWidget widget = new DropdownListWidget(layout.x(), layout.y(), width, label, entriesSupplier, visibleRows);
-            widgets.add(widget);
-            layout.next(20);
-            return widget;
+            return inputs.dropdownList(label, width, entriesSupplier, visibleRows);
         }
 
         public EditableDropdownListWidget editableDropdownList(
@@ -990,17 +794,7 @@ public final class UI {
                 Consumer<List<String>> setter,
                 Component inputHint
         ) {
-            return editableDropdownList(
-                    label,
-                    contentWidth,
-                    getter,
-                    setter,
-                    inputHint,
-                    Component.translatable("eui.dropdown.add"),
-                    5,
-                    UiTextValidator.alwaysValid(),
-                    true
-            );
+            return inputs.editableDropdownList(label, getter, setter, inputHint);
         }
 
         public EditableDropdownListWidget editableDropdownList(
@@ -1012,17 +806,7 @@ public final class UI {
                 Component addLabel,
                 int visibleRows
         ) {
-            return editableDropdownList(
-                    label,
-                    width,
-                    getter,
-                    setter,
-                    inputHint,
-                    addLabel,
-                    visibleRows,
-                    UiTextValidator.alwaysValid(),
-                    true
-            );
+            return inputs.editableDropdownList(label, width, getter, setter, inputHint, addLabel, visibleRows);
         }
 
         public EditableDropdownListWidget editableDropdownList(
@@ -1033,26 +817,10 @@ public final class UI {
                 Component inputHint,
                 Component addLabel,
                 int visibleRows,
-                UiTextValidator validator,
+                UITextValidator validator,
                 boolean allowDuplicates
         ) {
-            EditableDropdownListWidget widget = new EditableDropdownListWidget(
-                    layout.x(),
-                    layout.y(),
-                    width,
-                    label,
-                    getter,
-                    setter,
-                    inputHint,
-                    addLabel,
-                    visibleRows,
-                    validator,
-                    allowDuplicates
-            );
-            trackModelValue(getter, setter, ArrayList::new, null);
-            widgets.add(widget);
-            layout.next(20);
-            return widget;
+            return inputs.editableDropdownList(label, width, getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates);
         }
 
         public <T> SelectDropdownWidget<T> select(
@@ -1062,7 +830,7 @@ public final class UI {
                 Supplier<List<T>> entriesSupplier,
                 Function<T, Component> display
         ) {
-            return select(label, contentWidth, getter, setter, entriesSupplier, display, 5);
+            return inputs.select(label, getter, setter, entriesSupplier, display);
         }
 
         public <T> SelectDropdownWidget<T> select(
@@ -1074,13 +842,7 @@ public final class UI {
                 Function<T, Component> display,
                 int visibleRows
         ) {
-            SelectDropdownWidget<T> widget = new SelectDropdownWidget<>(
-                    layout.x(), layout.y(), width, label, getter, setter, entriesSupplier, display, visibleRows
-            );
-            trackModelValue(getter, setter, Function.identity(), null);
-            widgets.add(widget);
-            layout.next(20);
-            return widget;
+            return inputs.select(label, width, getter, setter, entriesSupplier, display, visibleRows);
         }
 
         public <E extends Enum<E>> SelectDropdownWidget<E> enumSelect(
@@ -1090,7 +852,7 @@ public final class UI {
                 Consumer<E> setter,
                 Function<E, Component> display
         ) {
-            return select(label, getter, setter, () -> Arrays.asList(enumClass.getEnumConstants()), display);
+            return inputs.enumSelect(label, enumClass, getter, setter, display);
         }
 
         public <T> SearchableSelectDropdownWidget<T> searchableSelect(
@@ -1101,13 +863,7 @@ public final class UI {
                 Function<T, Component> display,
                 Component searchHint
         ) {
-            SearchableSelectDropdownWidget<T> widget = new SearchableSelectDropdownWidget<>(
-                    layout.x(), layout.y(), contentWidth, label, getter, setter, entriesSupplier, display, searchHint, 5
-            );
-            trackModelValue(getter, setter, Function.identity(), null);
-            widgets.add(widget);
-            layout.next(20);
-            return widget;
+            return inputs.searchableSelect(label, getter, setter, entriesSupplier, display, searchHint);
         }
 
         public <T> MultiSelectDropdownWidget<T> multiSelect(
@@ -1117,13 +873,7 @@ public final class UI {
                 Supplier<List<T>> entriesSupplier,
                 Function<T, Component> display
         ) {
-            MultiSelectDropdownWidget<T> widget = new MultiSelectDropdownWidget<>(
-                    layout.x(), layout.y(), contentWidth, label, getter, setter, entriesSupplier, display, 5
-            );
-            trackModelValue(getter, setter, value -> value == null ? Set.of() : new LinkedHashSet<>(value), null);
-            widgets.add(widget);
-            layout.next(20);
-            return widget;
+            return inputs.multiSelect(label, getter, setter, entriesSupplier, display);
         }
 
         public <T> List<Button> radioGroup(
@@ -1133,139 +883,7 @@ public final class UI {
                 Supplier<List<T>> entriesSupplier,
                 Function<T, Component> display
         ) {
-            title(title);
-            List<T> entries = entriesSupplier.get();
-            List<Button> buttons = new ArrayList<>();
-            for (T entry : entries) {
-                Button button = Button.builder(radioLabel(getter.get(), entry, display), b -> {
-                    setter.accept(entry);
-                    for (Button candidate : buttons) {
-                        candidate.setMessage(radioLabel(getter.get(), entries.get(buttons.indexOf(candidate)), display));
-                    }
-                }).bounds(layout.x(), layout.y(), contentWidth, 20).build();
-                widgets.add(button);
-                buttons.add(button);
-                layout.next(20);
-            }
-            trackModelValue(getter, setter, Function.identity(), () -> {
-                List<T> refreshedEntries = entriesSupplier.get();
-                for (int i = 0; i < buttons.size() && i < refreshedEntries.size(); i++) {
-                    buttons.get(i).setMessage(radioLabel(getter.get(), refreshedEntries.get(i), display));
-                }
-            });
-            return buttons;
-        }
-
-        private <T> Component radioLabel(T current, T entry, Function<T, Component> display) {
-            return Component.literal(Objects.equals(current, entry) ? "(*) " : "( ) ").append(display.apply(entry));
-        }
-
-        private NumericSliderOptionWidget numericSlider(
-                int x,
-                int y,
-                int width,
-                Component label,
-                double min,
-                double max,
-                double step,
-                DoubleSupplier getter,
-                DoubleConsumer setter,
-                boolean percentage
-        ) {
-            NumericSliderOptionWidget widget = new NumericSliderOptionWidget(
-                    x,
-                    y,
-                    width,
-                    20,
-                    label,
-                    min,
-                    max,
-                    step,
-                    getter,
-                    setter,
-                    percentage
-            );
-            trackModelValue(getter::getAsDouble, setter::accept, Function.identity(), widget::refreshFromGetter);
-            widgets.add(widget);
-            layout.next(20);
-            return widget;
-        }
-
-        private ValidatedTextFieldWidget typedTextField(
-                Component label,
-                int width,
-                Supplier<String> getter,
-                Consumer<String> setter,
-                UiTextValidator validator
-        ) {
-            title(label);
-            ValidatedTextFieldWidget box = new ValidatedTextFieldWidget(
-                    layout.x(),
-                    layout.y(),
-                    width,
-                    20,
-                    label,
-                    validator
-            );
-            box.setValue(getter.get());
-            box.validateNow();
-            trackWidgetValue(box::getValue, box::setValue, Function.identity());
-            widgets.add(box);
-            validators.add(box::validateNow);
-            savers.add(() -> setter.accept(box.getValue().trim()));
-            layout.next(20);
-            return box;
-        }
-
-        private static Component validateInt(Component label, String value, int min, int max) {
-            String trimmed = value.trim();
-            if (trimmed.isEmpty()) {
-                return Component.literal(label.getString() + " requires a whole number.");
-            }
-            try {
-                int parsed = Integer.parseInt(trimmed);
-                if (parsed < min || parsed > max) {
-                    return Component.literal(label.getString() + " must be between " + min + " and " + max + ".");
-                }
-                return null;
-            } catch (NumberFormatException ignored) {
-                return Component.literal(label.getString() + " requires a whole number.");
-            }
-        }
-
-        private static Component validateDouble(Component label, String value, double min, double max) {
-            String trimmed = value.trim();
-            if (trimmed.isEmpty()) {
-                return Component.literal(label.getString() + " requires a numeric value.");
-            }
-            try {
-                double parsed = Double.parseDouble(trimmed);
-                if (parsed < min || parsed > max) {
-                    return Component.literal(label.getString() + " must be between " + formatDouble(min) + " and " + formatDouble(max) + ".");
-                }
-                return null;
-            } catch (NumberFormatException ignored) {
-                return Component.literal(label.getString() + " requires a numeric value.");
-            }
-        }
-
-        private static String formatDouble(double value) {
-            if (Double.isInfinite(value)) {
-                return value > 0 ? "+inf" : "-inf";
-            }
-            long rounded = Math.round(value);
-            if (Math.abs(value - rounded) < 1.0E-9D) {
-                return Long.toString(rounded);
-            }
-            String formatted = String.format(Locale.ROOT, "%.4f", value);
-            int trimIndex = formatted.length();
-            while (trimIndex > 0 && formatted.charAt(trimIndex - 1) == '0') {
-                trimIndex--;
-            }
-            if (trimIndex > 0 && formatted.charAt(trimIndex - 1) == '.') {
-                trimIndex--;
-            }
-            return formatted.substring(0, trimIndex);
+            return inputs.radioGroup(title, getter, setter, entriesSupplier, display);
         }
 
         private <T> void trackModelValue(
@@ -1274,15 +892,7 @@ public final class UI {
                 Function<T, T> copy,
                 @Nullable Runnable afterReset
         ) {
-            Snapshot<T> snapshot = new Snapshot<>(copy.apply(currentValue.get()));
-            dirtyTrackers.add(() -> !Objects.equals(snapshot.value, copy.apply(currentValue.get())));
-            resetters.add(() -> {
-                resetAction.accept(copy.apply(snapshot.value));
-                if (afterReset != null) {
-                    afterReset.run();
-                }
-            });
-            cleanMarkers.add(() -> snapshot.value = copy.apply(currentValue.get()));
+            state.trackModelValue(currentValue, resetAction, copy, afterReset);
         }
 
         private <T> void trackWidgetValue(
@@ -1290,10 +900,7 @@ public final class UI {
                 Consumer<T> resetAction,
                 Function<T, T> copy
         ) {
-            Snapshot<T> snapshot = new Snapshot<>(copy.apply(widgetValue.get()));
-            dirtyTrackers.add(() -> !Objects.equals(snapshot.value, copy.apply(widgetValue.get())));
-            resetters.add(() -> resetAction.accept(copy.apply(snapshot.value)));
-            cleanMarkers.add(() -> snapshot.value = copy.apply(widgetValue.get()));
+            state.trackWidgetValue(widgetValue, resetAction, copy);
         }
     }
 
@@ -1304,14 +911,6 @@ public final class UI {
             NumericSliderOptionWidget a,
             ColorPreviewWidget preview
     ) {
-    }
-
-    private static final class Snapshot<T> {
-        private T value;
-
-        private Snapshot(T value) {
-            this.value = value;
-        }
     }
 
     public static class TabbedScreen extends BaseTabbedScreen {

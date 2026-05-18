@@ -5,25 +5,25 @@ import top.diaoyugan.enchanted_ui.client.gui.widget.option.NumericSliderOptionWi
 
 import java.util.function.DoubleFunction;
 
-public final class UiSlider extends UiWidget {
+public final class UISlider extends UIWidget {
     private final NumericSliderOptionWidget delegate;
 
-    UiSlider(NumericSliderOptionWidget delegate) {
+    UISlider(NumericSliderOptionWidget delegate) {
         super(delegate);
         this.delegate = delegate;
     }
 
-    public UiSlider setCustomValueKey(String key) {
+    public UISlider setCustomValueKey(String key) {
         delegate.setCustomValueKey(key);
         return this;
     }
 
-    public UiSlider setValueFormatter(DoubleFunction<Component> formatter) {
+    public UISlider setValueFormatter(DoubleFunction<Component> formatter) {
         delegate.setValueFormatter(formatter);
         return this;
     }
 
-    public UiSlider percentage(boolean percentage) {
+    public UISlider percentage(boolean percentage) {
         delegate.percentage(percentage);
         return this;
     }
@@ -33,13 +33,13 @@ public final class UiSlider extends UiWidget {
     }
 
     @Override
-    public UiSlider tooltip(net.minecraft.network.chat.Component tooltip) {
+    public UISlider tooltip(net.minecraft.network.chat.Component tooltip) {
         super.tooltip(tooltip);
         return this;
     }
 
     @Override
-    public UiSlider tooltip(net.minecraft.client.gui.components.Tooltip tooltip) {
+    public UISlider tooltip(net.minecraft.client.gui.components.Tooltip tooltip) {
         super.tooltip(tooltip);
         return this;
     }

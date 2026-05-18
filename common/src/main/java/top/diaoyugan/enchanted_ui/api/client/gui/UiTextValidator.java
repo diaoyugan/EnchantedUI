@@ -4,11 +4,11 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
 @FunctionalInterface
-public interface UiTextValidator {
+public interface UITextValidator {
     @Nullable
     Component validate(String value);
 
-    static UiTextValidator alwaysValid() {
+    static UITextValidator alwaysValid() {
         return value -> null;
     }
 }

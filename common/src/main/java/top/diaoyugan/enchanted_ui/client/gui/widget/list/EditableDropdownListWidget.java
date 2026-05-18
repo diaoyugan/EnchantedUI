@@ -8,7 +8,7 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
-import top.diaoyugan.enchanted_ui.api.client.gui.UiTextValidator;
+import top.diaoyugan.enchanted_ui.api.client.gui.UITextValidator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +24,7 @@ public class EditableDropdownListWidget extends AbstractDropdownListWidget {
     private final Consumer<List<String>> setter;
     private final EditBox input;
     private final Component addLabel;
-    private final UiTextValidator validator;
+    private final UITextValidator validator;
     private final boolean allowDuplicates;
     @Nullable
     private Component error;
@@ -38,7 +38,7 @@ public class EditableDropdownListWidget extends AbstractDropdownListWidget {
             Consumer<List<String>> setter,
             Component inputHint
     ) {
-        this(x, y, width, label, getter, setter, inputHint, DEFAULT_ADD_LABEL, DEFAULT_VISIBLE_ROWS, UiTextValidator.alwaysValid(), true);
+        this(x, y, width, label, getter, setter, inputHint, DEFAULT_ADD_LABEL, DEFAULT_VISIBLE_ROWS, UITextValidator.alwaysValid(), true);
     }
 
     public EditableDropdownListWidget(
@@ -52,7 +52,7 @@ public class EditableDropdownListWidget extends AbstractDropdownListWidget {
             Component addLabel,
             int visibleRows
     ) {
-        this(x, y, width, label, getter, setter, inputHint, addLabel, visibleRows, UiTextValidator.alwaysValid(), true);
+        this(x, y, width, label, getter, setter, inputHint, addLabel, visibleRows, UITextValidator.alwaysValid(), true);
     }
 
     public EditableDropdownListWidget(
@@ -65,7 +65,7 @@ public class EditableDropdownListWidget extends AbstractDropdownListWidget {
             Component inputHint,
             Component addLabel,
             int visibleRows,
-            UiTextValidator validator,
+            UITextValidator validator,
             boolean allowDuplicates
     ) {
         super(x, y, width, label, visibleRows);

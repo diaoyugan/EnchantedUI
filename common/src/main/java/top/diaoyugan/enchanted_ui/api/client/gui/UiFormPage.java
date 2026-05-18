@@ -6,17 +6,17 @@ import top.diaoyugan.enchanted_ui.client.gui.builder.UI;
 
 import java.util.List;
 
-public final class UiFormPage implements UiPage {
+public final class UIFormPage implements UIPage {
 
     private final UI.FormPage delegate;
 
-    private static UI.FormSpec adapt(UiFormSpec spec) {
+    private static UI.FormSpec adapt(UIFormSpec spec) {
         return new UI.FormSpec() {
-            private UiForm lastForm;
+            private UIForm lastForm;
 
-            private UiForm wrap(UI.Form form) {
+            private UIForm wrap(UI.Form form) {
                 if (lastForm == null || lastForm.delegate() != form) {
-                    lastForm = new UiForm(form);
+                    lastForm = new UIForm(form);
                 }
                 return lastForm;
             }
@@ -68,11 +68,11 @@ public final class UiFormPage implements UiPage {
         };
     }
 
-    public UiFormPage(int contentWidth, UiFormSpec spec) {
+    public UIFormPage(int contentWidth, UIFormSpec spec) {
         this(contentWidth, 10, 4, spec);
     }
 
-    public UiFormPage(int contentWidth, int startY, int gap, UiFormSpec spec) {
+    public UIFormPage(int contentWidth, int startY, int gap, UIFormSpec spec) {
         this.delegate = new UI.FormPage(contentWidth, startY, gap, adapt(spec));
     }
 
@@ -81,7 +81,7 @@ public final class UiFormPage implements UiPage {
     }
 
     @Override
-    public List<AbstractWidget> build(UiBuildContext ctx) {
+    public List<AbstractWidget> build(UIBuildContext ctx) {
         return delegate.build(ctx.delegate());
     }
 

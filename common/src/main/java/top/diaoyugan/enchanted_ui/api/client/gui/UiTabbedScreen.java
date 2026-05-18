@@ -9,13 +9,13 @@ import net.minecraft.network.chat.Style;
 import org.jetbrains.annotations.Nullable;
 import top.diaoyugan.enchanted_ui.client.gui.screen.base.BaseTabbedScreen;
 
-public class UiTabbedScreen extends BaseTabbedScreen {
+public class UITabbedScreen extends BaseTabbedScreen {
 
-    private static BaseTabbedScreen.Page adapt(UiPage page) {
+    private static BaseTabbedScreen.Page adapt(UIPage page) {
         return new BaseTabbedScreen.Page() {
             @Override
             public java.util.List<net.minecraft.client.gui.components.AbstractWidget> build(BaseTabbedScreen.BuildContext ctx) {
-                return page.build(new UiBuildContext(ctx));
+                return page.build(new UIBuildContext(ctx));
             }
 
             @Override
@@ -75,11 +75,11 @@ public class UiTabbedScreen extends BaseTabbedScreen {
         };
     }
 
-    private static BaseTabbedScreen.BottomBar adapt(UiBottomBar bottomBar) {
-        return (screen, centerX, bottomY) -> bottomBar.add((UiTabbedScreen) screen, centerX, bottomY);
+    private static BaseTabbedScreen.BottomBar adapt(UIBottomBar bottomBar) {
+        return (screen, centerX, bottomY) -> bottomBar.add((UITabbedScreen) screen, centerX, bottomY);
     }
 
-    public UiTabbedScreen(@Nullable Screen parent, Component title) {
+    public UITabbedScreen(@Nullable Screen parent, Component title) {
         super(parent, title);
     }
 
@@ -88,17 +88,17 @@ public class UiTabbedScreen extends BaseTabbedScreen {
         return super.add(widget);
     }
 
-    public UiTabbedScreen tab(int x, int y, int height, Component label, UiPage page) {
+    public UITabbedScreen tab(int x, int y, int height, Component label, UIPage page) {
         super.tab(x, y, height, label, adapt(page));
         return this;
     }
 
-    public UiTabbedScreen tab(int x, int y, int height, Component label, Style style, UiPage page) {
+    public UITabbedScreen tab(int x, int y, int height, Component label, Style style, UIPage page) {
         super.tab(x, y, height, label, style, adapt(page));
         return this;
     }
 
-    public UiTabbedScreen bottomBar(UiBottomBar bottomBar) {
+    public UITabbedScreen bottomBar(UIBottomBar bottomBar) {
         super.bottomBar(adapt(bottomBar));
         return this;
     }
@@ -111,7 +111,7 @@ public class UiTabbedScreen extends BaseTabbedScreen {
         super.showToast(message, durationTicks);
     }
 
-    public void showDialog(Component title, java.util.List<Component> lines, UiDialogAction... actions) {
+    public void showDialog(Component title, java.util.List<Component> lines, UIDialogAction... actions) {
         super.showDialog(
                 title,
                 lines,

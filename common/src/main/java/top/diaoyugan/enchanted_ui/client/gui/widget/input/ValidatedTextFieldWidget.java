@@ -5,13 +5,13 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
-import top.diaoyugan.enchanted_ui.api.client.gui.UiTextValidator;
+import top.diaoyugan.enchanted_ui.api.client.gui.UITextValidator;
 
 public class ValidatedTextFieldWidget extends EditBox {
     private static final int VALID_TEXT_COLOR = 0xFFE0E0E0;
     private static final int INVALID_TEXT_COLOR = 0xFFFF7777;
 
-    private final UiTextValidator validator;
+    private final UITextValidator validator;
     @Nullable
     private Component error;
 
@@ -21,7 +21,7 @@ public class ValidatedTextFieldWidget extends EditBox {
             int width,
             int height,
             Component hint,
-            UiTextValidator validator
+            UITextValidator validator
     ) {
         super(Minecraft.getInstance().font, x, y, width, height, hint);
         this.validator = validator;

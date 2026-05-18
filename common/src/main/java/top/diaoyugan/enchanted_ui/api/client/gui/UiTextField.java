@@ -4,10 +4,10 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 import top.diaoyugan.enchanted_ui.client.gui.widget.input.ValidatedTextFieldWidget;
 
-public final class UiTextField extends UiWidget {
+public final class UITextField extends UIWidget {
     private final ValidatedTextFieldWidget delegate;
 
-    UiTextField(ValidatedTextFieldWidget delegate) {
+    UITextField(ValidatedTextFieldWidget delegate) {
         super(delegate);
         this.delegate = delegate;
     }
@@ -16,7 +16,7 @@ public final class UiTextField extends UiWidget {
         return delegate.getValue();
     }
 
-    public UiTextField value(String value) {
+    public UITextField value(String value) {
         delegate.setValue(value);
         delegate.validateNow();
         return this;

@@ -284,11 +284,6 @@ public class BaseTabbedScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
-        for (GuiEventListener child : children()) {
-            if (child instanceof AbstractWidget widget) {
-                WidgetConditions.refresh(widget);
-            }
-        }
         if (currentPage >= 0 && currentPage < pages.size()) {
             pages.get(currentPage).refreshWidgetStates();
         }

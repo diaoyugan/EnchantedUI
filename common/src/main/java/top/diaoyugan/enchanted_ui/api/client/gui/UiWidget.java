@@ -18,54 +18,54 @@ import top.diaoyugan.enchanted_ui.client.gui.widget.option.ColorPreviewWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.option.NumericSliderOptionWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.option.TextWidget;
 
-public class UiWidget {
+public class UIWidget {
     private final AbstractWidget delegate;
 
-    UiWidget(AbstractWidget delegate) {
+    UIWidget(AbstractWidget delegate) {
         this.delegate = delegate;
     }
 
-    static UiWidget wrap(AbstractWidget widget) {
+    static UIWidget wrap(AbstractWidget widget) {
         if (widget instanceof NumericSliderOptionWidget slider) {
-            return new UiSlider(slider);
+            return new UISlider(slider);
         }
         if (widget instanceof TextWidget text) {
-            return new UiText(text);
+            return new UIText(text);
         }
         if (widget instanceof ValidatedTextFieldWidget textField) {
-            return new UiTextField(textField);
+            return new UITextField(textField);
         }
         if (widget instanceof BooleanOptionWidget toggle) {
-            return new UiToggle(toggle);
+            return new UIToggle(toggle);
         }
         if (widget instanceof KeyBindingButtonWidget keyBinding) {
-            return new UiKeyBinding(keyBinding);
+            return new UIKeyBinding(keyBinding);
         }
         if (widget instanceof CombinationKeyBindingButtonWidget combo) {
-            return new UiCombinationKeyBinding(combo);
+            return new UICombinationKeyBinding(combo);
         }
         if (widget instanceof EditableDropdownListWidget editableDropdown) {
-            return new UiEditableDropdownList(editableDropdown);
+            return new UIEditableDropdownList(editableDropdown);
         }
         if (widget instanceof SelectDropdownWidget<?> selectDropdown) {
-            return new UiDropdownList(selectDropdown);
+            return new UIDropdownList(selectDropdown);
         }
         if (widget instanceof SearchableSelectDropdownWidget<?> searchableDropdown) {
-            return new UiDropdownList(searchableDropdown);
+            return new UIDropdownList(searchableDropdown);
         }
         if (widget instanceof MultiSelectDropdownWidget<?> multiSelectDropdown) {
-            return new UiDropdownList(multiSelectDropdown);
+            return new UIDropdownList(multiSelectDropdown);
         }
         if (widget instanceof DropdownListWidget dropdown) {
-            return new UiDropdownList(dropdown);
+            return new UIDropdownList(dropdown);
         }
         if (widget instanceof ColorPreviewWidget preview) {
-            return new UiColorPreview(preview);
+            return new UIColorPreview(preview);
         }
         if (widget instanceof Button button) {
-            return new UiButton(button);
+            return new UIButton(button);
         }
-        return new UiWidget(widget);
+        return new UIWidget(widget);
     }
 
     public final AbstractWidget vanilla() {
@@ -76,45 +76,45 @@ public class UiWidget {
         return delegate;
     }
 
-    public UiWidget tooltip(Component tooltip) {
+    public UIWidget tooltip(Component tooltip) {
         delegate.setTooltip(Tooltip.create(tooltip));
         return this;
     }
 
-    public UiWidget setTooltip(Component tooltip) {
+    public UIWidget setTooltip(Component tooltip) {
         return tooltip(tooltip);
     }
 
-    public UiWidget tooltip(Tooltip tooltip) {
+    public UIWidget tooltip(Tooltip tooltip) {
         delegate.setTooltip(tooltip);
         return this;
     }
 
-    public UiWidget setTooltip(Tooltip tooltip) {
+    public UIWidget setTooltip(Tooltip tooltip) {
         return tooltip(tooltip);
     }
 
-    public UiWidget visible(boolean visible) {
+    public UIWidget visible(boolean visible) {
         WidgetConditions.setVisibleState(delegate, visible);
         return this;
     }
 
-    public UiWidget visibleIf(java.util.function.BooleanSupplier condition) {
+    public UIWidget visibleIf(java.util.function.BooleanSupplier condition) {
         WidgetConditions.visibleIf(delegate, condition);
         return this;
     }
 
-    public UiWidget active(boolean active) {
+    public UIWidget active(boolean active) {
         WidgetConditions.setActiveState(delegate, active);
         return this;
     }
 
-    public UiWidget activeIf(java.util.function.BooleanSupplier condition) {
+    public UIWidget activeIf(java.util.function.BooleanSupplier condition) {
         WidgetConditions.activeIf(delegate, condition);
         return this;
     }
 
-    public UiWidget focused(boolean focused) {
+    public UIWidget focused(boolean focused) {
         delegate.setFocused(focused);
         return this;
     }
@@ -151,24 +151,24 @@ public class UiWidget {
         return delegate.getMessage();
     }
 
-    public UiWidget message(Component message) {
+    public UIWidget message(Component message) {
         delegate.setMessage(message);
         return this;
     }
 
-    public UiWidget position(int x, int y) {
+    public UIWidget position(int x, int y) {
         delegate.setX(x);
         delegate.setY(y);
         return this;
     }
 
-    public UiWidget size(int width, int height) {
+    public UIWidget size(int width, int height) {
         delegate.setWidth(width);
         delegate.setHeight(height);
         return this;
     }
 
-    public UiWidget bounds(int x, int y, int width, int height) {
+    public UIWidget bounds(int x, int y, int width, int height) {
         return position(x, y).size(width, height);
     }
 }

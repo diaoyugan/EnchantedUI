@@ -2,31 +2,31 @@ package top.diaoyugan.enchanted_ui.api.client.gui;
 
 import net.minecraft.client.input.KeyEvent;
 
-public interface UiFormSpec {
-    void build(UiForm form);
+public interface UIFormSpec {
+    void build(UIForm form);
 
-    default void onOpen(UiForm form) {
+    default void onOpen(UIForm form) {
     }
 
-    default void onClose(UiForm form) {
+    default void onClose(UIForm form) {
     }
 
-    default void onShow(UiForm form) {
+    default void onShow(UIForm form) {
     }
 
-    default void onHide(UiForm form) {
+    default void onHide(UIForm form) {
     }
 
-    default void onPageChanged(UiForm form, int previousPage, int currentPage) {
+    default void onPageChanged(UIForm form, int previousPage, int currentPage) {
     }
 
-    default void onSave(UiForm form) {
+    default void onSave(UIForm form) {
     }
 
-    default void tick(UiForm form) {
+    default void tick(UIForm form) {
     }
 
-    default boolean keyPressed(UiForm form, KeyEvent event) {
+    default boolean keyPressed(UIForm form, KeyEvent event) {
         return false;
     }
 }

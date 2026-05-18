@@ -5,8 +5,8 @@ import net.minecraft.client.input.KeyEvent;
 
 import java.util.List;
 
-public interface UiPage {
-    List<AbstractWidget> build(UiBuildContext ctx);
+public interface UIPage {
+    List<AbstractWidget> build(UIBuildContext ctx);
 
     default void onOpen() {
     }

@@ -8,15 +8,15 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
 import top.diaoyugan.enchanted_ui.api.client.gui.EnchantedUI;
-import top.diaoyugan.enchanted_ui.api.client.gui.UiBottomBar;
-import top.diaoyugan.enchanted_ui.api.client.gui.UiButton;
-import top.diaoyugan.enchanted_ui.api.client.gui.UiDialogAction;
-import top.diaoyugan.enchanted_ui.api.client.gui.UiForm;
-import top.diaoyugan.enchanted_ui.api.client.gui.UiFormSpec;
-import top.diaoyugan.enchanted_ui.api.client.gui.UiSlider;
-import top.diaoyugan.enchanted_ui.api.client.gui.UiTabbedScreen;
-import top.diaoyugan.enchanted_ui.api.client.gui.UiText;
-import top.diaoyugan.enchanted_ui.api.client.gui.UiTextField;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIBottomBar;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIButton;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIDialogAction;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIForm;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIFormSpec;
+import top.diaoyugan.enchanted_ui.api.client.gui.UISlider;
+import top.diaoyugan.enchanted_ui.api.client.gui.UITabbedScreen;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIText;
+import top.diaoyugan.enchanted_ui.api.client.gui.UITextField;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public class DemoScreen extends UiTabbedScreen {
+public class DemoScreen extends UITabbedScreen {
     private enum RenderProfile {
         COMPACT,
         BALANCED,
@@ -88,7 +88,7 @@ public class DemoScreen extends UiTabbedScreen {
         super(parent, Component.literal("EnchantedUI Demo Screen"));
 
         tab(10, 30, 20, Component.literal("Main"), EnchantedUI.formPage(200, form -> {
-            UiText title = form.title(Component.literal("General Demo"));
+            UIText title = form.title(Component.literal("General Demo"));
             title.setTooltip(Tooltip.create(Component.literal("This is a demo title for the basic form layout.")));
 
             form.toggleRow(
@@ -105,7 +105,7 @@ public class DemoScreen extends UiTabbedScreen {
                     .tooltip(Component.literal("This is another demo toggle with a tooltip."));
             form.intSlider(Component.literal("Integer Slider"), 1, 16, () -> radius, v -> radius = v, false)
                     .tooltip(Component.literal("This is a demo slider bound to an integer value."));
-            UiSlider intensitySlider = form.intSlider(
+            UISlider intensitySlider = form.intSlider(
                     Component.literal("Percentage Slider"),
                     0,
                     100,
@@ -148,11 +148,11 @@ public class DemoScreen extends UiTabbedScreen {
             form.textArea(Component.literal("Notes"), 40, () -> notes, v -> notes = v);
         }));
 
-        tab(10, 54, 20, Component.literal("Input"), EnchantedUI.formPage(200, new UiFormSpec() {
+        tab(10, 54, 20, Component.literal("Input"), EnchantedUI.formPage(200, new UIFormSpec() {
             @Override
-            public void build(UiForm form) {
+            public void build(UIForm form) {
                 form.title(Component.literal("Input Demo"));
-                UiTextField profileField = form.textField(
+                UITextField profileField = form.textField(
                     Component.literal("Text Field"),
                     () -> profileName,
                         value -> profileName = value,
@@ -196,7 +196,7 @@ public class DemoScreen extends UiTabbedScreen {
                         }
                 ).tooltip(Component.literal("This is a demo control for capturing multiple keys."));
 
-                UiSlider passesSlider = form.intSlider(
+                UISlider passesSlider = form.intSlider(
                         Component.literal("Custom Value Slider"),
                         0,
                         8,
@@ -209,7 +209,7 @@ public class DemoScreen extends UiTabbedScreen {
             }
 
             @Override
-            public void onShow(UiForm form) {
+            public void onShow(UIForm form) {
                 inputTabShows++;
                 showToast(Component.literal("This demo tab has been opened " + inputTabShows + " times."), 40);
             }
@@ -239,7 +239,7 @@ public class DemoScreen extends UiTabbedScreen {
                     })
             );
 
-            UiButton textureButton = form.textureButton(
+            UIButton textureButton = form.textureButton(
                     20,
                     20,
                     DIAMOND_TEXTURE,
@@ -256,7 +256,7 @@ public class DemoScreen extends UiTabbedScreen {
             );
             textureButton.tooltip(Component.literal("This is a demo texture button from the form API."));
 
-            UiButton iconButton = form.iconButton(
+            UIButton iconButton = form.iconButton(
                     20,
                     REDSTONE_TEXTURE,
                     16,
@@ -296,7 +296,7 @@ public class DemoScreen extends UiTabbedScreen {
                                 Component.literal("This is a demo text line for the texture button count: " + textureClicks),
                                 Component.literal("This is a demo text line for the icon button count: " + iconClicks)
                         ),
-                        new UiDialogAction(Component.literal("Close"), () -> {}, true)
+                        new UIDialogAction(Component.literal("Close"), () -> {}, true)
                 )).tooltip(Component.literal("This is a demo button that opens a custom dialog."));
             });
         }));
@@ -330,22 +330,13 @@ public class DemoScreen extends UiTabbedScreen {
                         () -> List.of("Map", "Stats", "Timeline", "Crafting"),
                         Component::literal
                 );
-
-                nested.radioGroup(
-                        Component.literal("Radio Group"),
-                        () -> themePreset,
-                        value -> themePreset = value,
-                        () -> themeOptions,
-                        Component::literal
-                );
             });
 
-            form.space(4);
-            form.title(Component.literal("Readonly List Demo"));
+            form.title(Component.literal("Readonly Dropdown Demo"));
             form.dropdownList(
                     Component.literal("Readonly Dropdown"),
                     () -> presetEntries
-            ).setTooltip(Tooltip.create(Component.literal("This is a demo readonly dropdown list.")));
+            ).setTooltip(Tooltip.create(Component.literal("This is a demo readonly dropdown. Open it to view the entries.")));
 
             form.space(4);
             form.title(Component.literal("Editable List Demo"));
@@ -365,12 +356,23 @@ public class DemoScreen extends UiTabbedScreen {
             ).setTooltip(Tooltip.create(Component.literal("This is a demo editable dropdown list.")));
 
             form.space(8);
+            form.section(Component.literal("Radio Group Demo"), nested -> {
+                nested.radioGroup(
+                        Component.literal("Radio Group"),
+                        () -> themePreset,
+                        value -> themePreset = value,
+                        () -> themeOptions,
+                        Component::literal
+                );
+            });
+
+            form.space(8);
             for (int i = 1; i <= 18; i++) {
                 form.title(Component.literal("This is demo scroll content line " + i + "."));
             }
         }));
 
-        bottomBar(UiBottomBar.saveAndCloseWithExtra(
+        bottomBar(UIBottomBar.saveAndCloseWithExtra(
                 Component.literal("Close Demo"),
                 Component.literal("Save Demo"),
                 this::saveAll,
@@ -416,3 +418,5 @@ public class DemoScreen extends UiTabbedScreen {
         a = 255;
     }
 }
+
+

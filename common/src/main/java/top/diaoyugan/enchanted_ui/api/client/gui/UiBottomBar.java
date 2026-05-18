@@ -8,15 +8,15 @@ import java.util.Objects;
 import java.util.function.BooleanSupplier;
 
 @FunctionalInterface
-public interface UiBottomBar {
-    void add(UiTabbedScreen screen, int centerX, int bottomY);
+public interface UIBottomBar {
+    void add(UITabbedScreen screen, int centerX, int bottomY);
 
-    static UiBottomBar none() {
+    static UIBottomBar none() {
         return (screen, centerX, bottomY) -> {
         };
     }
 
-    static UiBottomBar closeOnly(Component label) {
+    static UIBottomBar closeOnly(Component label) {
         return (screen, centerX, bottomY) -> screen.add(
                 Button.builder(label, b -> screen.requestClose())
                         .bounds(centerX - 75, bottomY, 150, 20)
@@ -24,7 +24,7 @@ public interface UiBottomBar {
         );
     }
 
-    static UiBottomBar saveAndClose(
+    static UIBottomBar saveAndClose(
             Component closeLabel,
             Component saveAndExitLabel,
             BooleanSupplier saveAction
@@ -46,7 +46,7 @@ public interface UiBottomBar {
         };
     }
 
-    static UiBottomBar saveAndCloseWithExtra(
+    static UIBottomBar saveAndCloseWithExtra(
             Component closeLabel,
             Component saveAndExitLabel,
             BooleanSupplier saveAction,

@@ -31,11 +31,11 @@ Preferred public entrypoints live under:
 Main entry helpers:
 
 - `EnchantedUI`
-- `UiTabbedScreen`
-- `UiFormPage`
-- `UiForm`
-- `UiPage`
-- `UiBottomBar`
+- `UITabbedScreen`
+- `UIFormPage`
+- `UIForm`
+- `UIPage`
+- `UIBottomBar`
 
 The older internal builder entrypoint `top.diaoyugan.enchanted_ui.client.gui.builder.UI` still exists, but it should be treated as implementation-facing, not the preferred external surface.
 
@@ -45,10 +45,10 @@ The older internal builder entrypoint `top.diaoyugan.enchanted_ui.client.gui.bui
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import top.diaoyugan.enchanted_ui.api.client.gui.EnchantedUI;
-import top.diaoyugan.enchanted_ui.api.client.gui.UiBottomBar;
-import top.diaoyugan.enchanted_ui.api.client.gui.UiTabbedScreen;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIBottomBar;
+import top.diaoyugan.enchanted_ui.api.client.gui.UITabbedScreen;
 
-public final class ExampleScreen extends UiTabbedScreen {
+public final class ExampleScreen extends UITabbedScreen {
     public ExampleScreen(Screen parent) {
         super(parent, Component.literal("Example"));
 
@@ -58,14 +58,14 @@ public final class ExampleScreen extends UiTabbedScreen {
             form.button(Component.literal("Ping"), () -> showToast(Component.literal("Clicked")));
         }));
 
-        bottomBar(UiBottomBar.closeOnly(Component.literal("Close")));
+        bottomBar(UIBottomBar.closeOnly(Component.literal("Close")));
     }
 }
 ```
 
 ## Widget surface today
 
-`UiForm` currently exposes:
+`UIForm` currently exposes:
 
 - text/title widgets
 - buttons, button rows, icon buttons, texture buttons
@@ -84,10 +84,10 @@ public final class ExampleScreen extends UiTabbedScreen {
 - form dirty-state helpers (`hasUnsavedChanges()`, `save()`, `reload()`, `markClean()`)
 - widget state conditions (`visibleIf(...)`, `activeIf(...)`)
 
-At screen level, `UiTabbedScreen` currently exposes:
+At screen level, `UITabbedScreen` currently exposes:
 
 - tabs and bottom bars
-- page lifecycle hooks through `UiPage` / `UiFormSpec`
+- page lifecycle hooks through `UIPage` / `UIFormSpec`
 - `showToast(...)`
 - `showDialog(...)`
 - `showConfirm(...)`
@@ -153,3 +153,4 @@ See [docs/internal-testing-usage.md](docs/internal-testing-usage.md) for the con
 - Maven coordinates are still temporary
 - documentation may lag behind the latest refactors
 - backward compatibility is not guaranteed during this phase
+

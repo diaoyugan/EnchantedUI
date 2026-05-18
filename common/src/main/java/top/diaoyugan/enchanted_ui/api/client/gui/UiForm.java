@@ -23,11 +23,11 @@ import java.util.function.LongConsumer;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
-public final class UiForm {
+public final class UIForm {
 
     private final UI.Form delegate;
 
-    UiForm(UI.Form delegate) {
+    UIForm(UI.Form delegate) {
         this.delegate = delegate;
     }
 
@@ -35,16 +35,16 @@ public final class UiForm {
         return delegate;
     }
 
-    public UiBuildContext ctx() {
-        return new UiBuildContext(delegate.ctx());
+    public UIBuildContext ctx() {
+        return new UIBuildContext(delegate.ctx());
     }
 
     public int contentWidth() {
         return delegate.contentWidth();
     }
 
-    public UiVerticalLayout layout() {
-        return new UiVerticalLayout(delegate.layout());
+    public UIVerticalLayout layout() {
+        return new UIVerticalLayout(delegate.layout());
     }
 
     public List<AbstractWidget> widgets() {
@@ -71,42 +71,42 @@ public final class UiForm {
         delegate.markClean();
     }
 
-    public UiForm space(int height) {
+    public UIForm space(int height) {
         delegate.space(height);
         return this;
     }
 
-    public UiForm section(Component title, Consumer<UiForm> builder) {
-        delegate.section(title, nested -> builder.accept(new UiForm(nested)));
+    public UIForm section(Component title, Consumer<UIForm> builder) {
+        delegate.section(title, nested -> builder.accept(new UIForm(nested)));
         return this;
     }
 
-    public UiForm section(Component title, int indent, Consumer<UiForm> builder) {
-        delegate.section(title, indent, nested -> builder.accept(new UiForm(nested)));
+    public UIForm section(Component title, int indent, Consumer<UIForm> builder) {
+        delegate.section(title, indent, nested -> builder.accept(new UIForm(nested)));
         return this;
     }
 
-    public UiWidget widget(AbstractWidget widget, int height) {
-        return UiWidget.wrap(delegate.widget(widget, height));
+    public UIWidget widget(AbstractWidget widget, int height) {
+        return UIWidget.wrap(delegate.widget(widget, height));
     }
 
-    public UiText title(Component text) {
-        return (UiText) UiWidget.wrap(delegate.title(text));
+    public UIText title(Component text) {
+        return (UIText) UIWidget.wrap(delegate.title(text));
     }
 
-    public UiToggle toggle(Component label, BooleanSupplier getter, Consumer<Boolean> setter) {
-        return (UiToggle) UiWidget.wrap(delegate.toggle(label, getter, setter));
+    public UIToggle toggle(Component label, BooleanSupplier getter, Consumer<Boolean> setter) {
+        return (UIToggle) UIWidget.wrap(delegate.toggle(label, getter, setter));
     }
 
-    public UiButton button(Component label, Runnable action) {
-        return (UiButton) UiWidget.wrap(delegate.button(label, action));
+    public UIButton button(Component label, Runnable action) {
+        return (UIButton) UIWidget.wrap(delegate.button(label, action));
     }
 
-    public UiButton button(Component label, int width, Runnable action) {
-        return (UiButton) UiWidget.wrap(delegate.button(label, width, action));
+    public UIButton button(Component label, int width, Runnable action) {
+        return (UIButton) UIWidget.wrap(delegate.button(label, width, action));
     }
 
-    public List<UiButton> buttonRow(
+    public List<UIButton> buttonRow(
             Component leftLabel,
             Runnable leftAction,
             Component rightLabel,
@@ -114,11 +114,11 @@ public final class UiForm {
     ) {
         return delegate.buttonRow(leftLabel, leftAction, rightLabel, rightAction)
                 .stream()
-                .map(button -> (UiButton) UiWidget.wrap(button))
+                .map(button -> (UIButton) UIWidget.wrap(button))
                 .toList();
     }
 
-    public List<UiToggle> toggleRow(
+    public List<UIToggle> toggleRow(
             Component leftLabel,
             BooleanSupplier leftGetter,
             Consumer<Boolean> leftSetter,
@@ -128,11 +128,11 @@ public final class UiForm {
     ) {
         return delegate.toggleRow(leftLabel, leftGetter, leftSetter, rightLabel, rightGetter, rightSetter)
                 .stream()
-                .map(widget -> (UiToggle) UiWidget.wrap(widget))
+                .map(widget -> (UIToggle) UIWidget.wrap(widget))
                 .toList();
     }
 
-    public UiSlider intSlider(
+    public UISlider intSlider(
             Component label,
             int min,
             int max,
@@ -140,10 +140,10 @@ public final class UiForm {
             IntConsumer setter,
             boolean percentage
     ) {
-        return (UiSlider) UiWidget.wrap(delegate.intSlider(label, min, max, getter, setter, percentage));
+        return (UISlider) UIWidget.wrap(delegate.intSlider(label, min, max, getter, setter, percentage));
     }
 
-    public UiSlider intSlider(
+    public UISlider intSlider(
             Component label,
             int width,
             int min,
@@ -152,10 +152,10 @@ public final class UiForm {
             IntConsumer setter,
             boolean percentage
     ) {
-        return (UiSlider) UiWidget.wrap(delegate.intSlider(label, width, min, max, getter, setter, percentage));
+        return (UISlider) UIWidget.wrap(delegate.intSlider(label, width, min, max, getter, setter, percentage));
     }
 
-    public UiSlider longSlider(
+    public UISlider longSlider(
             Component label,
             long min,
             long max,
@@ -164,10 +164,10 @@ public final class UiForm {
             LongConsumer setter,
             boolean percentage
     ) {
-        return (UiSlider) UiWidget.wrap(delegate.longSlider(label, min, max, step, getter, setter, percentage));
+        return (UISlider) UIWidget.wrap(delegate.longSlider(label, min, max, step, getter, setter, percentage));
     }
 
-    public UiSlider longSlider(
+    public UISlider longSlider(
             Component label,
             int width,
             long min,
@@ -177,10 +177,10 @@ public final class UiForm {
             LongConsumer setter,
             boolean percentage
     ) {
-        return (UiSlider) UiWidget.wrap(delegate.longSlider(label, width, min, max, step, getter, setter, percentage));
+        return (UISlider) UIWidget.wrap(delegate.longSlider(label, width, min, max, step, getter, setter, percentage));
     }
 
-    public UiSlider floatSlider(
+    public UISlider floatSlider(
             Component label,
             float min,
             float max,
@@ -189,10 +189,10 @@ public final class UiForm {
             Consumer<Float> setter,
             boolean percentage
     ) {
-        return (UiSlider) UiWidget.wrap(delegate.floatSlider(label, min, max, step, getter, setter, percentage));
+        return (UISlider) UIWidget.wrap(delegate.floatSlider(label, min, max, step, getter, setter, percentage));
     }
 
-    public UiSlider floatSlider(
+    public UISlider floatSlider(
             Component label,
             int width,
             float min,
@@ -202,10 +202,10 @@ public final class UiForm {
             Consumer<Float> setter,
             boolean percentage
     ) {
-        return (UiSlider) UiWidget.wrap(delegate.floatSlider(label, width, min, max, step, getter, setter, percentage));
+        return (UISlider) UIWidget.wrap(delegate.floatSlider(label, width, min, max, step, getter, setter, percentage));
     }
 
-    public UiSlider doubleSlider(
+    public UISlider doubleSlider(
             Component label,
             double min,
             double max,
@@ -214,10 +214,10 @@ public final class UiForm {
             DoubleConsumer setter,
             boolean percentage
     ) {
-        return (UiSlider) UiWidget.wrap(delegate.doubleSlider(label, min, max, step, getter, setter, percentage));
+        return (UISlider) UIWidget.wrap(delegate.doubleSlider(label, min, max, step, getter, setter, percentage));
     }
 
-    public UiSlider doubleSlider(
+    public UISlider doubleSlider(
             Component label,
             int width,
             double min,
@@ -227,64 +227,64 @@ public final class UiForm {
             DoubleConsumer setter,
             boolean percentage
     ) {
-        return (UiSlider) UiWidget.wrap(delegate.doubleSlider(label, width, min, max, step, getter, setter, percentage));
+        return (UISlider) UIWidget.wrap(delegate.doubleSlider(label, width, min, max, step, getter, setter, percentage));
     }
 
-    public UiTextField textField(
+    public UITextField textField(
             Component label,
             Supplier<String> getter,
             Consumer<String> setter
     ) {
-        return (UiTextField) UiWidget.wrap(delegate.textField(label, getter, setter));
+        return (UITextField) UIWidget.wrap(delegate.textField(label, getter, setter));
     }
 
-    public UiTextField textField(
+    public UITextField textField(
             Component label,
             Supplier<String> getter,
             Consumer<String> setter,
-            UiTextValidator validator
+            UITextValidator validator
     ) {
-        return (UiTextField) UiWidget.wrap(delegate.textField(label, getter, setter, validator));
+        return (UITextField) UIWidget.wrap(delegate.textField(label, getter, setter, validator));
     }
 
-    public UiTextField textField(
+    public UITextField textField(
             Component label,
             int width,
             Supplier<String> getter,
             Consumer<String> setter,
-            UiTextValidator validator
+            UITextValidator validator
     ) {
-        return (UiTextField) UiWidget.wrap(delegate.textField(label, width, getter, setter, validator));
+        return (UITextField) UIWidget.wrap(delegate.textField(label, width, getter, setter, validator));
     }
 
-    public UiTextField intField(
+    public UITextField intField(
             Component label,
             IntSupplier getter,
             IntConsumer setter
     ) {
-        return (UiTextField) UiWidget.wrap(delegate.intField(label, getter, setter));
+        return (UITextField) UIWidget.wrap(delegate.intField(label, getter, setter));
     }
 
-    public UiTextField intField(
+    public UITextField intField(
             Component label,
             int min,
             int max,
             IntSupplier getter,
             IntConsumer setter
     ) {
-        return (UiTextField) UiWidget.wrap(delegate.intField(label, min, max, getter, setter));
+        return (UITextField) UIWidget.wrap(delegate.intField(label, min, max, getter, setter));
     }
 
-    public UiTextField intField(
+    public UITextField intField(
             Component label,
             int width,
             IntSupplier getter,
             IntConsumer setter
     ) {
-        return (UiTextField) UiWidget.wrap(delegate.intField(label, width, getter, setter));
+        return (UITextField) UIWidget.wrap(delegate.intField(label, width, getter, setter));
     }
 
-    public UiTextField intField(
+    public UITextField intField(
             Component label,
             int width,
             int min,
@@ -292,37 +292,37 @@ public final class UiForm {
             IntSupplier getter,
             IntConsumer setter
     ) {
-        return (UiTextField) UiWidget.wrap(delegate.intField(label, width, min, max, getter, setter));
+        return (UITextField) UIWidget.wrap(delegate.intField(label, width, min, max, getter, setter));
     }
 
-    public UiTextField doubleField(
+    public UITextField doubleField(
             Component label,
             DoubleSupplier getter,
             DoubleConsumer setter
     ) {
-        return (UiTextField) UiWidget.wrap(delegate.doubleField(label, getter, setter));
+        return (UITextField) UIWidget.wrap(delegate.doubleField(label, getter, setter));
     }
 
-    public UiTextField doubleField(
+    public UITextField doubleField(
             Component label,
             double min,
             double max,
             DoubleSupplier getter,
             DoubleConsumer setter
     ) {
-        return (UiTextField) UiWidget.wrap(delegate.doubleField(label, min, max, getter, setter));
+        return (UITextField) UIWidget.wrap(delegate.doubleField(label, min, max, getter, setter));
     }
 
-    public UiTextField doubleField(
+    public UITextField doubleField(
             Component label,
             int width,
             DoubleSupplier getter,
             DoubleConsumer setter
     ) {
-        return (UiTextField) UiWidget.wrap(delegate.doubleField(label, width, getter, setter));
+        return (UITextField) UIWidget.wrap(delegate.doubleField(label, width, getter, setter));
     }
 
-    public UiTextField doubleField(
+    public UITextField doubleField(
             Component label,
             int width,
             double min,
@@ -330,7 +330,7 @@ public final class UiForm {
             DoubleSupplier getter,
             DoubleConsumer setter
     ) {
-        return (UiTextField) UiWidget.wrap(delegate.doubleField(label, width, min, max, getter, setter));
+        return (UITextField) UIWidget.wrap(delegate.doubleField(label, width, min, max, getter, setter));
     }
 
     public MultiLineEditBox textArea(
@@ -342,7 +342,7 @@ public final class UiForm {
         return delegate.textArea(label, height, getter, setter);
     }
 
-    public UiKeyBinding keyBinding(
+    public UIKeyBinding keyBinding(
             Component label,
             Supplier<InputConstants.Key> getter,
             Consumer<InputConstants.Key> setter,
@@ -350,12 +350,12 @@ public final class UiForm {
             KeyMapping vanillaKeyMapping,
             boolean syncVanilla
     ) {
-        return (UiKeyBinding) UiWidget.wrap(
+        return (UIKeyBinding) UIWidget.wrap(
                 delegate.keyBinding(label, getter, setter, displaySupplier, vanillaKeyMapping, syncVanilla)
         );
     }
 
-    public UiKeyBinding keyBinding(
+    public UIKeyBinding keyBinding(
             Component label,
             Supplier<InputConstants.Key> getter,
             Consumer<InputConstants.Key> setter,
@@ -364,7 +364,7 @@ public final class UiForm {
             boolean syncVanilla,
             String listeningTranslationKey
     ) {
-        return (UiKeyBinding) UiWidget.wrap(delegate.keyBinding(
+        return (UIKeyBinding) UIWidget.wrap(delegate.keyBinding(
                 label,
                 getter,
                 setter,
@@ -375,26 +375,26 @@ public final class UiForm {
         ));
     }
 
-    public UiCombinationKeyBinding combinationKeyBinding(
+    public UICombinationKeyBinding combinationKeyBinding(
             Component label,
             Supplier<Set<Integer>> getter,
             Consumer<Set<Integer>> setter
     ) {
-        return (UiCombinationKeyBinding) UiWidget.wrap(delegate.combinationKeyBinding(label, getter, setter));
+        return (UICombinationKeyBinding) UIWidget.wrap(delegate.combinationKeyBinding(label, getter, setter));
     }
 
-    public UiCombinationKeyBinding combinationKeyBinding(
+    public UICombinationKeyBinding combinationKeyBinding(
             Component label,
             Supplier<Set<Integer>> getter,
             Consumer<Set<Integer>> setter,
             String listeningTranslationKey
     ) {
-        return (UiCombinationKeyBinding) UiWidget.wrap(
+        return (UICombinationKeyBinding) UIWidget.wrap(
                 delegate.combinationKeyBinding(label, getter, setter, listeningTranslationKey)
         );
     }
 
-    public UiColorGroup rgbaSlidersWithPreview(
+    public UIColorGroup rgbaSlidersWithPreview(
             Component title,
             Supplier<Integer> rGetter,
             IntConsumer rSetter,
@@ -418,16 +418,16 @@ public final class UiForm {
                 aSetter,
                 alphaAsPercentage
         );
-        return new UiColorGroup(
-                (UiSlider) UiWidget.wrap(colorGroup.r()),
-                (UiSlider) UiWidget.wrap(colorGroup.g()),
-                (UiSlider) UiWidget.wrap(colorGroup.b()),
-                (UiSlider) UiWidget.wrap(colorGroup.a()),
-                (UiColorPreview) UiWidget.wrap(colorGroup.preview())
+        return new UIColorGroup(
+                (UISlider) UIWidget.wrap(colorGroup.r()),
+                (UISlider) UIWidget.wrap(colorGroup.g()),
+                (UISlider) UIWidget.wrap(colorGroup.b()),
+                (UISlider) UIWidget.wrap(colorGroup.a()),
+                (UIColorPreview) UIWidget.wrap(colorGroup.preview())
         );
     }
 
-    public UiButton iconButton(
+    public UIButton iconButton(
             int buttonSize,
             Identifier iconTexture,
             int texW,
@@ -438,12 +438,12 @@ public final class UiForm {
             int iconSize,
             Runnable action
     ) {
-        return (UiButton) UiWidget.wrap(delegate.iconButton(
+        return (UIButton) UIWidget.wrap(delegate.iconButton(
                 buttonSize, iconTexture, texW, texH, hoverTexture, hoverTexW, hoverTexH, iconSize, action
         ));
     }
 
-    public UiButton textureButton(
+    public UIButton textureButton(
             int width,
             int height,
             Identifier texture,
@@ -454,34 +454,34 @@ public final class UiForm {
             int hoverTexH,
             Runnable action
     ) {
-        return (UiButton) UiWidget.wrap(delegate.textureButton(
+        return (UIButton) UIWidget.wrap(delegate.textureButton(
                 width, height, texture, texW, texH, hoverTexture, hoverTexW, hoverTexH, action
         ));
     }
 
-    public UiDropdownList dropdownList(Component label, Supplier<List<Component>> entriesSupplier) {
-        return (UiDropdownList) UiWidget.wrap(delegate.dropdownList(label, entriesSupplier));
+    public UIDropdownList dropdownList(Component label, Supplier<List<Component>> entriesSupplier) {
+        return (UIDropdownList) UIWidget.wrap(delegate.dropdownList(label, entriesSupplier));
     }
 
-    public UiDropdownList dropdownList(
+    public UIDropdownList dropdownList(
             Component label,
             int width,
             Supplier<List<Component>> entriesSupplier,
             int visibleRows
     ) {
-        return (UiDropdownList) UiWidget.wrap(delegate.dropdownList(label, width, entriesSupplier, visibleRows));
+        return (UIDropdownList) UIWidget.wrap(delegate.dropdownList(label, width, entriesSupplier, visibleRows));
     }
 
-    public UiEditableDropdownList editableDropdownList(
+    public UIEditableDropdownList editableDropdownList(
             Component label,
             Supplier<List<String>> getter,
             Consumer<List<String>> setter,
             Component inputHint
     ) {
-        return (UiEditableDropdownList) UiWidget.wrap(delegate.editableDropdownList(label, getter, setter, inputHint));
+        return (UIEditableDropdownList) UIWidget.wrap(delegate.editableDropdownList(label, getter, setter, inputHint));
     }
 
-    public UiEditableDropdownList editableDropdownList(
+    public UIEditableDropdownList editableDropdownList(
             Component label,
             int width,
             Supplier<List<String>> getter,
@@ -490,12 +490,12 @@ public final class UiForm {
             Component addLabel,
             int visibleRows
     ) {
-        return (UiEditableDropdownList) UiWidget.wrap(
+        return (UIEditableDropdownList) UIWidget.wrap(
                 delegate.editableDropdownList(label, width, getter, setter, inputHint, addLabel, visibleRows)
         );
     }
 
-    public UiEditableDropdownList editableDropdownList(
+    public UIEditableDropdownList editableDropdownList(
             Component label,
             int width,
             Supplier<List<String>> getter,
@@ -503,25 +503,25 @@ public final class UiForm {
             Component inputHint,
             Component addLabel,
             int visibleRows,
-            UiTextValidator validator,
+            UITextValidator validator,
             boolean allowDuplicates
     ) {
-        return (UiEditableDropdownList) UiWidget.wrap(
+        return (UIEditableDropdownList) UIWidget.wrap(
                 delegate.editableDropdownList(label, width, getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates)
         );
     }
 
-    public <T> UiDropdownList select(
+    public <T> UIDropdownList select(
             Component label,
             Supplier<T> getter,
             Consumer<T> setter,
             Supplier<List<T>> entriesSupplier,
             Function<T, Component> display
     ) {
-        return (UiDropdownList) UiWidget.wrap(delegate.select(label, getter, setter, entriesSupplier, display));
+        return (UIDropdownList) UIWidget.wrap(delegate.select(label, getter, setter, entriesSupplier, display));
     }
 
-    public <T> UiDropdownList searchableSelect(
+    public <T> UIDropdownList searchableSelect(
             Component label,
             Supplier<T> getter,
             Consumer<T> setter,
@@ -529,30 +529,30 @@ public final class UiForm {
             Function<T, Component> display,
             Component searchHint
     ) {
-        return (UiDropdownList) UiWidget.wrap(delegate.searchableSelect(label, getter, setter, entriesSupplier, display, searchHint));
+        return (UIDropdownList) UIWidget.wrap(delegate.searchableSelect(label, getter, setter, entriesSupplier, display, searchHint));
     }
 
-    public <T> UiDropdownList multiSelect(
+    public <T> UIDropdownList multiSelect(
             Component label,
             Supplier<Set<T>> getter,
             Consumer<Set<T>> setter,
             Supplier<List<T>> entriesSupplier,
             Function<T, Component> display
     ) {
-        return (UiDropdownList) UiWidget.wrap(delegate.multiSelect(label, getter, setter, entriesSupplier, display));
+        return (UIDropdownList) UIWidget.wrap(delegate.multiSelect(label, getter, setter, entriesSupplier, display));
     }
 
-    public <E extends Enum<E>> UiDropdownList enumSelect(
+    public <E extends Enum<E>> UIDropdownList enumSelect(
             Component label,
             Class<E> enumClass,
             Supplier<E> getter,
             Consumer<E> setter,
             Function<E, Component> display
     ) {
-        return (UiDropdownList) UiWidget.wrap(delegate.enumSelect(label, enumClass, getter, setter, display));
+        return (UIDropdownList) UIWidget.wrap(delegate.enumSelect(label, enumClass, getter, setter, display));
     }
 
-    public <T> List<UiButton> radioGroup(
+    public <T> List<UIButton> radioGroup(
             Component title,
             Supplier<T> getter,
             Consumer<T> setter,
@@ -561,7 +561,7 @@ public final class UiForm {
     ) {
         return delegate.radioGroup(title, getter, setter, entriesSupplier, display)
                 .stream()
-                .map(button -> (UiButton) UiWidget.wrap(button))
+                .map(button -> (UIButton) UIWidget.wrap(button))
                 .toList();
     }
 }

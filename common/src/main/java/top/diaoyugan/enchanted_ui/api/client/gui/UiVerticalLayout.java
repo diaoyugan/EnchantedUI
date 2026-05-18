@@ -2,10 +2,10 @@ package top.diaoyugan.enchanted_ui.api.client.gui;
 
 import top.diaoyugan.enchanted_ui.client.gui.layout.VerticalLayout;
 
-public final class UiVerticalLayout {
+public final class UIVerticalLayout {
     private final VerticalLayout delegate;
 
-    UiVerticalLayout(VerticalLayout delegate) {
+    UIVerticalLayout(VerticalLayout delegate) {
         this.delegate = delegate;
     }
 
@@ -25,7 +25,7 @@ public final class UiVerticalLayout {
         return delegate.gap();
     }
 
-    public UiVerticalLayout next(int height) {
+    public UIVerticalLayout next(int height) {
         delegate.next(height);
         return this;
     }

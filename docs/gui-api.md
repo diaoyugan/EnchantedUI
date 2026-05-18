@@ -11,12 +11,12 @@ Preferred package:
 Main types:
 
 - `EnchantedUI`
-- `UiTabbedScreen`
-- `UiPage`
-- `UiFormPage`
-- `UiFormSpec`
-- `UiForm`
-- `UiBottomBar`
+- `UITabbedScreen`
+- `UIPage`
+- `UIFormPage`
+- `UIFormSpec`
+- `UIForm`
+- `UIBottomBar`
 
 ## Basic screen example
 
@@ -24,10 +24,10 @@ Main types:
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import top.diaoyugan.enchanted_ui.api.client.gui.EnchantedUI;
-import top.diaoyugan.enchanted_ui.api.client.gui.UiBottomBar;
-import top.diaoyugan.enchanted_ui.api.client.gui.UiTabbedScreen;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIBottomBar;
+import top.diaoyugan.enchanted_ui.api.client.gui.UITabbedScreen;
 
-public final class ExampleScreen extends UiTabbedScreen {
+public final class ExampleScreen extends UITabbedScreen {
     public ExampleScreen(Screen parent) {
         super(parent, Component.literal("Example"));
 
@@ -37,14 +37,14 @@ public final class ExampleScreen extends UiTabbedScreen {
             form.button(Component.literal("Run"), () -> showToast(Component.literal("Clicked")));
         }));
 
-        bottomBar(UiBottomBar.closeOnly(Component.literal("Close")));
+        bottomBar(UIBottomBar.closeOnly(Component.literal("Close")));
     }
 }
 ```
 
 ## Core concepts
 
-### `UiTabbedScreen`
+### `UITabbedScreen`
 
 Generic screen container with:
 
@@ -68,7 +68,7 @@ Useful methods:
 - `showDialog(...)`
 - `showConfirm(...)`
 
-### `UiPage`
+### `UIPage`
 
 Lower-level page contract when you want to build widgets yourself.
 
@@ -84,15 +84,15 @@ Lifecycle hooks:
 - `tick()`
 - `keyPressed(...)`
 
-### `UiFormPage` and `UiFormSpec`
+### `UIFormPage` and `UIFormSpec`
 
 Higher-level page wrapper for form-style screens.
 
 Use `EnchantedUI.formPage(...)` when you want auto layout and the form widget surface.
 
-`UiFormSpec` exposes the same lifecycle model as `UiPage`, but with `UiForm` access.
+`UIFormSpec` exposes the same lifecycle model as `UIPage`, but with `UIForm` access.
 
-### `UiBuildContext`
+### `UIBuildContext`
 
 Screen build context:
 
@@ -102,7 +102,7 @@ Screen build context:
 - `vertical(...)`
 - `horizontal(...)`
 
-## `UiForm` widget surface
+## `UIForm` widget surface
 
 Current helpers include:
 
@@ -153,7 +153,7 @@ Lists and selection:
 Validation:
 
 - `validate()`
-- `UiTextValidator`
+- `UITextValidator`
 
 Form state:
 
@@ -173,19 +173,19 @@ The public API returns wrapper types rather than exposing internal widget classe
 
 Current wrappers include:
 
-- `UiWidget`
-- `UiButton`
-- `UiText`
-- `UiToggle`
-- `UiSlider`
-- `UiTextField`
-- `UiDropdownList`
-- `UiEditableDropdownList`
-- `UiKeyBinding`
-- `UiCombinationKeyBinding`
-- `UiColorPreview`
+- `UIWidget`
+- `UIButton`
+- `UIText`
+- `UIToggle`
+- `UISlider`
+- `UITextField`
+- `UIDropdownList`
+- `UIEditableDropdownList`
+- `UIKeyBinding`
+- `UICombinationKeyBinding`
+- `UIColorPreview`
 
-Common `UiWidget` capabilities:
+Common `UIWidget` capabilities:
 
 - tooltip helpers
 - visible / active / focused state
@@ -195,11 +195,11 @@ Common `UiWidget` capabilities:
 
 ## Dialog and feedback helpers
 
-`UiTabbedScreen` currently supports:
+`UITabbedScreen` currently supports:
 
 - `showToast(Component)`
 - `showToast(Component, int durationTicks)`
-- `showDialog(Component title, List<Component> lines, UiDialogAction... actions)`
+- `showDialog(Component title, List<Component> lines, UIDialogAction... actions)`
 - `showConfirm(Component title, Component message, Runnable confirmAction)`
 
 ## Internal example
@@ -207,3 +207,4 @@ Common `UiWidget` capabilities:
 Reference implementation:
 
 - `common/src/main/java/top/diaoyugan/enchanted_ui/client/gui/screen/DemoScreen.java`
+

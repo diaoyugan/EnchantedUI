@@ -2,10 +2,10 @@ package top.diaoyugan.enchanted_ui.api.client.gui;
 
 import top.diaoyugan.enchanted_ui.client.gui.layout.HorizontalLayout;
 
-public final class UiHorizontalLayout {
+public final class UIHorizontalLayout {
     private final HorizontalLayout delegate;
 
-    UiHorizontalLayout(HorizontalLayout delegate) {
+    UIHorizontalLayout(HorizontalLayout delegate) {
         this.delegate = delegate;
     }
 
@@ -21,7 +21,7 @@ public final class UiHorizontalLayout {
         return delegate.gap();
     }
 
-    public UiHorizontalLayout next(int width) {
+    public UIHorizontalLayout next(int width) {
         delegate.next(width);
         return this;
     }

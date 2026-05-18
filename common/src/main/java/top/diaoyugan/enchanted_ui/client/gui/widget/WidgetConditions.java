@@ -17,22 +17,22 @@ public final class WidgetConditions {
     }
 
     public static void visibleIf(AbstractWidget widget, @Nullable BooleanSupplier condition) {
-        BASE_VISIBLE.putIfAbsent(widget, widget.visible);
+        BASE_VISIBLE.putIfAbsent(widget, true);
         if (condition == null) {
             VISIBLE.remove(widget);
-            return;
+        } else {
+            VISIBLE.put(widget, condition);
         }
-        VISIBLE.put(widget, condition);
         refresh(widget);
     }
 
     public static void activeIf(AbstractWidget widget, @Nullable BooleanSupplier condition) {
-        BASE_ACTIVE.putIfAbsent(widget, widget.active);
+        BASE_ACTIVE.putIfAbsent(widget, true);
         if (condition == null) {
             ACTIVE.remove(widget);
-            return;
+        } else {
+            ACTIVE.put(widget, condition);
         }
-        ACTIVE.put(widget, condition);
         refresh(widget);
     }
 
@@ -42,13 +42,13 @@ public final class WidgetConditions {
     }
 
     public static boolean evaluateVisible(AbstractWidget widget) {
-        boolean baseVisible = BASE_VISIBLE.computeIfAbsent(widget, ignored -> widget.visible);
+        boolean baseVisible = BASE_VISIBLE.getOrDefault(widget, true);
         BooleanSupplier visible = VISIBLE.get(widget);
         return baseVisible && (visible == null || visible.getAsBoolean());
     }
 
     public static boolean evaluateActive(AbstractWidget widget) {
-        boolean baseActive = BASE_ACTIVE.computeIfAbsent(widget, ignored -> widget.active);
+        boolean baseActive = BASE_ACTIVE.getOrDefault(widget, true);
         BooleanSupplier active = ACTIVE.get(widget);
         return baseActive && (active == null || active.getAsBoolean());
     }

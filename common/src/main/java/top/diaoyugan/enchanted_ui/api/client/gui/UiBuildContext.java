@@ -3,20 +3,20 @@ package top.diaoyugan.enchanted_ui.api.client.gui;
 import top.diaoyugan.enchanted_ui.client.gui.builder.UI;
 import top.diaoyugan.enchanted_ui.client.gui.screen.base.BaseTabbedScreen;
 
-public final class UiBuildContext {
+public final class UIBuildContext {
     private final int screenWidth;
     private final int screenHeight;
     private final int centerX;
 
-    UiBuildContext(UI.BuildContext delegate) {
+    UIBuildContext(UI.BuildContext delegate) {
         this(delegate.screenWidth(), delegate.screenHeight(), delegate.centerX());
     }
 
-    UiBuildContext(BaseTabbedScreen.BuildContext delegate) {
+    UIBuildContext(BaseTabbedScreen.BuildContext delegate) {
         this(delegate.screenWidth(), delegate.screenHeight(), delegate.centerX());
     }
 
-    private UiBuildContext(int screenWidth, int screenHeight, int centerX) {
+    private UIBuildContext(int screenWidth, int screenHeight, int centerX) {
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
         this.centerX = centerX;
@@ -38,11 +38,11 @@ public final class UiBuildContext {
         return centerX;
     }
 
-    public UiVerticalLayout vertical(int contentWidth, int startY, int gap) {
-        return new UiVerticalLayout(new UI.BuildContext(screenWidth, screenHeight, centerX).vertical(contentWidth, startY, gap));
+    public UIVerticalLayout vertical(int contentWidth, int startY, int gap) {
+        return new UIVerticalLayout(new UI.BuildContext(screenWidth, screenHeight, centerX).vertical(contentWidth, startY, gap));
     }
 
-    public UiHorizontalLayout horizontal(int startX, int startY, int gap) {
-        return new UiHorizontalLayout(new UI.BuildContext(screenWidth, screenHeight, centerX).horizontal(startX, startY, gap));
+    public UIHorizontalLayout horizontal(int startX, int startY, int gap) {
+        return new UIHorizontalLayout(new UI.BuildContext(screenWidth, screenHeight, centerX).horizontal(startX, startY, gap));
     }
 }
