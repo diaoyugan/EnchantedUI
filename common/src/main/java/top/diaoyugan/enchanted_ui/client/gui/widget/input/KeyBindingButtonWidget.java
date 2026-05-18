@@ -18,6 +18,7 @@ public class KeyBindingButtonWidget extends Button.Plain {
 
     private final Component label;
 
+    private final Supplier<InputConstants.Key> getter;
     private final Consumer<InputConstants.Key> setter;
 
     @Nullable
@@ -36,6 +37,7 @@ public class KeyBindingButtonWidget extends Button.Plain {
             int width,
             int height,
             Component label,
+            Supplier<InputConstants.Key> getter,
             Consumer<InputConstants.Key> setter,
             @Nullable Supplier<Component> displaySupplier,
             @Nullable KeyMapping vanillaKeyMapping,
@@ -47,6 +49,7 @@ public class KeyBindingButtonWidget extends Button.Plain {
                 width,
                 height,
                 label,
+                getter,
                 setter,
                 displaySupplier,
                 vanillaKeyMapping,
@@ -61,6 +64,7 @@ public class KeyBindingButtonWidget extends Button.Plain {
             int width,
             int height,
             Component label,
+            Supplier<InputConstants.Key> getter,
             Consumer<InputConstants.Key> setter,
             @Nullable Supplier<Component> displaySupplier,
             @Nullable KeyMapping vanillaKeyMapping,
@@ -78,6 +82,7 @@ public class KeyBindingButtonWidget extends Button.Plain {
         );
 
         this.label = label;
+        this.getter = getter;
         this.setter = setter;
         this.displaySupplier = displaySupplier;
         this.vanillaKeyMapping = vanillaKeyMapping;
@@ -122,6 +127,17 @@ public class KeyBindingButtonWidget extends Button.Plain {
         refreshMessage();
 
         return true;
+    }
+
+    public InputConstants.Key currentKey() {
+        return getter.get();
+    }
+
+    public void applyExternalKey(InputConstants.Key key) {
+        setter.accept(key);
+        syncVanillaKey(key);
+        listening = false;
+        refreshMessage();
     }
 
     // -------------------------

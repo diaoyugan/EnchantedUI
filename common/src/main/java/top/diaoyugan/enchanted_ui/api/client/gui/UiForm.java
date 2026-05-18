@@ -14,9 +14,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
+import java.util.function.DoubleSupplier;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
+import java.util.function.LongConsumer;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 public final class UiForm {
@@ -49,6 +53,22 @@ public final class UiForm {
 
     public boolean validate() {
         return delegate.validate();
+    }
+
+    public boolean save() {
+        return delegate.save();
+    }
+
+    public boolean hasUnsavedChanges() {
+        return delegate.hasUnsavedChanges();
+    }
+
+    public void reload() {
+        delegate.reload();
+    }
+
+    public void markClean() {
+        delegate.markClean();
     }
 
     public UiForm space(int height) {
@@ -135,6 +155,81 @@ public final class UiForm {
         return (UiSlider) UiWidget.wrap(delegate.intSlider(label, width, min, max, getter, setter, percentage));
     }
 
+    public UiSlider longSlider(
+            Component label,
+            long min,
+            long max,
+            long step,
+            LongSupplier getter,
+            LongConsumer setter,
+            boolean percentage
+    ) {
+        return (UiSlider) UiWidget.wrap(delegate.longSlider(label, min, max, step, getter, setter, percentage));
+    }
+
+    public UiSlider longSlider(
+            Component label,
+            int width,
+            long min,
+            long max,
+            long step,
+            LongSupplier getter,
+            LongConsumer setter,
+            boolean percentage
+    ) {
+        return (UiSlider) UiWidget.wrap(delegate.longSlider(label, width, min, max, step, getter, setter, percentage));
+    }
+
+    public UiSlider floatSlider(
+            Component label,
+            float min,
+            float max,
+            float step,
+            Supplier<Float> getter,
+            Consumer<Float> setter,
+            boolean percentage
+    ) {
+        return (UiSlider) UiWidget.wrap(delegate.floatSlider(label, min, max, step, getter, setter, percentage));
+    }
+
+    public UiSlider floatSlider(
+            Component label,
+            int width,
+            float min,
+            float max,
+            float step,
+            Supplier<Float> getter,
+            Consumer<Float> setter,
+            boolean percentage
+    ) {
+        return (UiSlider) UiWidget.wrap(delegate.floatSlider(label, width, min, max, step, getter, setter, percentage));
+    }
+
+    public UiSlider doubleSlider(
+            Component label,
+            double min,
+            double max,
+            double step,
+            DoubleSupplier getter,
+            DoubleConsumer setter,
+            boolean percentage
+    ) {
+        return (UiSlider) UiWidget.wrap(delegate.doubleSlider(label, min, max, step, getter, setter, percentage));
+    }
+
+    public UiSlider doubleSlider(
+            Component label,
+            int width,
+            double min,
+            double max,
+            double step,
+            DoubleSupplier getter,
+            DoubleConsumer setter,
+            boolean percentage
+    ) {
+        return (UiSlider) UiWidget.wrap(delegate.doubleSlider(label, width, min, max, step, getter, setter, percentage));
+    }
+
     public UiTextField textField(
             Component label,
             Supplier<String> getter,
@@ -162,6 +257,82 @@ public final class UiForm {
         return (UiTextField) UiWidget.wrap(delegate.textField(label, width, getter, setter, validator));
     }
 
+    public UiTextField intField(
+            Component label,
+            IntSupplier getter,
+            IntConsumer setter
+    ) {
+        return (UiTextField) UiWidget.wrap(delegate.intField(label, getter, setter));
+    }
+
+    public UiTextField intField(
+            Component label,
+            int min,
+            int max,
+            IntSupplier getter,
+            IntConsumer setter
+    ) {
+        return (UiTextField) UiWidget.wrap(delegate.intField(label, min, max, getter, setter));
+    }
+
+    public UiTextField intField(
+            Component label,
+            int width,
+            IntSupplier getter,
+            IntConsumer setter
+    ) {
+        return (UiTextField) UiWidget.wrap(delegate.intField(label, width, getter, setter));
+    }
+
+    public UiTextField intField(
+            Component label,
+            int width,
+            int min,
+            int max,
+            IntSupplier getter,
+            IntConsumer setter
+    ) {
+        return (UiTextField) UiWidget.wrap(delegate.intField(label, width, min, max, getter, setter));
+    }
+
+    public UiTextField doubleField(
+            Component label,
+            DoubleSupplier getter,
+            DoubleConsumer setter
+    ) {
+        return (UiTextField) UiWidget.wrap(delegate.doubleField(label, getter, setter));
+    }
+
+    public UiTextField doubleField(
+            Component label,
+            double min,
+            double max,
+            DoubleSupplier getter,
+            DoubleConsumer setter
+    ) {
+        return (UiTextField) UiWidget.wrap(delegate.doubleField(label, min, max, getter, setter));
+    }
+
+    public UiTextField doubleField(
+            Component label,
+            int width,
+            DoubleSupplier getter,
+            DoubleConsumer setter
+    ) {
+        return (UiTextField) UiWidget.wrap(delegate.doubleField(label, width, getter, setter));
+    }
+
+    public UiTextField doubleField(
+            Component label,
+            int width,
+            double min,
+            double max,
+            DoubleSupplier getter,
+            DoubleConsumer setter
+    ) {
+        return (UiTextField) UiWidget.wrap(delegate.doubleField(label, width, min, max, getter, setter));
+    }
+
     public MultiLineEditBox textArea(
             Component label,
             int height,
@@ -173,18 +344,20 @@ public final class UiForm {
 
     public UiKeyBinding keyBinding(
             Component label,
+            Supplier<InputConstants.Key> getter,
             Consumer<InputConstants.Key> setter,
             Supplier<Component> displaySupplier,
             KeyMapping vanillaKeyMapping,
             boolean syncVanilla
     ) {
         return (UiKeyBinding) UiWidget.wrap(
-                delegate.keyBinding(label, setter, displaySupplier, vanillaKeyMapping, syncVanilla)
+                delegate.keyBinding(label, getter, setter, displaySupplier, vanillaKeyMapping, syncVanilla)
         );
     }
 
     public UiKeyBinding keyBinding(
             Component label,
+            Supplier<InputConstants.Key> getter,
             Consumer<InputConstants.Key> setter,
             Supplier<Component> displaySupplier,
             KeyMapping vanillaKeyMapping,
@@ -193,6 +366,7 @@ public final class UiForm {
     ) {
         return (UiKeyBinding) UiWidget.wrap(delegate.keyBinding(
                 label,
+                getter,
                 setter,
                 displaySupplier,
                 vanillaKeyMapping,

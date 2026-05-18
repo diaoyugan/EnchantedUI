@@ -1,11 +1,14 @@
 package top.diaoyugan.enchanted_ui.api.client.gui;
 
-import top.diaoyugan.enchanted_ui.client.gui.widget.option.IntSliderOptionWidget;
+import net.minecraft.network.chat.Component;
+import top.diaoyugan.enchanted_ui.client.gui.widget.option.NumericSliderOptionWidget;
+
+import java.util.function.DoubleFunction;
 
 public final class UiSlider extends UiWidget {
-    private final IntSliderOptionWidget delegate;
+    private final NumericSliderOptionWidget delegate;
 
-    UiSlider(IntSliderOptionWidget delegate) {
+    UiSlider(NumericSliderOptionWidget delegate) {
         super(delegate);
         this.delegate = delegate;
     }
@@ -13,6 +16,20 @@ public final class UiSlider extends UiWidget {
     public UiSlider setCustomValueKey(String key) {
         delegate.setCustomValueKey(key);
         return this;
+    }
+
+    public UiSlider setValueFormatter(DoubleFunction<Component> formatter) {
+        delegate.setValueFormatter(formatter);
+        return this;
+    }
+
+    public UiSlider percentage(boolean percentage) {
+        delegate.percentage(percentage);
+        return this;
+    }
+
+    public double value() {
+        return delegate.numericValue();
     }
 
     @Override

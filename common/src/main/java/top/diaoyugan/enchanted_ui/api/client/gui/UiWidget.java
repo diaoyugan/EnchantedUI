@@ -4,6 +4,7 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
+import top.diaoyugan.enchanted_ui.client.gui.widget.WidgetConditions;
 import top.diaoyugan.enchanted_ui.client.gui.widget.input.CombinationKeyBindingButtonWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.input.KeyBindingButtonWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.input.ValidatedTextFieldWidget;
@@ -14,7 +15,7 @@ import top.diaoyugan.enchanted_ui.client.gui.widget.list.SearchableSelectDropdow
 import top.diaoyugan.enchanted_ui.client.gui.widget.list.SelectDropdownWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.option.BooleanOptionWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.option.ColorPreviewWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.option.IntSliderOptionWidget;
+import top.diaoyugan.enchanted_ui.client.gui.widget.option.NumericSliderOptionWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.option.TextWidget;
 
 public class UiWidget {
@@ -25,7 +26,7 @@ public class UiWidget {
     }
 
     static UiWidget wrap(AbstractWidget widget) {
-        if (widget instanceof IntSliderOptionWidget slider) {
+        if (widget instanceof NumericSliderOptionWidget slider) {
             return new UiSlider(slider);
         }
         if (widget instanceof TextWidget text) {
@@ -94,12 +95,22 @@ public class UiWidget {
     }
 
     public UiWidget visible(boolean visible) {
-        delegate.visible = visible;
+        WidgetConditions.setVisibleState(delegate, visible);
+        return this;
+    }
+
+    public UiWidget visibleIf(java.util.function.BooleanSupplier condition) {
+        WidgetConditions.visibleIf(delegate, condition);
         return this;
     }
 
     public UiWidget active(boolean active) {
-        delegate.active = active;
+        WidgetConditions.setActiveState(delegate, active);
+        return this;
+    }
+
+    public UiWidget activeIf(java.util.function.BooleanSupplier condition) {
+        WidgetConditions.activeIf(delegate, condition);
         return this;
     }
 

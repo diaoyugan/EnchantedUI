@@ -25,21 +25,27 @@ import top.diaoyugan.enchanted_ui.client.gui.widget.list.SearchableSelectDropdow
 import top.diaoyugan.enchanted_ui.client.gui.widget.list.SelectDropdownWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.option.BooleanOptionWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.option.ColorPreviewWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.option.IntSliderOptionWidget;
+import top.diaoyugan.enchanted_ui.client.gui.widget.option.NumericSliderOptionWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.option.TextWidget;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
+import java.util.function.DoubleSupplier;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
+import java.util.function.LongConsumer;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,7 +90,16 @@ public final class UI {
         default void onPageChanged(int previousPage, int currentPage) {
         }
 
-        default void onSave() {
+        default boolean onSave() { return true; }
+
+        default boolean hasUnsavedChanges() {
+            return false;
+        }
+
+        default void reload() {
+        }
+
+        default void markClean() {
         }
 
         default void tick() {
@@ -153,12 +168,15 @@ public final class UI {
         }
 
         @Override
-        public void onSave() {
-            if (lastForm == null) return;
-            if (!lastForm.runSavers()) {
-                return;
+        public boolean onSave() {
+            if (lastForm == null) {
+                return true;
+            }
+            if (!lastForm.save()) {
+                return false;
             }
             spec.onSave(lastForm);
+            return true;
         }
 
         @Override
@@ -209,6 +227,25 @@ public final class UI {
             if (lastForm.keyPressed(event)) return true;
             return spec.keyPressed(lastForm, event);
         }
+
+        @Override
+        public boolean hasUnsavedChanges() {
+            return lastForm != null && lastForm.hasUnsavedChanges();
+        }
+
+        @Override
+        public void reload() {
+            if (lastForm != null) {
+                lastForm.reload();
+            }
+        }
+
+        @Override
+        public void markClean() {
+            if (lastForm != null) {
+                lastForm.markClean();
+            }
+        }
     }
 
     public static FormPage formPage(int contentWidth, FormSpec spec) {
@@ -226,9 +263,22 @@ public final class UI {
         private final List<AbstractWidget> widgets;
         private final List<Runnable> savers;
         private final List<BooleanSupplier> validators;
+        private final List<BooleanSupplier> dirtyTrackers;
+        private final List<Runnable> resetters;
+        private final List<Runnable> cleanMarkers;
 
         public Form(BuildContext ctx, int contentWidth, int startY, int gap) {
-            this(ctx, contentWidth, ctx.vertical(contentWidth, startY, gap), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+            this(
+                    ctx,
+                    contentWidth,
+                    ctx.vertical(contentWidth, startY, gap),
+                    new ArrayList<>(),
+                    new ArrayList<>(),
+                    new ArrayList<>(),
+                    new ArrayList<>(),
+                    new ArrayList<>(),
+                    new ArrayList<>()
+            );
         }
 
         private Form(
@@ -237,7 +287,10 @@ public final class UI {
                 VerticalLayout layout,
                 List<AbstractWidget> widgets,
                 List<Runnable> savers,
-                List<BooleanSupplier> validators
+                List<BooleanSupplier> validators,
+                List<BooleanSupplier> dirtyTrackers,
+                List<Runnable> resetters,
+                List<Runnable> cleanMarkers
         ) {
             this.ctx = Objects.requireNonNull(ctx, "ctx");
             this.contentWidth = contentWidth;
@@ -245,6 +298,9 @@ public final class UI {
             this.widgets = widgets;
             this.savers = savers;
             this.validators = validators;
+            this.dirtyTrackers = dirtyTrackers;
+            this.resetters = resetters;
+            this.cleanMarkers = cleanMarkers;
         }
 
         public BuildContext ctx() {
@@ -277,6 +333,35 @@ public final class UI {
             }
             for (Runnable saver : savers) saver.run();
             return true;
+        }
+
+        public boolean save() {
+            if (!runSavers()) {
+                return false;
+            }
+            markClean();
+            return true;
+        }
+
+        public boolean hasUnsavedChanges() {
+            for (BooleanSupplier tracker : dirtyTrackers) {
+                if (tracker.getAsBoolean()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public void reload() {
+            for (Runnable resetter : resetters) {
+                resetter.run();
+            }
+        }
+
+        public void markClean() {
+            for (Runnable marker : cleanMarkers) {
+                marker.run();
+            }
         }
 
         public void tick() {
@@ -322,7 +407,10 @@ public final class UI {
                     new VerticalLayout(layout.x() + indent, layout.y(), layout.gap()),
                     widgets,
                     savers,
-                    validators
+                    validators,
+                    dirtyTrackers,
+                    resetters,
+                    cleanMarkers
             );
             builder.accept(nested);
             layout.setY(nested.layout.y());
@@ -344,6 +432,7 @@ public final class UI {
                     getter,
                     setter
             );
+            trackModelValue(getter::getAsBoolean, setter, Function.identity(), null);
             widgets.add(w);
             layout.next(20);
             return w;
@@ -456,6 +545,8 @@ public final class UI {
             );
             right.setHalfWidth();
 
+            trackModelValue(leftGetter::getAsBoolean, leftSetter, Function.identity(), null);
+            trackModelValue(rightGetter::getAsBoolean, rightSetter, Function.identity(), null);
             widgets.add(left);
             widgets.add(right);
             layout.next(20);
@@ -463,7 +554,7 @@ public final class UI {
             return List.of(left, right);
         }
 
-        public IntSliderOptionWidget intSlider(
+        public NumericSliderOptionWidget intSlider(
                 Component label,
                 int min,
                 int max,
@@ -471,21 +562,10 @@ public final class UI {
                 IntConsumer setter,
                 boolean percentage
         ) {
-            IntSliderOptionWidget w = new IntSliderOptionWidget(
-                    layout.x(), layout.y(),
-                    contentWidth, 20,
-                    label,
-                    min, max,
-                    getter,
-                    setter,
-                    percentage
-            );
-            widgets.add(w);
-            layout.next(20);
-            return w;
+            return intSlider(label, contentWidth, min, max, getter, setter, percentage);
         }
 
-        public IntSliderOptionWidget intSlider(
+        public NumericSliderOptionWidget intSlider(
                 Component label,
                 int width,
                 int min,
@@ -494,18 +574,126 @@ public final class UI {
                 IntConsumer setter,
                 boolean percentage
         ) {
-            IntSliderOptionWidget w = new IntSliderOptionWidget(
+            NumericSliderOptionWidget w = numericSlider(
                     layout.x(), layout.y(),
-                    width, 20,
+                    width,
                     label,
-                    min, max,
+                    min,
+                    max,
+                    1.0D,
+                    getter::getAsInt,
+                    value -> setter.accept((int) Math.round(value)),
+                    percentage
+            );
+            return w;
+        }
+
+        public NumericSliderOptionWidget longSlider(
+                Component label,
+                long min,
+                long max,
+                long step,
+                LongSupplier getter,
+                LongConsumer setter,
+                boolean percentage
+        ) {
+            return longSlider(label, contentWidth, min, max, step, getter, setter, percentage);
+        }
+
+        public NumericSliderOptionWidget longSlider(
+                Component label,
+                int width,
+                long min,
+                long max,
+                long step,
+                LongSupplier getter,
+                LongConsumer setter,
+                boolean percentage
+        ) {
+            return numericSlider(
+                    layout.x(),
+                    layout.y(),
+                    width,
+                    label,
+                    min,
+                    max,
+                    Math.max(1L, step),
+                    getter::getAsLong,
+                    value -> setter.accept(Math.round(value)),
+                    percentage
+            );
+        }
+
+        public NumericSliderOptionWidget floatSlider(
+                Component label,
+                float min,
+                float max,
+                float step,
+                Supplier<Float> getter,
+                Consumer<Float> setter,
+                boolean percentage
+        ) {
+            return floatSlider(label, contentWidth, min, max, step, getter, setter, percentage);
+        }
+
+        public NumericSliderOptionWidget floatSlider(
+                Component label,
+                int width,
+                float min,
+                float max,
+                float step,
+                Supplier<Float> getter,
+                Consumer<Float> setter,
+                boolean percentage
+        ) {
+            return numericSlider(
+                    layout.x(),
+                    layout.y(),
+                    width,
+                    label,
+                    min,
+                    max,
+                    step,
+                    () -> getter.get(),
+                    value -> setter.accept((float) value),
+                    percentage
+            );
+        }
+
+        public NumericSliderOptionWidget doubleSlider(
+                Component label,
+                double min,
+                double max,
+                double step,
+                DoubleSupplier getter,
+                DoubleConsumer setter,
+                boolean percentage
+        ) {
+            return doubleSlider(label, contentWidth, min, max, step, getter, setter, percentage);
+        }
+
+        public NumericSliderOptionWidget doubleSlider(
+                Component label,
+                int width,
+                double min,
+                double max,
+                double step,
+                DoubleSupplier getter,
+                DoubleConsumer setter,
+                boolean percentage
+        ) {
+            return numericSlider(
+                    layout.x(),
+                    layout.y(),
+                    width,
+                    label,
+                    min,
+                    max,
+                    step,
                     getter,
                     setter,
                     percentage
             );
-            widgets.add(w);
-            layout.next(20);
-            return w;
         }
 
         public ValidatedTextFieldWidget textField(
@@ -543,11 +731,100 @@ public final class UI {
             );
             box.setValue(getter.get());
             box.validateNow();
+            trackWidgetValue(box::getValue, box::setValue, Function.identity());
             widgets.add(box);
             validators.add(box::validateNow);
             savers.add(() -> setter.accept(box.getValue()));
             layout.next(20);
             return box;
+        }
+
+        public ValidatedTextFieldWidget intField(
+                Component label,
+                IntSupplier getter,
+                IntConsumer setter
+        ) {
+            return intField(label, contentWidth, Integer.MIN_VALUE, Integer.MAX_VALUE, getter, setter);
+        }
+
+        public ValidatedTextFieldWidget intField(
+                Component label,
+                int min,
+                int max,
+                IntSupplier getter,
+                IntConsumer setter
+        ) {
+            return intField(label, contentWidth, min, max, getter, setter);
+        }
+
+        public ValidatedTextFieldWidget intField(
+                Component label,
+                int width,
+                IntSupplier getter,
+                IntConsumer setter
+        ) {
+            return intField(label, width, Integer.MIN_VALUE, Integer.MAX_VALUE, getter, setter);
+        }
+
+        public ValidatedTextFieldWidget intField(
+                Component label,
+                int width,
+                int min,
+                int max,
+                IntSupplier getter,
+                IntConsumer setter
+        ) {
+            return typedTextField(
+                    label,
+                    width,
+                    () -> Integer.toString(getter.getAsInt()),
+                    value -> setter.accept(Integer.parseInt(value)),
+                    value -> validateInt(label, value, min, max)
+            );
+        }
+
+        public ValidatedTextFieldWidget doubleField(
+                Component label,
+                DoubleSupplier getter,
+                DoubleConsumer setter
+        ) {
+            return doubleField(label, contentWidth, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, getter, setter);
+        }
+
+        public ValidatedTextFieldWidget doubleField(
+                Component label,
+                double min,
+                double max,
+                DoubleSupplier getter,
+                DoubleConsumer setter
+        ) {
+            return doubleField(label, contentWidth, min, max, getter, setter);
+        }
+
+        public ValidatedTextFieldWidget doubleField(
+                Component label,
+                int width,
+                DoubleSupplier getter,
+                DoubleConsumer setter
+        ) {
+            return doubleField(label, width, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, getter, setter);
+        }
+
+        public ValidatedTextFieldWidget doubleField(
+                Component label,
+                int width,
+                double min,
+                double max,
+                DoubleSupplier getter,
+                DoubleConsumer setter
+        ) {
+            return typedTextField(
+                    label,
+                    width,
+                    () -> formatDouble(getter.getAsDouble()),
+                    value -> setter.accept(Double.parseDouble(value)),
+                    value -> validateDouble(label, value, min, max)
+            );
         }
 
         public MultiLineEditBox textArea(
@@ -569,6 +846,7 @@ public final class UI {
                     );
 
             box.setValue(getter.get());
+            trackWidgetValue(box::getValue, box::setValue, Function.identity());
 
             widgets.add(box);
             savers.add(() -> setter.accept(box.getValue()));
@@ -579,6 +857,7 @@ public final class UI {
 
         public KeyBindingButtonWidget keyBinding(
                 Component label,
+                Supplier<InputConstants.Key> getter,
                 Consumer<InputConstants.Key> setter,
                 Supplier<Component> displaySupplier,
                 KeyMapping vanillaKeyMapping,
@@ -586,6 +865,7 @@ public final class UI {
         ) {
             return keyBinding(
                     label,
+                    getter,
                     setter,
                     displaySupplier,
                     vanillaKeyMapping,
@@ -596,6 +876,7 @@ public final class UI {
 
         public KeyBindingButtonWidget keyBinding(
                 Component label,
+                Supplier<InputConstants.Key> getter,
                 Consumer<InputConstants.Key> setter,
                 Supplier<Component> displaySupplier,
                 KeyMapping vanillaKeyMapping,
@@ -606,12 +887,14 @@ public final class UI {
                     layout.x(), layout.y(),
                     contentWidth, 20,
                     label,
+                    getter,
                     setter,
                     displaySupplier,
                     vanillaKeyMapping,
                     syncVanilla,
                     listeningTranslationKey
             );
+            trackModelValue(getter, w::applyExternalKey, Function.identity(), w::refreshMessage);
             widgets.add(w);
             layout.next(20);
             return w;
@@ -644,6 +927,7 @@ public final class UI {
                     setter,
                     listeningTranslationKey
             );
+            trackModelValue(getter, setter, value -> value == null ? Set.of() : new LinkedHashSet<>(value), null);
             widgets.add(w);
             layout.next(20);
             return w;
@@ -667,7 +951,7 @@ public final class UI {
             int sliderHeight = 20;
             int previewHeight = (sliderHeight * 4) + 24;
 
-            IntSliderOptionWidget r = intSlider(Component.literal("R"), sliderWidth, 0, 255, () -> rGetter.get(), rSetter, false);
+            NumericSliderOptionWidget r = intSlider(Component.literal("R"), sliderWidth, 0, 255, () -> rGetter.get(), rSetter, false);
             int previewX = layout.x() + sliderWidth;
 
             ColorPreviewWidget preview = new ColorPreviewWidget(
@@ -682,9 +966,9 @@ public final class UI {
             );
             widgets.add(preview);
 
-            IntSliderOptionWidget g = intSlider(Component.literal("G"), sliderWidth, 0, 255, () -> gGetter.get(), gSetter, false);
-            IntSliderOptionWidget b = intSlider(Component.literal("B"), sliderWidth, 0, 255, () -> bGetter.get(), bSetter, false);
-            IntSliderOptionWidget a = intSlider(Component.literal("A"), sliderWidth, 0, 255, () -> aGetter.get(), aSetter, alphaAsPercentage);
+            NumericSliderOptionWidget g = intSlider(Component.literal("G"), sliderWidth, 0, 255, () -> gGetter.get(), gSetter, false);
+            NumericSliderOptionWidget b = intSlider(Component.literal("B"), sliderWidth, 0, 255, () -> bGetter.get(), bSetter, false);
+            NumericSliderOptionWidget a = intSlider(Component.literal("A"), sliderWidth, 0, 255, () -> aGetter.get(), aSetter, alphaAsPercentage);
 
             return new ColorGroup(r, g, b, a, preview);
         }
@@ -765,6 +1049,7 @@ public final class UI {
                     validator,
                     allowDuplicates
             );
+            trackModelValue(getter, setter, ArrayList::new, null);
             widgets.add(widget);
             layout.next(20);
             return widget;
@@ -792,6 +1077,7 @@ public final class UI {
             SelectDropdownWidget<T> widget = new SelectDropdownWidget<>(
                     layout.x(), layout.y(), width, label, getter, setter, entriesSupplier, display, visibleRows
             );
+            trackModelValue(getter, setter, Function.identity(), null);
             widgets.add(widget);
             layout.next(20);
             return widget;
@@ -818,6 +1104,7 @@ public final class UI {
             SearchableSelectDropdownWidget<T> widget = new SearchableSelectDropdownWidget<>(
                     layout.x(), layout.y(), contentWidth, label, getter, setter, entriesSupplier, display, searchHint, 5
             );
+            trackModelValue(getter, setter, Function.identity(), null);
             widgets.add(widget);
             layout.next(20);
             return widget;
@@ -833,6 +1120,7 @@ public final class UI {
             MultiSelectDropdownWidget<T> widget = new MultiSelectDropdownWidget<>(
                     layout.x(), layout.y(), contentWidth, label, getter, setter, entriesSupplier, display, 5
             );
+            trackModelValue(getter, setter, value -> value == null ? Set.of() : new LinkedHashSet<>(value), null);
             widgets.add(widget);
             layout.next(20);
             return widget;
@@ -859,21 +1147,171 @@ public final class UI {
                 buttons.add(button);
                 layout.next(20);
             }
+            trackModelValue(getter, setter, Function.identity(), () -> {
+                List<T> refreshedEntries = entriesSupplier.get();
+                for (int i = 0; i < buttons.size() && i < refreshedEntries.size(); i++) {
+                    buttons.get(i).setMessage(radioLabel(getter.get(), refreshedEntries.get(i), display));
+                }
+            });
             return buttons;
         }
 
         private <T> Component radioLabel(T current, T entry, Function<T, Component> display) {
             return Component.literal(Objects.equals(current, entry) ? "(*) " : "( ) ").append(display.apply(entry));
         }
+
+        private NumericSliderOptionWidget numericSlider(
+                int x,
+                int y,
+                int width,
+                Component label,
+                double min,
+                double max,
+                double step,
+                DoubleSupplier getter,
+                DoubleConsumer setter,
+                boolean percentage
+        ) {
+            NumericSliderOptionWidget widget = new NumericSliderOptionWidget(
+                    x,
+                    y,
+                    width,
+                    20,
+                    label,
+                    min,
+                    max,
+                    step,
+                    getter,
+                    setter,
+                    percentage
+            );
+            trackModelValue(getter::getAsDouble, setter::accept, Function.identity(), widget::refreshFromGetter);
+            widgets.add(widget);
+            layout.next(20);
+            return widget;
+        }
+
+        private ValidatedTextFieldWidget typedTextField(
+                Component label,
+                int width,
+                Supplier<String> getter,
+                Consumer<String> setter,
+                UiTextValidator validator
+        ) {
+            title(label);
+            ValidatedTextFieldWidget box = new ValidatedTextFieldWidget(
+                    layout.x(),
+                    layout.y(),
+                    width,
+                    20,
+                    label,
+                    validator
+            );
+            box.setValue(getter.get());
+            box.validateNow();
+            trackWidgetValue(box::getValue, box::setValue, Function.identity());
+            widgets.add(box);
+            validators.add(box::validateNow);
+            savers.add(() -> setter.accept(box.getValue().trim()));
+            layout.next(20);
+            return box;
+        }
+
+        private static Component validateInt(Component label, String value, int min, int max) {
+            String trimmed = value.trim();
+            if (trimmed.isEmpty()) {
+                return Component.literal(label.getString() + " requires a whole number.");
+            }
+            try {
+                int parsed = Integer.parseInt(trimmed);
+                if (parsed < min || parsed > max) {
+                    return Component.literal(label.getString() + " must be between " + min + " and " + max + ".");
+                }
+                return null;
+            } catch (NumberFormatException ignored) {
+                return Component.literal(label.getString() + " requires a whole number.");
+            }
+        }
+
+        private static Component validateDouble(Component label, String value, double min, double max) {
+            String trimmed = value.trim();
+            if (trimmed.isEmpty()) {
+                return Component.literal(label.getString() + " requires a numeric value.");
+            }
+            try {
+                double parsed = Double.parseDouble(trimmed);
+                if (parsed < min || parsed > max) {
+                    return Component.literal(label.getString() + " must be between " + formatDouble(min) + " and " + formatDouble(max) + ".");
+                }
+                return null;
+            } catch (NumberFormatException ignored) {
+                return Component.literal(label.getString() + " requires a numeric value.");
+            }
+        }
+
+        private static String formatDouble(double value) {
+            if (Double.isInfinite(value)) {
+                return value > 0 ? "+inf" : "-inf";
+            }
+            long rounded = Math.round(value);
+            if (Math.abs(value - rounded) < 1.0E-9D) {
+                return Long.toString(rounded);
+            }
+            String formatted = String.format(Locale.ROOT, "%.4f", value);
+            int trimIndex = formatted.length();
+            while (trimIndex > 0 && formatted.charAt(trimIndex - 1) == '0') {
+                trimIndex--;
+            }
+            if (trimIndex > 0 && formatted.charAt(trimIndex - 1) == '.') {
+                trimIndex--;
+            }
+            return formatted.substring(0, trimIndex);
+        }
+
+        private <T> void trackModelValue(
+                Supplier<T> currentValue,
+                Consumer<T> resetAction,
+                Function<T, T> copy,
+                @Nullable Runnable afterReset
+        ) {
+            Snapshot<T> snapshot = new Snapshot<>(copy.apply(currentValue.get()));
+            dirtyTrackers.add(() -> !Objects.equals(snapshot.value, copy.apply(currentValue.get())));
+            resetters.add(() -> {
+                resetAction.accept(copy.apply(snapshot.value));
+                if (afterReset != null) {
+                    afterReset.run();
+                }
+            });
+            cleanMarkers.add(() -> snapshot.value = copy.apply(currentValue.get()));
+        }
+
+        private <T> void trackWidgetValue(
+                Supplier<T> widgetValue,
+                Consumer<T> resetAction,
+                Function<T, T> copy
+        ) {
+            Snapshot<T> snapshot = new Snapshot<>(copy.apply(widgetValue.get()));
+            dirtyTrackers.add(() -> !Objects.equals(snapshot.value, copy.apply(widgetValue.get())));
+            resetters.add(() -> resetAction.accept(copy.apply(snapshot.value)));
+            cleanMarkers.add(() -> snapshot.value = copy.apply(widgetValue.get()));
+        }
     }
 
     public record ColorGroup(
-            IntSliderOptionWidget r,
-            IntSliderOptionWidget g,
-            IntSliderOptionWidget b,
-            IntSliderOptionWidget a,
+            NumericSliderOptionWidget r,
+            NumericSliderOptionWidget g,
+            NumericSliderOptionWidget b,
+            NumericSliderOptionWidget a,
             ColorPreviewWidget preview
     ) {
+    }
+
+    private static final class Snapshot<T> {
+        private T value;
+
+        private Snapshot(T value) {
+            this.value = value;
+        }
     }
 
     public static class TabbedScreen extends BaseTabbedScreen {
@@ -929,8 +1367,8 @@ public final class UI {
                 }
 
                 @Override
-                public void onSave() {
-                    page.onSave();
+                public boolean onSave() {
+                    return page.onSave();
                 }
 
                 @Override
@@ -941,6 +1379,21 @@ public final class UI {
                 @Override
                 public boolean keyPressed(KeyEvent event) {
                     return page.keyPressed(event);
+                }
+
+                @Override
+                public boolean hasUnsavedChanges() {
+                    return page.hasUnsavedChanges();
+                }
+
+                @Override
+                public void reload() {
+                    page.reload();
+                }
+
+                @Override
+                public void markClean() {
+                    page.markClean();
                 }
             };
         }
@@ -960,7 +1413,7 @@ public final class UI {
 
         static BottomBar closeOnly(Component label) {
             return (screen, centerX, bottomY) -> screen.add(
-                    Button.builder(label, b -> screen.onClose())
+                    Button.builder(label, b -> screen.requestClose())
                             .bounds(centerX - 75, bottomY, 150, 20)
                             .build()
             );
@@ -969,17 +1422,19 @@ public final class UI {
         static BottomBar saveAndClose(
                 Component closeLabel,
                 Component saveAndExitLabel,
-                Runnable saveAction
+                BooleanSupplier saveAction
         ) {
             Objects.requireNonNull(saveAction, "saveAction");
             return (screen, centerX, bottomY) -> {
-                screen.add(Button.builder(closeLabel, b -> screen.onClose())
+                screen.add(Button.builder(closeLabel, b -> screen.requestClose())
                         .bounds(centerX - 154, bottomY, 150, 20)
                         .build());
 
                 screen.add(Button.builder(saveAndExitLabel, b -> {
-                            saveAction.run();
-                            screen.onClose();
+                            if (saveAction.getAsBoolean()) {
+                                screen.markAllClean();
+                                screen.requestClose();
+                            }
                         })
                         .bounds(centerX + 4, bottomY, 150, 20)
                         .build());
@@ -989,7 +1444,7 @@ public final class UI {
         static BottomBar saveAndCloseWithExtra(
                 Component closeLabel,
                 Component saveAndExitLabel,
-                Runnable saveAction,
+                BooleanSupplier saveAction,
                 Component extraLabel,
                 Tooltip extraTooltip,
                 Runnable extraAction

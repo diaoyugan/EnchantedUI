@@ -44,8 +44,8 @@ public class UiTabbedScreen extends BaseTabbedScreen {
             }
 
             @Override
-            public void onSave() {
-                page.onSave();
+            public boolean onSave() {
+                return page.onSave();
             }
 
             @Override
@@ -56,6 +56,21 @@ public class UiTabbedScreen extends BaseTabbedScreen {
             @Override
             public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
                 return page.keyPressed(event);
+            }
+
+            @Override
+            public boolean hasUnsavedChanges() {
+                return page.hasUnsavedChanges();
+            }
+
+            @Override
+            public void reload() {
+                page.reload();
+            }
+
+            @Override
+            public void markClean() {
+                page.markClean();
             }
         };
     }
@@ -112,5 +127,27 @@ public class UiTabbedScreen extends BaseTabbedScreen {
 
     public void closeDialog() {
         super.closeDialog();
+    }
+
+    public void requestClose() {
+        super.requestClose();
+    }
+
+    @Override
+    public boolean saveAll() {
+        return super.saveAll();
+    }
+
+    @Override
+    public boolean hasUnsavedChanges() {
+        return super.hasUnsavedChanges();
+    }
+
+    public void reloadAll() {
+        super.reloadAll();
+    }
+
+    public void markAllClean() {
+        super.markAllClean();
     }
 }

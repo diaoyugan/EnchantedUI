@@ -14,6 +14,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import org.jetbrains.annotations.Nullable;
 import top.diaoyugan.enchanted_ui.client.gui.widget.button.TabButtonWidget;
+import top.diaoyugan.enchanted_ui.client.gui.widget.WidgetConditions;
 import top.diaoyugan.enchanted_ui.client.gui.widget.overlay.OverlayRenderableWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.scroll.ScrollBarWidget;
 
@@ -38,6 +39,7 @@ public class BaseTabbedScreen extends Screen {
     private BottomBar bottomBar = BottomBar.none();
     private boolean opened;
     private boolean pageAttached;
+    private boolean closeConfirmed;
     @Nullable
     private ModalDialog modal;
 
@@ -146,13 +148,36 @@ public class BaseTabbedScreen extends Screen {
 
     private void updateTabButtons() {
         for (int i = 0; i < tabButtons.size(); i++) {
-            tabButtons.get(i).active = (i != currentPage);
+            WidgetConditions.setActiveState(tabButtons.get(i), i != currentPage);
         }
     }
 
-    public void saveAll() {
+    public boolean saveAll() {
+        boolean saved = true;
         for (TabSpec tab : tabs) {
-            tab.page.onSave();
+            saved &= tab.page.onSave();
+        }
+        return saved;
+    }
+
+    public boolean hasUnsavedChanges() {
+        for (TabSpec tab : tabs) {
+            if (tab.page.hasUnsavedChanges()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void reloadAll() {
+        for (TabSpec tab : tabs) {
+            tab.page.reload();
+        }
+    }
+
+    public void markAllClean() {
+        for (TabSpec tab : tabs) {
+            tab.page.markClean();
         }
     }
 
@@ -244,9 +269,11 @@ public class BaseTabbedScreen extends Screen {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        int backgroundMouseX = modal == null ? mouseX : Integer.MIN_VALUE;
+        int backgroundMouseY = modal == null ? mouseY : Integer.MIN_VALUE;
+        super.extractRenderState(guiGraphics, backgroundMouseX, backgroundMouseY, partialTick);
         if (currentPage >= 0 && currentPage < pages.size()) {
-            pages.get(currentPage).extractOverlayRenderState(guiGraphics, mouseX, mouseY, partialTick);
+            pages.get(currentPage).extractOverlayRenderState(guiGraphics, backgroundMouseX, backgroundMouseY, partialTick);
         }
         renderToasts(guiGraphics);
         if (modal != null) {
@@ -257,6 +284,14 @@ public class BaseTabbedScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
+        for (GuiEventListener child : children()) {
+            if (child instanceof AbstractWidget widget) {
+                WidgetConditions.refresh(widget);
+            }
+        }
+        if (currentPage >= 0 && currentPage < pages.size()) {
+            pages.get(currentPage).refreshWidgetStates();
+        }
         if (currentPage >= 0 && currentPage < tabs.size()) {
             tabs.get(currentPage).page.tick();
         }
@@ -268,6 +303,34 @@ public class BaseTabbedScreen extends Screen {
 
     @Override
     public void onClose() {
+        requestClose();
+    }
+
+    public void requestClose() {
+        if (closeConfirmed) {
+            forceClose();
+            return;
+        }
+        if (modal != null) {
+            return;
+        }
+        if (hasUnsavedChanges()) {
+            showDialog(
+                    Component.literal("Unsaved Changes"),
+                    List.of(Component.literal("This screen has unsaved changes. Close without saving?")),
+                    new DialogAction(Component.literal("Discard"), () -> {
+                        closeConfirmed = true;
+                        forceClose();
+                    }, true),
+                    new DialogAction(CommonComponents.GUI_CANCEL, () -> {
+                    }, true)
+            );
+            return;
+        }
+        forceClose();
+    }
+
+    private void forceClose() {
         if (pageAttached && currentPage >= 0 && currentPage < tabs.size()) {
             tabs.get(currentPage).page.onHide();
         }
@@ -279,6 +342,7 @@ public class BaseTabbedScreen extends Screen {
         if (minecraft != null) {
             minecraft.setScreenAndShow(parent);
         }
+        closeConfirmed = false;
     }
 
     public void showToast(Component message) {
@@ -345,7 +409,16 @@ public class BaseTabbedScreen extends Screen {
         default void onPageChanged(int previousPage, int currentPage) {
         }
 
-        default void onSave() {
+        default boolean onSave() { return true; }
+
+        default boolean hasUnsavedChanges() {
+            return false;
+        }
+
+        default void reload() {
+        }
+
+        default void markClean() {
         }
 
         default void tick() {
@@ -480,13 +553,18 @@ public class BaseTabbedScreen extends Screen {
         }
 
         private void applyScroll() {
+            refreshWidgetStates();
+        }
+
+        private void refreshWidgetStates() {
             for (AbstractWidget widget : widgets) {
                 WidgetPosition base = basePositions.get(widget);
                 widget.setX(base.x());
                 widget.setY(base.y() - scrollOffset);
                 boolean intersects = widget.getBottom() > viewportTop && widget.getY() < viewportBottom;
-                widget.visible = intersects;
-                if (!intersects) {
+                widget.visible = intersects && WidgetConditions.evaluateVisible(widget);
+                widget.active = WidgetConditions.evaluateActive(widget);
+                if (!widget.visible) {
                     widget.setFocused(false);
                 }
             }

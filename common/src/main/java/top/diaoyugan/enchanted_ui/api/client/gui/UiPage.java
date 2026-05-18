@@ -23,7 +23,16 @@ public interface UiPage {
     default void onPageChanged(int previousPage, int currentPage) {
     }
 
-    default void onSave() {
+    default boolean onSave() { return true; }
+
+    default boolean hasUnsavedChanges() {
+        return false;
+    }
+
+    default void reload() {
+    }
+
+    default void markClean() {
     }
 
     default void tick() {

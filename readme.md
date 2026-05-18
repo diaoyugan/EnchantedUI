@@ -70,8 +70,9 @@ public final class ExampleScreen extends UiTabbedScreen {
 - text/title widgets
 - buttons, button rows, icon buttons, texture buttons
 - toggles and toggle rows
-- integer sliders
+- integer, long, float, and double sliders
 - validated text fields
+- integer and double number fields
 - multi-line text areas
 - keybinding widgets
 - color preview groups
@@ -80,6 +81,8 @@ public final class ExampleScreen extends UiTabbedScreen {
 - select, enum-select, searchable select, multi-select
 - radio groups
 - section nesting and custom widget mounting
+- form dirty-state helpers (`hasUnsavedChanges()`, `save()`, `reload()`, `markClean()`)
+- widget state conditions (`visibleIf(...)`, `activeIf(...)`)
 
 At screen level, `UiTabbedScreen` currently exposes:
 

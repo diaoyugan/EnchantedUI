@@ -86,8 +86,8 @@ public final class UiFormPage implements UiPage {
     }
 
     @Override
-    public void onSave() {
-        delegate.onSave();
+    public boolean onSave() {
+        return delegate.onSave();
     }
 
     @Override
@@ -123,5 +123,20 @@ public final class UiFormPage implements UiPage {
     @Override
     public boolean keyPressed(KeyEvent event) {
         return delegate.keyPressed(event);
+    }
+
+    @Override
+    public boolean hasUnsavedChanges() {
+        return delegate.hasUnsavedChanges();
+    }
+
+    @Override
+    public void reload() {
+        delegate.reload();
+    }
+
+    @Override
+    public void markClean() {
+        delegate.markClean();
     }
 }

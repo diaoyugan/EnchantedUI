@@ -60,6 +60,10 @@ Useful methods:
 - `tab(...)`
 - `bottomBar(...)`
 - `showPage(...)`
+- `saveAll()`
+- `hasUnsavedChanges()`
+- `reloadAll()`
+- `requestClose()`
 - `showToast(...)`
 - `showDialog(...)`
 - `showConfirm(...)`
@@ -119,11 +123,16 @@ Boolean / numeric:
 - `toggle(...)`
 - `toggleRow(...)`
 - `intSlider(...)`
+- `longSlider(...)`
+- `floatSlider(...)`
+- `doubleSlider(...)`
 - `rgbaSlidersWithPreview(...)`
 
 Text input:
 
 - `textField(...)`
+- `intField(...)`
+- `doubleField(...)`
 - `textArea(...)`
 
 Keybinding:
@@ -145,6 +154,18 @@ Validation:
 
 - `validate()`
 - `UiTextValidator`
+
+Form state:
+
+- `save()`
+- `hasUnsavedChanges()`
+- `reload()`
+- `markClean()`
+
+Widget state:
+
+- `visibleIf(...)`
+- `activeIf(...)`
 
 ## Widget wrappers
 
