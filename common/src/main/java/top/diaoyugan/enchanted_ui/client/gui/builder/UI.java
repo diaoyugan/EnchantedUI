@@ -11,6 +11,7 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
 import top.diaoyugan.enchanted_ui.api.client.gui.UITextValidator;
 import top.diaoyugan.enchanted_ui.api.client.gui.UISummaryItem;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIScreenStyle;
 import top.diaoyugan.enchanted_ui.client.gui.layout.HorizontalLayout;
 import top.diaoyugan.enchanted_ui.client.gui.layout.VerticalLayout;
 import top.diaoyugan.enchanted_ui.client.gui.screen.base.BaseTabbedScreen;
@@ -183,10 +184,11 @@ public final class UI {
             if (lastForm == null) {
                 return true;
             }
-            if (!lastForm.save()) {
+            if (!lastForm.runSavers()) {
                 return false;
             }
             spec.onSave(lastForm);
+            lastForm.markClean();
             return true;
         }
 
@@ -1025,6 +1027,12 @@ public final class UI {
 
         public TabbedScreen bottomBar(BottomBar bottomBar) {
             super.bottomBar(adapt(bottomBar));
+            return this;
+        }
+
+        @Override
+        public TabbedScreen style(UIScreenStyle style) {
+            super.style(style);
             return this;
         }
 

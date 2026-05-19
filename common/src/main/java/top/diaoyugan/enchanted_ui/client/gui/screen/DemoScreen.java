@@ -13,6 +13,7 @@ import top.diaoyugan.enchanted_ui.api.client.gui.UIButton;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIDialogAction;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIForm;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIFormSpec;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIScreenStyle;
 import top.diaoyugan.enchanted_ui.api.client.gui.UISlider;
 import top.diaoyugan.enchanted_ui.api.client.gui.UISummaryItem;
 import top.diaoyugan.enchanted_ui.api.client.gui.UITabbedScreen;
@@ -87,6 +88,12 @@ public class DemoScreen extends UITabbedScreen {
 
     public DemoScreen(Screen parent) {
         super(parent, Component.literal("EnchantedUI Demo Screen"));
+        style(UIScreenStyle.builder()
+                .backgroundBlur(true)
+                .bottomBarBlur(true)
+                .bottomBarBackgroundColor(0x88202020)
+                .bottomBarSeparatorColor(0x66FFFFFF)
+                .build());
 
         tab(10, 30, 20, Component.literal("Main"), EnchantedUI.formPage(200, form -> {
             UIText title = form.title(Component.literal("General Demo"));

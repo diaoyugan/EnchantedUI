@@ -48,13 +48,13 @@ public class UIWidget {
             return new UIEditableDropdownList(editableDropdown);
         }
         if (widget instanceof SelectDropdownWidget<?> selectDropdown) {
-            return new UIDropdownList(selectDropdown);
+            return new UISelect(selectDropdown);
         }
         if (widget instanceof SearchableSelectDropdownWidget<?> searchableDropdown) {
-            return new UIDropdownList(searchableDropdown);
+            return new UISearchableSelect(searchableDropdown);
         }
         if (widget instanceof MultiSelectDropdownWidget<?> multiSelectDropdown) {
-            return new UIDropdownList(multiSelectDropdown);
+            return new UIMultiSelect(multiSelectDropdown);
         }
         if (widget instanceof DropdownListWidget dropdown) {
             return new UIDropdownList(dropdown);

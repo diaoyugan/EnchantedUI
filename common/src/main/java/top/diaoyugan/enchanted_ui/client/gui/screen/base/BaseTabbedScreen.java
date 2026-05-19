@@ -6,6 +6,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -17,6 +18,7 @@ import top.diaoyugan.enchanted_ui.client.gui.widget.button.TabButtonWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.WidgetConditions;
 import top.diaoyugan.enchanted_ui.client.gui.widget.overlay.OverlayRenderableWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.scroll.ScrollBarWidget;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIScreenStyle;
 
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
@@ -40,6 +42,7 @@ public class BaseTabbedScreen extends Screen {
     private boolean opened;
     private boolean pageAttached;
     private boolean closeConfirmed;
+    private UIScreenStyle style = UIScreenStyle.DEFAULT;
     @Nullable
     private ModalDialog modal;
 
@@ -64,6 +67,15 @@ public class BaseTabbedScreen extends Screen {
     public BaseTabbedScreen bottomBar(BottomBar bottomBar) {
         this.bottomBar = Objects.requireNonNull(bottomBar, "bottomBar");
         return this;
+    }
+
+    public BaseTabbedScreen style(UIScreenStyle style) {
+        this.style = Objects.requireNonNull(style, "style");
+        return this;
+    }
+
+    public UIScreenStyle style() {
+        return style;
     }
 
     public int currentPage() {
@@ -120,6 +132,7 @@ public class BaseTabbedScreen extends Screen {
         buildTabButtons();
         showPage(currentPage);
 
+        addRenderableWidget(new BottomBarBackdropWidget(0, height - 36, width, 36, style));
         bottomBar.add(this, width / 2, height - 28);
     }
 
@@ -265,6 +278,13 @@ public class BaseTabbedScreen extends Screen {
             return pages.get(currentPage).scrollBy(verticalAmount);
         }
         return false;
+    }
+
+    @Override
+    protected void extractBlurredBackground(GuiGraphicsExtractor graphics) {
+        if (style.backgroundBlur()) {
+            super.extractBlurredBackground(graphics);
+        }
     }
 
     @Override
@@ -802,5 +822,34 @@ public class BaseTabbedScreen extends Screen {
     }
 
     private record WidgetPosition(int x, int y) {
+    }
+
+    private static final class BottomBarBackdropWidget extends AbstractWidget {
+        private final UIScreenStyle style;
+
+        private BottomBarBackdropWidget(int x, int y, int width, int height, UIScreenStyle style) {
+            super(x, y, width, height, Component.empty());
+            this.style = style;
+            this.active = false;
+        }
+
+        @Override
+        protected void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+            if (!style.bottomBarBlur() && (style.bottomBarBackgroundColor() >>> 24) == 0) {
+                return;
+            }
+
+            if (style.bottomBarBlur() && !style.backgroundBlur()) {
+                guiGraphics.blurBeforeThisStratum();
+            }
+            guiGraphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), style.bottomBarBackgroundColor());
+            if ((style.bottomBarSeparatorColor() >>> 24) != 0) {
+                guiGraphics.fill(getX(), getY(), getX() + getWidth(), getY() + 1, style.bottomBarSeparatorColor());
+            }
+        }
+
+        @Override
+        protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
+        }
     }
 }

@@ -103,6 +103,12 @@ public class UITabbedScreen extends BaseTabbedScreen {
         return this;
     }
 
+    @Override
+    public UITabbedScreen style(UIScreenStyle style) {
+        super.style(style);
+        return this;
+    }
+
     public void showToast(Component message) {
         super.showToast(message);
     }

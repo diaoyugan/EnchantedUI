@@ -594,17 +594,17 @@ public final class UIForm {
         );
     }
 
-    public <T> UIDropdownList select(
+    public <T> UISelect select(
             Component label,
             Supplier<T> getter,
             Consumer<T> setter,
             Supplier<List<T>> entriesSupplier,
             Function<T, Component> display
     ) {
-        return (UIDropdownList) UIWidget.wrap(delegate.select(label, getter, setter, entriesSupplier, display));
+        return (UISelect) UIWidget.wrap(delegate.select(label, getter, setter, entriesSupplier, display));
     }
 
-    public <T> UIDropdownList searchableSelect(
+    public <T> UISearchableSelect searchableSelect(
             Component label,
             Supplier<T> getter,
             Consumer<T> setter,
@@ -612,27 +612,27 @@ public final class UIForm {
             Function<T, Component> display,
             Component searchHint
     ) {
-        return (UIDropdownList) UIWidget.wrap(delegate.searchableSelect(label, getter, setter, entriesSupplier, display, searchHint));
+        return (UISearchableSelect) UIWidget.wrap(delegate.searchableSelect(label, getter, setter, entriesSupplier, display, searchHint));
     }
 
-    public <T> UIDropdownList multiSelect(
+    public <T> UIMultiSelect multiSelect(
             Component label,
             Supplier<Set<T>> getter,
             Consumer<Set<T>> setter,
             Supplier<List<T>> entriesSupplier,
             Function<T, Component> display
     ) {
-        return (UIDropdownList) UIWidget.wrap(delegate.multiSelect(label, getter, setter, entriesSupplier, display));
+        return (UIMultiSelect) UIWidget.wrap(delegate.multiSelect(label, getter, setter, entriesSupplier, display));
     }
 
-    public <E extends Enum<E>> UIDropdownList enumSelect(
+    public <E extends Enum<E>> UISelect enumSelect(
             Component label,
             Class<E> enumClass,
             Supplier<E> getter,
             Consumer<E> setter,
             Function<E, Component> display
     ) {
-        return (UIDropdownList) UIWidget.wrap(delegate.enumSelect(label, enumClass, getter, setter, display));
+        return (UISelect) UIWidget.wrap(delegate.enumSelect(label, enumClass, getter, setter, display));
     }
 
     public <T> List<UIButton> radioGroup(
