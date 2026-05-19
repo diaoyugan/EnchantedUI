@@ -21,6 +21,8 @@
   "eui.config.keybind.none": "%s: None",
   "eui.config.keybind.listening": "%s: Press keys...",
   "eui.dropdown.empty": "No entries",
+  "eui.display.empty": "No data",
+  "eui.display.more": "+%d more",
   "eui.dropdown.add": "Add",
   "eui.select.none": "None",
   "eui.dialog.confirm": "Confirm",

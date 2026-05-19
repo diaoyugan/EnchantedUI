@@ -21,6 +21,7 @@ EnchantedUI is no longer just a small config-screen helper. The current codebase
 - keybinding widgets
 - toast and modal dialog helpers
 - reusable widget wrappers in the public API package
+- basic display blocks for progress, status, key-value data, readonly lists, summaries, loading, errors, and empty states
 
 ## Public API
 
@@ -69,6 +70,7 @@ public final class ExampleScreen extends UITabbedScreen {
 
 - text/title widgets
 - buttons, button rows, icon buttons, texture buttons
+- progress bars, key-value rows, status badges, info blocks, loading states, error states, readonly lists, summary blocks, and empty-state blocks
 - toggles and toggle rows
 - integer, long, float, and double sliders
 - validated text fields
@@ -83,6 +85,8 @@ public final class ExampleScreen extends UITabbedScreen {
 - section nesting and custom widget mounting
 - form dirty-state helpers (`hasUnsavedChanges()`, `save()`, `reload()`, `markClean()`)
 - widget state conditions (`visibleIf(...)`, `activeIf(...)`)
+
+Display text is provided as `Component` values, and default display copy can be overridden through the relevant overloads.
 
 At screen level, `UITabbedScreen` currently exposes:
 
@@ -100,6 +104,7 @@ At screen level, `UITabbedScreen` currently exposes:
 - validated input
 - buttons and actions
 - selection widgets
+- display widgets
 - editable and readonly lists
 - scrolling
 - toast and dialog helpers

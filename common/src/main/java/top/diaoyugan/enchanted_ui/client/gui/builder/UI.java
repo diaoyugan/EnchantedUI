@@ -10,11 +10,21 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
 import top.diaoyugan.enchanted_ui.api.client.gui.UITextValidator;
+import top.diaoyugan.enchanted_ui.api.client.gui.UISummaryItem;
 import top.diaoyugan.enchanted_ui.client.gui.layout.HorizontalLayout;
 import top.diaoyugan.enchanted_ui.client.gui.layout.VerticalLayout;
 import top.diaoyugan.enchanted_ui.client.gui.screen.base.BaseTabbedScreen;
 import top.diaoyugan.enchanted_ui.client.gui.widget.button.IconButton;
 import top.diaoyugan.enchanted_ui.client.gui.widget.button.TextureButton;
+import top.diaoyugan.enchanted_ui.client.gui.widget.display.EmptyStateWidget;
+import top.diaoyugan.enchanted_ui.client.gui.widget.display.ErrorStateWidget;
+import top.diaoyugan.enchanted_ui.client.gui.widget.display.InfoBlockWidget;
+import top.diaoyugan.enchanted_ui.client.gui.widget.display.KeyValueRowWidget;
+import top.diaoyugan.enchanted_ui.client.gui.widget.display.LoadingStateWidget;
+import top.diaoyugan.enchanted_ui.client.gui.widget.display.ProgressBarWidget;
+import top.diaoyugan.enchanted_ui.client.gui.widget.display.ReadonlyListWidget;
+import top.diaoyugan.enchanted_ui.client.gui.widget.display.StatusBadgeWidget;
+import top.diaoyugan.enchanted_ui.client.gui.widget.display.SummaryBlockWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.input.CombinationKeyBindingButtonWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.input.KeyBindingButtonWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.input.ValidatedTextFieldWidget;
@@ -42,6 +52,7 @@ import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
 import java.util.function.LongConsumer;
@@ -263,6 +274,7 @@ public final class UI {
         private final List<AbstractWidget> widgets;
         private final FormStateController state;
         private final FormInputFactory inputs;
+        private final FormDisplayFactory display;
 
         public Form(BuildContext ctx, int contentWidth, int startY, int gap) {
             this(
@@ -287,6 +299,7 @@ public final class UI {
             this.widgets = widgets;
             this.state = state;
             this.inputs = new FormInputFactory(contentWidth, layout, widgets, state);
+            this.display = new FormDisplayFactory(contentWidth, layout, widgets);
         }
 
         public BuildContext ctx() {
@@ -383,6 +396,88 @@ public final class UI {
             widgets.add(w);
             layout.next(10);
             return w;
+        }
+
+        public ProgressBarWidget progressBar(Component label, DoubleSupplier progressSupplier) {
+            return display.progressBar(label, progressSupplier);
+        }
+
+        public ProgressBarWidget progressBar(Component label, int width, DoubleSupplier progressSupplier, int fillColor) {
+            return display.progressBar(label, width, progressSupplier, fillColor);
+        }
+
+        public ProgressBarWidget progressBar(Component label, int width, DoubleSupplier progressSupplier, Supplier<Component> valueSupplier, int fillColor) {
+            return display.progressBar(label, width, progressSupplier, valueSupplier, fillColor);
+        }
+
+        public KeyValueRowWidget keyValueRow(Component label, Supplier<Component> valueSupplier) {
+            return display.keyValueRow(label, valueSupplier);
+        }
+
+        public StatusBadgeWidget statusBadge(Component label, Supplier<Component> statusSupplier) {
+            return display.statusBadge(label, statusSupplier);
+        }
+
+        public StatusBadgeWidget statusBadge(Component label, Supplier<Component> statusSupplier, IntSupplier colorSupplier) {
+            return display.statusBadge(label, statusSupplier, colorSupplier);
+        }
+
+        public EmptyStateWidget emptyState(Component title, Component description) {
+            return display.emptyState(title, description);
+        }
+
+        public EmptyStateWidget emptyState(Component title, Component description, int height) {
+            return display.emptyState(title, description, height);
+        }
+
+        public InfoBlockWidget infoBlock(Component title, Component message) {
+            return display.infoBlock(title, message);
+        }
+
+        public InfoBlockWidget infoBlock(Component title, Component message, int accentColor) {
+            return display.infoBlock(title, message, accentColor);
+        }
+
+        public LoadingStateWidget loadingState(Component title, Component message) {
+            return display.loadingState(title, message);
+        }
+
+        public ErrorStateWidget errorState(Component title, Component message) {
+            return display.errorState(title, message);
+        }
+
+        public ErrorStateWidget errorState(Component title, Component message, Component actionLabel, Runnable action) {
+            return display.errorState(title, message, actionLabel, action);
+        }
+
+        public ReadonlyListWidget readonlyList(Component label, Supplier<List<Component>> entriesSupplier) {
+            return display.readonlyList(label, entriesSupplier);
+        }
+
+        public ReadonlyListWidget readonlyList(Component label, Supplier<List<Component>> entriesSupplier, int visibleRows) {
+            return display.readonlyList(label, entriesSupplier, visibleRows);
+        }
+
+        public ReadonlyListWidget readonlyList(
+                Component label,
+                Supplier<List<Component>> entriesSupplier,
+                int visibleRows,
+                Component emptyText,
+                IntFunction<Component> overflowText
+        ) {
+            return display.readonlyList(label, entriesSupplier, visibleRows, emptyText, overflowText);
+        }
+
+        public SummaryBlockWidget summaryBlock(Component title, Supplier<List<UISummaryItem>> itemsSupplier) {
+            return display.summaryBlock(title, itemsSupplier);
+        }
+
+        public SummaryBlockWidget summaryBlock(Component title, Supplier<List<UISummaryItem>> itemsSupplier, int rows) {
+            return display.summaryBlock(title, itemsSupplier, rows);
+        }
+
+        public SummaryBlockWidget summaryBlock(Component title, Supplier<List<UISummaryItem>> itemsSupplier, int rows, Component emptyText) {
+            return display.summaryBlock(title, itemsSupplier, rows, emptyText);
         }
 
         public BooleanOptionWidget toggle(Component label, BooleanSupplier getter, Consumer<Boolean> setter) {

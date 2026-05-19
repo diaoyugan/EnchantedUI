@@ -14,6 +14,7 @@ import top.diaoyugan.enchanted_ui.api.client.gui.UIDialogAction;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIForm;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIFormSpec;
 import top.diaoyugan.enchanted_ui.api.client.gui.UISlider;
+import top.diaoyugan.enchanted_ui.api.client.gui.UISummaryItem;
 import top.diaoyugan.enchanted_ui.api.client.gui.UITabbedScreen;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIText;
 import top.diaoyugan.enchanted_ui.api.client.gui.UITextField;
@@ -370,6 +371,72 @@ public class DemoScreen extends UITabbedScreen {
             for (int i = 1; i <= 18; i++) {
                 form.title(Component.literal("This is demo scroll content line " + i + "."));
             }
+        }));
+
+        tab(10, 150, 20, Component.literal("Display"), EnchantedUI.formPage(220, form -> {
+            form.title(Component.literal("Display Demo"));
+            form.infoBlock(
+                    Component.literal("Info Block"),
+                    Component.literal("This is a demo information block.")
+            ).tooltip(Component.literal("This is a demo block for neutral information."));
+
+            form.keyValueRow(
+                    Component.literal("Profile Name"),
+                    () -> Component.literal(profileName)
+            ).tooltip(Component.literal("This is a demo key-value display row."));
+
+            form.statusBadge(
+                    Component.literal("Form State"),
+                    () -> Component.literal(hasUnsavedChanges() ? "Modified" : "Clean"),
+                    () -> hasUnsavedChanges() ? 0xFF8A5A2A : 0xFF3C6E47
+            ).tooltip(Component.literal("This is a demo status badge with a dynamic value."));
+
+            form.progressBar(
+                    Component.literal("Progress Bar"),
+                    () -> threshold
+            ).tooltip(Component.literal("This is a demo progress bar using a normalized value."));
+
+            form.progressBar(
+                    Component.literal("Colored Progress"),
+                    220,
+                    () -> intensity / 100.0D,
+                    0xFF8A4EA3
+            ).tooltip(Component.literal("This is a demo progress bar with a custom fill color."));
+
+            form.space(4);
+            form.emptyState(
+                    Component.literal("Empty State"),
+                    Component.literal("This demo block represents an empty result area.")
+            ).tooltip(Component.literal("This is a demo empty state display block."));
+
+            form.space(4);
+            form.loadingState(
+                    Component.literal("Loading State"),
+                    Component.literal("This demo block represents pending work")
+            ).tooltip(Component.literal("This is a demo loading state display block."));
+
+            form.errorState(
+                    Component.literal("Error State"),
+                    Component.literal("This demo block can expose a retry action."),
+                    Component.literal("Retry"),
+                    () -> showToast(Component.literal("This is a demo retry action."))
+            ).tooltip(Component.literal("This is a demo error state with an action."));
+
+            form.readonlyList(
+                    Component.literal("Readonly List"),
+                    () -> presetEntries,
+                    4
+            ).tooltip(Component.literal("This is a demo always-visible readonly list."));
+
+            form.summaryBlock(
+                    Component.literal("Summary Block"),
+                    () -> List.of(
+                            new UISummaryItem(Component.literal("Render Profile"), Component.literal(renderProfile.name())),
+                            new UISummaryItem(Component.literal("Theme"), Component.literal(themePreset)),
+                            new UISummaryItem(Component.literal("Threshold"), Component.literal(String.format(java.util.Locale.ROOT, "%.2f", threshold))),
+                            new UISummaryItem(Component.literal("Panels"), Component.literal(Integer.toString(enabledPanels.size())))
+                    )
+            ).tooltip(Component.literal("This is a demo summary block."));
         }));
 
         bottomBar(UIBottomBar.saveAndCloseWithExtra(

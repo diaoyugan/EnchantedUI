@@ -118,6 +118,20 @@ Buttons:
 - `iconButton(...)`
 - `textureButton(...)`
 
+Display:
+
+- `progressBar(...)`
+- `keyValueRow(...)`
+- `statusBadge(...)`
+- `emptyState(...)`
+- `infoBlock(...)`
+- `loadingState(...)`
+- `errorState(...)`
+- `readonlyList(...)`
+- `summaryBlock(...)`
+
+Display text is supplied as `Component` values. Helpers that include default status text also expose overloads for custom value, empty, and overflow text where the component needs framework-generated copy.
+
 Boolean / numeric:
 
 - `toggle(...)`

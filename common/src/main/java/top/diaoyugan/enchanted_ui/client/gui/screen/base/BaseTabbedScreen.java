@@ -273,6 +273,7 @@ public class BaseTabbedScreen extends Screen {
         int backgroundMouseY = modal == null ? mouseY : Integer.MIN_VALUE;
         super.extractRenderState(guiGraphics, backgroundMouseX, backgroundMouseY, partialTick);
         if (currentPage >= 0 && currentPage < pages.size()) {
+            pages.get(currentPage).extractWidgetRenderState(guiGraphics, backgroundMouseX, backgroundMouseY, partialTick);
             pages.get(currentPage).extractOverlayRenderState(guiGraphics, backgroundMouseX, backgroundMouseY, partialTick);
         }
         renderToasts(guiGraphics);
@@ -458,6 +459,7 @@ public class BaseTabbedScreen extends Screen {
         private final Map<AbstractWidget, WidgetPosition> basePositions;
         @Nullable
         private final ScrollBarWidget scrollBar;
+        private final int screenWidth;
         private final int viewportTop;
         private final int viewportBottom;
         private final int maxScroll;
@@ -466,6 +468,7 @@ public class BaseTabbedScreen extends Screen {
 
         private PageView(List<AbstractWidget> widgets, int screenWidth, int screenHeight) {
             this.widgets = widgets;
+            this.screenWidth = screenWidth;
             this.overlays = widgets.stream()
                     .filter(OverlayRenderableWidget.class::isInstance)
                     .map(OverlayRenderableWidget.class::cast)
@@ -508,7 +511,7 @@ public class BaseTabbedScreen extends Screen {
 
         private void addTo(BaseTabbedScreen screen) {
             for (AbstractWidget widget : widgets) {
-                screen.addRenderableWidget(widget);
+                screen.addWidget(widget);
             }
             if (scrollBar != null) {
                 screen.addRenderableWidget(scrollBar);
@@ -557,12 +560,23 @@ public class BaseTabbedScreen extends Screen {
                 widget.setX(base.x());
                 widget.setY(base.y() - scrollOffset);
                 boolean intersects = widget.getBottom() > viewportTop && widget.getY() < viewportBottom;
-                widget.visible = intersects && WidgetConditions.evaluateVisible(widget);
-                widget.active = WidgetConditions.evaluateActive(widget);
+                boolean conditionVisible = WidgetConditions.evaluateVisible(widget);
+                widget.visible = intersects && conditionVisible;
+                widget.active = intersects && conditionVisible && WidgetConditions.evaluateActive(widget);
                 if (!widget.visible) {
                     widget.setFocused(false);
                 }
             }
+        }
+
+        private void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+            guiGraphics.enableScissor(0, viewportTop, screenWidth, viewportBottom);
+            for (AbstractWidget widget : widgets) {
+                if (widget.visible) {
+                    widget.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+                }
+            }
+            guiGraphics.disableScissor();
         }
 
         private void extractOverlayRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {

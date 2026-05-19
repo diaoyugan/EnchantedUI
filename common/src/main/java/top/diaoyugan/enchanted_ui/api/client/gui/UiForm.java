@@ -18,6 +18,7 @@ import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
+import java.util.function.IntFunction;
 import java.util.function.IntSupplier;
 import java.util.function.LongConsumer;
 import java.util.function.LongSupplier;
@@ -92,6 +93,88 @@ public final class UIForm {
 
     public UIText title(Component text) {
         return (UIText) UIWidget.wrap(delegate.title(text));
+    }
+
+    public UIWidget progressBar(Component label, DoubleSupplier progressSupplier) {
+        return UIWidget.wrap(delegate.progressBar(label, progressSupplier));
+    }
+
+    public UIWidget progressBar(Component label, int width, DoubleSupplier progressSupplier, int fillColor) {
+        return UIWidget.wrap(delegate.progressBar(label, width, progressSupplier, fillColor));
+    }
+
+    public UIWidget progressBar(Component label, int width, DoubleSupplier progressSupplier, Supplier<Component> valueSupplier, int fillColor) {
+        return UIWidget.wrap(delegate.progressBar(label, width, progressSupplier, valueSupplier, fillColor));
+    }
+
+    public UIWidget keyValueRow(Component label, Supplier<Component> valueSupplier) {
+        return UIWidget.wrap(delegate.keyValueRow(label, valueSupplier));
+    }
+
+    public UIWidget statusBadge(Component label, Supplier<Component> statusSupplier) {
+        return UIWidget.wrap(delegate.statusBadge(label, statusSupplier));
+    }
+
+    public UIWidget statusBadge(Component label, Supplier<Component> statusSupplier, IntSupplier colorSupplier) {
+        return UIWidget.wrap(delegate.statusBadge(label, statusSupplier, colorSupplier));
+    }
+
+    public UIWidget emptyState(Component title, Component description) {
+        return UIWidget.wrap(delegate.emptyState(title, description));
+    }
+
+    public UIWidget emptyState(Component title, Component description, int height) {
+        return UIWidget.wrap(delegate.emptyState(title, description, height));
+    }
+
+    public UIWidget infoBlock(Component title, Component message) {
+        return UIWidget.wrap(delegate.infoBlock(title, message));
+    }
+
+    public UIWidget infoBlock(Component title, Component message, int accentColor) {
+        return UIWidget.wrap(delegate.infoBlock(title, message, accentColor));
+    }
+
+    public UIWidget loadingState(Component title, Component message) {
+        return UIWidget.wrap(delegate.loadingState(title, message));
+    }
+
+    public UIWidget errorState(Component title, Component message) {
+        return UIWidget.wrap(delegate.errorState(title, message));
+    }
+
+    public UIWidget errorState(Component title, Component message, Component actionLabel, Runnable action) {
+        return UIWidget.wrap(delegate.errorState(title, message, actionLabel, action));
+    }
+
+    public UIWidget readonlyList(Component label, Supplier<List<Component>> entriesSupplier) {
+        return UIWidget.wrap(delegate.readonlyList(label, entriesSupplier));
+    }
+
+    public UIWidget readonlyList(Component label, Supplier<List<Component>> entriesSupplier, int visibleRows) {
+        return UIWidget.wrap(delegate.readonlyList(label, entriesSupplier, visibleRows));
+    }
+
+    public UIWidget readonlyList(
+            Component label,
+            Supplier<List<Component>> entriesSupplier,
+            int visibleRows,
+            Component emptyText,
+            IntFunction<Component> overflowText
+    ) {
+        return UIWidget.wrap(delegate.readonlyList(label, entriesSupplier, visibleRows, emptyText, overflowText));
+    }
+
+    public UIWidget summaryBlock(Component title, Supplier<List<UISummaryItem>> itemsSupplier) {
+        return UIWidget.wrap(delegate.summaryBlock(title, itemsSupplier));
+    }
+
+    public UIWidget summaryBlock(Component title, Supplier<List<UISummaryItem>> itemsSupplier, int rows) {
+        return UIWidget.wrap(delegate.summaryBlock(title, itemsSupplier, rows));
+    }
+
+    public UIWidget summaryBlock(Component title, Supplier<List<UISummaryItem>> itemsSupplier, int rows, Component emptyText) {
+        return UIWidget.wrap(delegate.summaryBlock(title, itemsSupplier, rows, emptyText));
     }
 
     public UIToggle toggle(Component label, BooleanSupplier getter, Consumer<Boolean> setter) {
