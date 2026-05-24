@@ -26,5 +26,9 @@
   "eui.dropdown.add": "Add",
   "eui.select.none": "None",
   "eui.dialog.confirm": "Confirm",
+  "eui.dialog.unsaved_changes.title": "Unsaved Changes",
+  "eui.dialog.unsaved_changes.message": "This screen has unsaved changes. Close without saving?",
+  "eui.dialog.unsaved_changes.discard": "Discard",
+  "eui.dialog.unsaved_changes.cancel": "Cancel",
   "eui.validation.duplicate_entry": "This entry already exists."
 }

@@ -67,6 +67,7 @@ Useful methods:
 - `showToast(...)`
 - `showDialog(...)`
 - `showConfirm(...)`
+- `unsavedChangesPrompt(...)`
 
 ### `UIPage`
 
@@ -215,6 +216,28 @@ Common `UIWidget` capabilities:
 - `showToast(Component, int durationTicks)`
 - `showDialog(Component title, List<Component> lines, UIDialogAction... actions)`
 - `showConfirm(Component title, Component message, Runnable confirmAction)`
+- `showConfirm(Component title, Component message, Component confirmLabel, Component cancelLabel, Runnable confirmAction)`
+- `unsavedChangesPrompt(UIUnsavedChangesPrompt prompt)`
+
+Screens with dirty pages use the built-in localized unsaved changes prompt by default. Override it per screen when the prompt needs business-specific wording:
+
+```java
+unsavedChangesPrompt(UIUnsavedChangesPrompt.of(
+        Component.literal("Discard profile edits?"),
+        Component.literal("The current profile has unsaved changes.")
+));
+```
+
+Use the full factory when the action labels also need custom copy:
+
+```java
+unsavedChangesPrompt(UIUnsavedChangesPrompt.of(
+        Component.literal("Leave editor?"),
+        List.of(Component.literal("Unsaved rule changes will be lost.")),
+        Component.literal("Leave"),
+        Component.literal("Keep editing")
+));
+```
 
 ## Internal example
 

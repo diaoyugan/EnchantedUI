@@ -109,6 +109,12 @@ public class UITabbedScreen extends BaseTabbedScreen {
         return this;
     }
 
+    @Override
+    public UITabbedScreen unsavedChangesPrompt(UIUnsavedChangesPrompt prompt) {
+        super.unsavedChangesPrompt(prompt);
+        return this;
+    }
+
     public void showToast(Component message) {
         super.showToast(message);
     }
@@ -129,6 +135,16 @@ public class UITabbedScreen extends BaseTabbedScreen {
 
     public void showConfirm(Component title, Component message, Runnable confirmAction) {
         super.showConfirm(title, message, confirmAction);
+    }
+
+    public void showConfirm(
+            Component title,
+            Component message,
+            Component confirmLabel,
+            Component cancelLabel,
+            Runnable confirmAction
+    ) {
+        super.showConfirm(title, message, confirmLabel, cancelLabel, confirmAction);
     }
 
     public void closeDialog() {

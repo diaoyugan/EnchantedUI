@@ -95,6 +95,7 @@ At screen level, `UITabbedScreen` currently exposes:
 - `showToast(...)`
 - `showDialog(...)`
 - `showConfirm(...)`
+- `unsavedChangesPrompt(...)`
 
 ## Demo coverage
 

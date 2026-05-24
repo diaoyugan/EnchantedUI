@@ -19,6 +19,7 @@ import top.diaoyugan.enchanted_ui.client.gui.widget.WidgetConditions;
 import top.diaoyugan.enchanted_ui.client.gui.widget.overlay.OverlayRenderableWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.scroll.ScrollBarWidget;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIScreenStyle;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIUnsavedChangesPrompt;
 
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
@@ -43,6 +44,7 @@ public class BaseTabbedScreen extends Screen {
     private boolean pageAttached;
     private boolean closeConfirmed;
     private UIScreenStyle style = UIScreenStyle.DEFAULT;
+    private UIUnsavedChangesPrompt unsavedChangesPrompt = UIUnsavedChangesPrompt.defaults();
     @Nullable
     private ModalDialog modal;
 
@@ -76,6 +78,15 @@ public class BaseTabbedScreen extends Screen {
 
     public UIScreenStyle style() {
         return style;
+    }
+
+    public BaseTabbedScreen unsavedChangesPrompt(UIUnsavedChangesPrompt prompt) {
+        this.unsavedChangesPrompt = Objects.requireNonNull(prompt, "prompt");
+        return this;
+    }
+
+    public UIUnsavedChangesPrompt unsavedChangesPrompt() {
+        return unsavedChangesPrompt;
     }
 
     public int currentPage() {
@@ -332,13 +343,13 @@ public class BaseTabbedScreen extends Screen {
         }
         if (hasUnsavedChanges()) {
             showDialog(
-                    Component.literal("Unsaved Changes"),
-                    List.of(Component.literal("This screen has unsaved changes. Close without saving?")),
-                    new DialogAction(Component.literal("Discard"), () -> {
+                    unsavedChangesPrompt.title(),
+                    unsavedChangesPrompt.lines(),
+                    new DialogAction(unsavedChangesPrompt.discardLabel(), () -> {
                         closeConfirmed = true;
                         forceClose();
                     }, true),
-                    new DialogAction(CommonComponents.GUI_CANCEL, () -> {
+                    new DialogAction(unsavedChangesPrompt.cancelLabel(), () -> {
                     }, true)
             );
             return;
@@ -377,11 +388,27 @@ public class BaseTabbedScreen extends Screen {
     }
 
     public void showConfirm(Component title, Component message, Runnable confirmAction) {
+        showConfirm(
+                title,
+                message,
+                Component.translatable("eui.dialog.confirm"),
+                CommonComponents.GUI_CANCEL,
+                confirmAction
+        );
+    }
+
+    public void showConfirm(
+            Component title,
+            Component message,
+            Component confirmLabel,
+            Component cancelLabel,
+            Runnable confirmAction
+    ) {
         showDialog(
                 title,
                 List.of(message),
-                new DialogAction(Component.translatable("eui.dialog.confirm"), confirmAction, true),
-                new DialogAction(CommonComponents.GUI_CANCEL, () -> {}, true)
+                new DialogAction(confirmLabel, confirmAction, true),
+                new DialogAction(cancelLabel, () -> {}, true)
         );
     }
 
