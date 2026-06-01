@@ -18,6 +18,7 @@ public class SearchableSelectDropdownWidget<T> extends AbstractDropdownListWidge
     private final Consumer<T> setter;
     private final Supplier<List<T>> entriesSupplier;
     private final Function<T, Component> display;
+    private final Component noneText;
     private final EditBox search;
 
     public SearchableSelectDropdownWidget(
@@ -32,11 +33,29 @@ public class SearchableSelectDropdownWidget<T> extends AbstractDropdownListWidge
             Component searchHint,
             int visibleRows
     ) {
-        super(x, y, width, label, visibleRows);
+        this(x, y, width, label, getter, setter, entriesSupplier, display, searchHint, visibleRows, Component.translatable("eui.select.none"), Component.translatable("eui.dropdown.empty"));
+    }
+
+    public SearchableSelectDropdownWidget(
+            int x,
+            int y,
+            int width,
+            Component label,
+            Supplier<T> getter,
+            Consumer<T> setter,
+            Supplier<List<T>> entriesSupplier,
+            Function<T, Component> display,
+            Component searchHint,
+            int visibleRows,
+            Component noneText,
+            Component emptyText
+    ) {
+        super(x, y, width, label, visibleRows, emptyText);
         this.getter = getter;
         this.setter = setter;
         this.entriesSupplier = entriesSupplier;
         this.display = display;
+        this.noneText = noneText;
         this.search = new EditBox(Minecraft.getInstance().font, x, y, width - (PANEL_PADDING * 2), ROW_HEIGHT, searchHint);
         this.search.setHint(searchHint);
         this.search.setCanLoseFocus(true);
@@ -50,7 +69,7 @@ public class SearchableSelectDropdownWidget<T> extends AbstractDropdownListWidge
     @Override
     protected Component headerText() {
         T current = getter.get();
-        Component currentText = current == null ? Component.translatable("eui.select.none") : display.apply(current);
+        Component currentText = current == null ? noneText : display.apply(current);
         return label().copy().append(Component.literal(": ")).append(currentText);
     }
 

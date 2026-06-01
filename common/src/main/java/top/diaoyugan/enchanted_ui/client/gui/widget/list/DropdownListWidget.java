@@ -20,6 +20,11 @@ public class DropdownListWidget extends AbstractDropdownListWidget {
         this.entriesSupplier = entriesSupplier;
     }
 
+    public DropdownListWidget(int x, int y, int width, Component label, Supplier<List<Component>> entriesSupplier, int visibleRows, Component emptyText) {
+        super(x, y, width, label, visibleRows, emptyText);
+        this.entriesSupplier = entriesSupplier;
+    }
+
     @Override
     protected List<Component> entries() {
         return entriesSupplier.get();

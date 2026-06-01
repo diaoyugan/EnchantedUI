@@ -6,10 +6,13 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import top.diaoyugan.enchanted_ui.client.gui.screen.DemoScreen;
 
-public class Command {
-    public static boolean pendingOpenDemo = false;
+public final class Command {
+    private static boolean pendingOpenDemo = false;
 
-    public static void registerAll(CommandDispatcher<CommandSourceStack> dispatcher){
+    private Command() {
+    }
+
+    public static void registerAll(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("enchantedui")
                 .then(Commands.literal("demo")
                         .executes(ctx -> {
@@ -22,7 +25,7 @@ public class Command {
         );
     }
 
-    public static void tick(Minecraft client){
+    public static void tick(Minecraft client) {
         if (!pendingOpenDemo) return;
         pendingOpenDemo = false;
         openDemo(client);

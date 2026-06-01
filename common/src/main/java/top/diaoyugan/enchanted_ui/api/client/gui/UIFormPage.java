@@ -76,10 +76,6 @@ public final class UIFormPage implements UIPage {
         this.delegate = new UI.FormPage(contentWidth, startY, gap, adapt(spec));
     }
 
-    UI.Page delegate() {
-        return delegate;
-    }
-
     @Override
     public List<AbstractWidget> build(UIBuildContext ctx) {
         return delegate.build(ctx.delegate());

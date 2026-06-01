@@ -24,6 +24,7 @@ public class EditableDropdownListWidget extends AbstractDropdownListWidget {
     private final Consumer<List<String>> setter;
     private final EditBox input;
     private final Component addLabel;
+    private final Component duplicateEntryError;
     private final UITextValidator validator;
     private final boolean allowDuplicates;
     @Nullable
@@ -68,10 +69,29 @@ public class EditableDropdownListWidget extends AbstractDropdownListWidget {
             UITextValidator validator,
             boolean allowDuplicates
     ) {
-        super(x, y, width, label, visibleRows);
+        this(x, y, width, label, getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates, Component.translatable("eui.validation.duplicate_entry"), Component.translatable("eui.dropdown.empty"));
+    }
+
+    public EditableDropdownListWidget(
+            int x,
+            int y,
+            int width,
+            Component label,
+            Supplier<List<String>> getter,
+            Consumer<List<String>> setter,
+            Component inputHint,
+            Component addLabel,
+            int visibleRows,
+            UITextValidator validator,
+            boolean allowDuplicates,
+            Component duplicateEntryError,
+            Component emptyText
+    ) {
+        super(x, y, width, label, visibleRows, emptyText);
         this.getter = getter;
         this.setter = setter;
         this.addLabel = addLabel;
+        this.duplicateEntryError = duplicateEntryError;
         this.validator = validator;
         this.allowDuplicates = allowDuplicates;
         this.input = new EditBox(Minecraft.getInstance().font, x, y, width - 44, ROW_HEIGHT, inputHint);
@@ -186,7 +206,7 @@ public class EditableDropdownListWidget extends AbstractDropdownListWidget {
             String normalized = value.toLowerCase(Locale.ROOT);
             boolean exists = updated.stream().map(entry -> entry.toLowerCase(Locale.ROOT)).anyMatch(normalized::equals);
             if (exists) {
-                error = Component.translatable("eui.validation.duplicate_entry");
+                error = duplicateEntryError;
                 input.setTooltip(net.minecraft.client.gui.components.Tooltip.create(error));
                 input.setTextColor(0xFFFF7777);
                 return;

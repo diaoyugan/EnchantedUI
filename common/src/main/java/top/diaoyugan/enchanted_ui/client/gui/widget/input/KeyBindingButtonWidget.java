@@ -6,16 +6,15 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.InputWithModifiers;
-import net.minecraft.network.chat.Component;
 import net.minecraft.client.input.KeyEvent;
+import net.minecraft.network.chat.Component;
+import top.diaoyugan.enchanted_ui.api.client.gui.UILocalization;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class KeyBindingButtonWidget extends Button.Plain {
-    private static final String DEFAULT_LISTENING_TRANSLATION_KEY = "eui.config.keybind.listening";
-
     private final Component label;
 
     private final Supplier<InputConstants.Key> getter;
@@ -27,7 +26,7 @@ public class KeyBindingButtonWidget extends Button.Plain {
     @Nullable
     private final KeyMapping vanillaKeyMapping;
 
-    private final String listeningTranslationKey;
+    private final UILocalization.KeyBindingMessages messages;
     private boolean listening = false;
     private final boolean syncVanilla;
 
@@ -54,7 +53,7 @@ public class KeyBindingButtonWidget extends Button.Plain {
                 displaySupplier,
                 vanillaKeyMapping,
                 syncVanilla,
-                DEFAULT_LISTENING_TRANSLATION_KEY
+                UILocalization.KeyBindingMessages.defaults()
         );
     }
 
@@ -69,7 +68,7 @@ public class KeyBindingButtonWidget extends Button.Plain {
             @Nullable Supplier<Component> displaySupplier,
             @Nullable KeyMapping vanillaKeyMapping,
             boolean syncVanilla,
-            String listeningTranslationKey
+            UILocalization.KeyBindingMessages messages
     ) {
         super(
                 x,
@@ -87,7 +86,7 @@ public class KeyBindingButtonWidget extends Button.Plain {
         this.displaySupplier = displaySupplier;
         this.vanillaKeyMapping = vanillaKeyMapping;
         this.syncVanilla = syncVanilla;
-        this.listeningTranslationKey = listeningTranslationKey;
+        this.messages = messages;
 
         refreshMessage();
     }
@@ -161,7 +160,7 @@ public class KeyBindingButtonWidget extends Button.Plain {
     public void refreshMessage() {
         if (listening) {
             setMessage(Component.translatable(
-                    listeningTranslationKey,
+                    messages.listeningKey(),
                     label
             ));
             return;
@@ -177,11 +176,15 @@ public class KeyBindingButtonWidget extends Button.Plain {
             keyName = Component.translatable("key.keyboard.unknown");
         }
 
-        setMessage(Component.translatable(
-                "eui.config.keybind.current",
+        setMessage(currentMessage(keyName));
+    }
+
+    private Component currentMessage(Component keyName) {
+        return Component.translatable(
+                messages.currentKey(),
                 label,
                 keyName
-        ));
+        );
     }
 
     @Override

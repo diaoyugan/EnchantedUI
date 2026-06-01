@@ -7,6 +7,7 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.network.chat.Component;
+import top.diaoyugan.enchanted_ui.api.client.gui.UILocalization;
 import org.jetbrains.annotations.Nullable;
 import top.diaoyugan.enchanted_ui.api.client.gui.UITextValidator;
 import top.diaoyugan.enchanted_ui.client.gui.layout.VerticalLayout;
@@ -127,11 +128,15 @@ final class FormInputFactory {
     }
 
     ValidatedTextFieldWidget intField(Component label, int width, int min, int max, IntSupplier getter, IntConsumer setter) {
+        return intField(label, width, min, max, getter, setter, UILocalization.FieldValidationMessages.intDefaults());
+    }
+
+    ValidatedTextFieldWidget intField(Component label, int width, int min, int max, IntSupplier getter, IntConsumer setter, UILocalization.FieldValidationMessages validationMessages) {
         return typedTextField(
                 label, width,
                 () -> Integer.toString(getter.getAsInt()),
                 value -> setter.accept(Integer.parseInt(value)),
-                value -> validateInt(label, value, min, max)
+                value -> validateInt(label, value, min, max, validationMessages)
         );
     }
 
@@ -148,11 +153,15 @@ final class FormInputFactory {
     }
 
     ValidatedTextFieldWidget doubleField(Component label, int width, double min, double max, DoubleSupplier getter, DoubleConsumer setter) {
+        return doubleField(label, width, min, max, getter, setter, UILocalization.FieldValidationMessages.doubleDefaults());
+    }
+
+    ValidatedTextFieldWidget doubleField(Component label, int width, double min, double max, DoubleSupplier getter, DoubleConsumer setter, UILocalization.FieldValidationMessages validationMessages) {
         return typedTextField(
                 label, width,
                 () -> formatDouble(getter.getAsDouble()),
                 value -> setter.accept(Double.parseDouble(value)),
-                value -> validateDouble(label, value, min, max)
+                value -> validateDouble(label, value, min, max, validationMessages)
         );
     }
 
@@ -172,13 +181,13 @@ final class FormInputFactory {
     }
 
     KeyBindingButtonWidget keyBinding(Component label, Supplier<InputConstants.Key> getter, Consumer<InputConstants.Key> setter, Supplier<Component> displaySupplier, KeyMapping vanillaKeyMapping, boolean syncVanilla) {
-        return keyBinding(label, getter, setter, displaySupplier, vanillaKeyMapping, syncVanilla, "eui.config.keybind.listening");
+        return keyBinding(label, getter, setter, displaySupplier, vanillaKeyMapping, syncVanilla, UILocalization.KeyBindingMessages.defaults());
     }
 
-    KeyBindingButtonWidget keyBinding(Component label, Supplier<InputConstants.Key> getter, Consumer<InputConstants.Key> setter, Supplier<Component> displaySupplier, KeyMapping vanillaKeyMapping, boolean syncVanilla, String listeningTranslationKey) {
+    KeyBindingButtonWidget keyBinding(Component label, Supplier<InputConstants.Key> getter, Consumer<InputConstants.Key> setter, Supplier<Component> displaySupplier, KeyMapping vanillaKeyMapping, boolean syncVanilla, UILocalization.KeyBindingMessages messages) {
         KeyBindingButtonWidget widget = new KeyBindingButtonWidget(
                 layout.x(), layout.y(), contentWidth, 20, label,
-                getter, setter, displaySupplier, vanillaKeyMapping, syncVanilla, listeningTranslationKey
+                getter, setter, displaySupplier, vanillaKeyMapping, syncVanilla, messages
         );
         trackModelValue(getter, widget::applyExternalKey, Function.identity(), widget::refreshMessage);
         widgets.add(widget);
@@ -187,12 +196,12 @@ final class FormInputFactory {
     }
 
     CombinationKeyBindingButtonWidget combinationKeyBinding(Component label, Supplier<Set<Integer>> getter, Consumer<Set<Integer>> setter) {
-        return combinationKeyBinding(label, getter, setter, "eui.config.keybind.listening");
+        return combinationKeyBinding(label, getter, setter, UILocalization.KeyBindingMessages.defaults());
     }
 
-    CombinationKeyBindingButtonWidget combinationKeyBinding(Component label, Supplier<Set<Integer>> getter, Consumer<Set<Integer>> setter, String listeningTranslationKey) {
+    CombinationKeyBindingButtonWidget combinationKeyBinding(Component label, Supplier<Set<Integer>> getter, Consumer<Set<Integer>> setter, UILocalization.KeyBindingMessages messages) {
         CombinationKeyBindingButtonWidget widget = new CombinationKeyBindingButtonWidget(
-                layout.x(), layout.y(), contentWidth, 20, label, getter, setter, listeningTranslationKey
+                layout.x(), layout.y(), contentWidth, 20, label, getter, setter, messages
         );
         trackModelValue(getter, setter, value -> value == null ? Set.of() : new LinkedHashSet<>(value), null);
         widgets.add(widget);
@@ -201,19 +210,23 @@ final class FormInputFactory {
     }
 
     UI.ColorGroup rgbaSlidersWithPreview(Component title, Supplier<Integer> rGetter, IntConsumer rSetter, Supplier<Integer> gGetter, IntConsumer gSetter, Supplier<Integer> bGetter, IntConsumer bSetter, Supplier<Integer> aGetter, IntConsumer aSetter, boolean alphaAsPercentage) {
+        return rgbaSlidersWithPreview(title, UILocalization.ColorLabels.defaults(), rGetter, rSetter, gGetter, gSetter, bGetter, bSetter, aGetter, aSetter, alphaAsPercentage);
+    }
+
+    UI.ColorGroup rgbaSlidersWithPreview(Component title, UILocalization.ColorLabels labels, Supplier<Integer> rGetter, IntConsumer rSetter, Supplier<Integer> gGetter, IntConsumer gSetter, Supplier<Integer> bGetter, IntConsumer bSetter, Supplier<Integer> aGetter, IntConsumer aSetter, boolean alphaAsPercentage) {
         title(title);
         int sliderWidth = 90;
         int sliderHeight = 20;
         int previewHeight = (sliderHeight * 4) + 24;
 
-        NumericSliderOptionWidget r = intSlider(Component.translatable("eui.config.rgba.red"), sliderWidth, 0, 255, rGetter::get, rSetter, false);
+        NumericSliderOptionWidget r = intSlider(labels.red(), sliderWidth, 0, 255, rGetter::get, rSetter, false);
         int previewX = layout.x() + sliderWidth;
-        ColorPreviewWidget preview = new ColorPreviewWidget(previewX + 20, r.getY(), sliderWidth, previewHeight, rGetter::get, gGetter::get, bGetter::get, aGetter::get);
+        ColorPreviewWidget preview = new ColorPreviewWidget(previewX + 20, r.getY(), sliderWidth, previewHeight, labels.preview(), rGetter::get, gGetter::get, bGetter::get, aGetter::get);
         widgets.add(preview);
 
-        NumericSliderOptionWidget g = intSlider(Component.translatable("eui.config.rgba.green"), sliderWidth, 0, 255, gGetter::get, gSetter, false);
-        NumericSliderOptionWidget b = intSlider(Component.translatable("eui.config.rgba.blue"), sliderWidth, 0, 255, bGetter::get, bSetter, false);
-        NumericSliderOptionWidget a = intSlider(Component.translatable("eui.config.rgba.alpha"), sliderWidth, 0, 255, aGetter::get, aSetter, alphaAsPercentage);
+        NumericSliderOptionWidget g = intSlider(labels.green(), sliderWidth, 0, 255, gGetter::get, gSetter, false);
+        NumericSliderOptionWidget b = intSlider(labels.blue(), sliderWidth, 0, 255, bGetter::get, bSetter, false);
+        NumericSliderOptionWidget a = intSlider(labels.alpha(), sliderWidth, 0, 255, aGetter::get, aSetter, alphaAsPercentage);
         return new UI.ColorGroup(r, g, b, a, preview);
     }
 
@@ -222,7 +235,11 @@ final class FormInputFactory {
     }
 
     DropdownListWidget dropdownList(Component label, int width, Supplier<List<Component>> entriesSupplier, int visibleRows) {
-        DropdownListWidget widget = new DropdownListWidget(layout.x(), layout.y(), width, label, entriesSupplier, visibleRows);
+        return dropdownList(label, width, entriesSupplier, visibleRows, Component.translatable("eui.dropdown.empty"));
+    }
+
+    DropdownListWidget dropdownList(Component label, int width, Supplier<List<Component>> entriesSupplier, int visibleRows, Component emptyText) {
+        DropdownListWidget widget = new DropdownListWidget(layout.x(), layout.y(), width, label, entriesSupplier, visibleRows, emptyText);
         widgets.add(widget);
         layout.next(20);
         return widget;
@@ -237,8 +254,12 @@ final class FormInputFactory {
     }
 
     EditableDropdownListWidget editableDropdownList(Component label, int width, Supplier<List<String>> getter, Consumer<List<String>> setter, Component inputHint, Component addLabel, int visibleRows, UITextValidator validator, boolean allowDuplicates) {
+        return editableDropdownList(label, width, getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates, Component.translatable("eui.validation.duplicate_entry"), Component.translatable("eui.dropdown.empty"));
+    }
+
+    EditableDropdownListWidget editableDropdownList(Component label, int width, Supplier<List<String>> getter, Consumer<List<String>> setter, Component inputHint, Component addLabel, int visibleRows, UITextValidator validator, boolean allowDuplicates, Component duplicateEntryError, Component emptyText) {
         EditableDropdownListWidget widget = new EditableDropdownListWidget(
-                layout.x(), layout.y(), width, label, getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates
+                layout.x(), layout.y(), width, label, getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates, duplicateEntryError, emptyText
         );
         trackModelValue(getter, setter, ArrayList::new, null);
         widgets.add(widget);
@@ -251,7 +272,11 @@ final class FormInputFactory {
     }
 
     <T> SelectDropdownWidget<T> select(Component label, int width, Supplier<T> getter, Consumer<T> setter, Supplier<List<T>> entriesSupplier, Function<T, Component> display, int visibleRows) {
-        SelectDropdownWidget<T> widget = new SelectDropdownWidget<>(layout.x(), layout.y(), width, label, getter, setter, entriesSupplier, display, visibleRows);
+        return select(label, width, getter, setter, entriesSupplier, display, visibleRows, Component.translatable("eui.select.none"), Component.translatable("eui.dropdown.empty"));
+    }
+
+    <T> SelectDropdownWidget<T> select(Component label, int width, Supplier<T> getter, Consumer<T> setter, Supplier<List<T>> entriesSupplier, Function<T, Component> display, int visibleRows, Component noneText, Component emptyText) {
+        SelectDropdownWidget<T> widget = new SelectDropdownWidget<>(layout.x(), layout.y(), width, label, getter, setter, entriesSupplier, display, visibleRows, noneText, emptyText);
         trackModelValue(getter, setter, Function.identity(), null);
         widgets.add(widget);
         layout.next(20);
@@ -263,8 +288,12 @@ final class FormInputFactory {
     }
 
     <T> SearchableSelectDropdownWidget<T> searchableSelect(Component label, Supplier<T> getter, Consumer<T> setter, Supplier<List<T>> entriesSupplier, Function<T, Component> display, Component searchHint) {
+        return searchableSelect(label, getter, setter, entriesSupplier, display, searchHint, Component.translatable("eui.select.none"), Component.translatable("eui.dropdown.empty"));
+    }
+
+    <T> SearchableSelectDropdownWidget<T> searchableSelect(Component label, Supplier<T> getter, Consumer<T> setter, Supplier<List<T>> entriesSupplier, Function<T, Component> display, Component searchHint, Component noneText, Component emptyText) {
         SearchableSelectDropdownWidget<T> widget = new SearchableSelectDropdownWidget<>(
-                layout.x(), layout.y(), contentWidth, label, getter, setter, entriesSupplier, display, searchHint, 5
+                layout.x(), layout.y(), contentWidth, label, getter, setter, entriesSupplier, display, searchHint, 5, noneText, emptyText
         );
         trackModelValue(getter, setter, Function.identity(), null);
         widgets.add(widget);
@@ -346,35 +375,35 @@ final class FormInputFactory {
         return Component.literal(Objects.equals(current, entry) ? "(*) " : "( ) ").append(display.apply(entry));
     }
 
-    private static Component validateInt(Component label, String value, int min, int max) {
+    private static Component validateInt(Component label, String value, int min, int max, UILocalization.FieldValidationMessages validationMessages) {
         String trimmed = value.trim();
         if (trimmed.isEmpty()) {
-            return Component.translatable("eui.validation.int.required", label);
+            return validationMessages.required(label);
         }
         try {
             int parsed = Integer.parseInt(trimmed);
             if (parsed < min || parsed > max) {
-                return Component.translatable("eui.validation.int.range", label, min, max);
+                return validationMessages.intRange(label, min, max);
             }
             return null;
         } catch (NumberFormatException ignored) {
-            return Component.translatable("eui.validation.int.required", label);
+            return validationMessages.required(label);
         }
     }
 
-    private static Component validateDouble(Component label, String value, double min, double max) {
+    private static Component validateDouble(Component label, String value, double min, double max, UILocalization.FieldValidationMessages validationMessages) {
         String trimmed = value.trim();
         if (trimmed.isEmpty()) {
-            return Component.translatable("eui.validation.double.required", label);
+            return validationMessages.required(label);
         }
         try {
             double parsed = Double.parseDouble(trimmed);
             if (parsed < min || parsed > max) {
-                return Component.translatable("eui.validation.double.range", label, formatDouble(min), formatDouble(max));
+                return validationMessages.doubleRange(label, formatDouble(min), formatDouble(max));
             }
             return null;
         } catch (NumberFormatException ignored) {
-            return Component.translatable("eui.validation.double.required", label);
+            return validationMessages.required(label);
         }
     }
 

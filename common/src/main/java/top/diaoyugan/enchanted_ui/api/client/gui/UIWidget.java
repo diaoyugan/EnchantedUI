@@ -1,23 +1,20 @@
 package top.diaoyugan.enchanted_ui.api.client.gui;
 
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import top.diaoyugan.enchanted_ui.client.gui.widget.WidgetConditions;
-import top.diaoyugan.enchanted_ui.client.gui.widget.input.CombinationKeyBindingButtonWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.input.KeyBindingButtonWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.input.ValidatedTextFieldWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.list.DropdownListWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.list.EditableDropdownListWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.list.MultiSelectDropdownWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.list.SearchableSelectDropdownWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.list.SelectDropdownWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.option.BooleanOptionWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.option.ColorPreviewWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.option.NumericSliderOptionWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.option.TextWidget;
 
+/**
+ * Base wrapper for widgets returned by the public API.
+ * <p>
+ * It provides common operations such as tooltips, visibility, active state,
+ * position, size, and message updates. Use {@link #vanilla()} only when you
+ * need direct access to the underlying Minecraft widget.
+ */
 public class UIWidget {
     private final AbstractWidget delegate;
 
@@ -29,45 +26,18 @@ public class UIWidget {
         if (widget instanceof NumericSliderOptionWidget slider) {
             return new UISlider(slider);
         }
-        if (widget instanceof TextWidget text) {
-            return new UIText(text);
-        }
         if (widget instanceof ValidatedTextFieldWidget textField) {
             return new UITextField(textField);
         }
-        if (widget instanceof BooleanOptionWidget toggle) {
-            return new UIToggle(toggle);
-        }
-        if (widget instanceof KeyBindingButtonWidget keyBinding) {
-            return new UIKeyBinding(keyBinding);
-        }
-        if (widget instanceof CombinationKeyBindingButtonWidget combo) {
-            return new UICombinationKeyBinding(combo);
-        }
-        if (widget instanceof EditableDropdownListWidget editableDropdown) {
-            return new UIEditableDropdownList(editableDropdown);
-        }
-        if (widget instanceof SelectDropdownWidget<?> selectDropdown) {
-            return new UISelect(selectDropdown);
-        }
-        if (widget instanceof SearchableSelectDropdownWidget<?> searchableDropdown) {
-            return new UISearchableSelect(searchableDropdown);
-        }
-        if (widget instanceof MultiSelectDropdownWidget<?> multiSelectDropdown) {
-            return new UIMultiSelect(multiSelectDropdown);
-        }
-        if (widget instanceof DropdownListWidget dropdown) {
-            return new UIDropdownList(dropdown);
-        }
-        if (widget instanceof ColorPreviewWidget preview) {
-            return new UIColorPreview(preview);
-        }
-        if (widget instanceof Button button) {
-            return new UIButton(button);
+        if (widget instanceof MultiLineEditBox textArea) {
+            return new UITextArea(textArea);
         }
         return new UIWidget(widget);
     }
 
+    /**
+     * Returns the underlying Minecraft widget.
+     */
     public final AbstractWidget vanilla() {
         return delegate;
     }
@@ -76,6 +46,9 @@ public class UIWidget {
         return delegate;
     }
 
+    /**
+     * Sets a simple text tooltip.
+     */
     public UIWidget tooltip(Component tooltip) {
         delegate.setTooltip(Tooltip.create(tooltip));
         return this;
@@ -94,21 +67,33 @@ public class UIWidget {
         return tooltip(tooltip);
     }
 
+    /**
+     * Shows or hides this widget immediately.
+     */
     public UIWidget visible(boolean visible) {
         WidgetConditions.setVisibleState(delegate, visible);
         return this;
     }
 
+    /**
+     * Re-evaluates visibility from the supplied condition during screen ticks.
+     */
     public UIWidget visibleIf(java.util.function.BooleanSupplier condition) {
         WidgetConditions.visibleIf(delegate, condition);
         return this;
     }
 
+    /**
+     * Enables or disables this widget immediately.
+     */
     public UIWidget active(boolean active) {
         WidgetConditions.setActiveState(delegate, active);
         return this;
     }
 
+    /**
+     * Re-evaluates active state from the supplied condition during screen ticks.
+     */
     public UIWidget activeIf(java.util.function.BooleanSupplier condition) {
         WidgetConditions.activeIf(delegate, condition);
         return this;
@@ -170,5 +155,91 @@ public class UIWidget {
 
     public UIWidget bounds(int x, int y, int width, int height) {
         return position(x, y).size(width, height);
+    }
+}
+
+abstract class UISpecializedWidget<T extends UISpecializedWidget<T>> extends UIWidget {
+    UISpecializedWidget(AbstractWidget delegate) {
+        super(delegate);
+    }
+
+    protected abstract T self();
+
+    @Override
+    public T tooltip(Component tooltip) {
+        super.tooltip(tooltip);
+        return self();
+    }
+
+    @Override
+    public T setTooltip(Component tooltip) {
+        super.setTooltip(tooltip);
+        return self();
+    }
+
+    @Override
+    public T tooltip(Tooltip tooltip) {
+        super.tooltip(tooltip);
+        return self();
+    }
+
+    @Override
+    public T setTooltip(Tooltip tooltip) {
+        super.setTooltip(tooltip);
+        return self();
+    }
+
+    @Override
+    public T visible(boolean visible) {
+        super.visible(visible);
+        return self();
+    }
+
+    @Override
+    public T visibleIf(java.util.function.BooleanSupplier condition) {
+        super.visibleIf(condition);
+        return self();
+    }
+
+    @Override
+    public T active(boolean active) {
+        super.active(active);
+        return self();
+    }
+
+    @Override
+    public T activeIf(java.util.function.BooleanSupplier condition) {
+        super.activeIf(condition);
+        return self();
+    }
+
+    @Override
+    public T focused(boolean focused) {
+        super.focused(focused);
+        return self();
+    }
+
+    @Override
+    public T message(Component message) {
+        super.message(message);
+        return self();
+    }
+
+    @Override
+    public T position(int x, int y) {
+        super.position(x, y);
+        return self();
+    }
+
+    @Override
+    public T size(int width, int height) {
+        super.size(width, height);
+        return self();
+    }
+
+    @Override
+    public T bounds(int x, int y, int width, int height) {
+        super.bounds(x, y, width, height);
+        return self();
     }
 }

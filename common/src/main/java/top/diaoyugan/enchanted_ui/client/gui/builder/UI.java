@@ -1,20 +1,16 @@
 package top.diaoyugan.enchanted_ui.client.gui.builder;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.MultiLineEditBox;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
+import top.diaoyugan.enchanted_ui.api.client.gui.UILocalization;
 import top.diaoyugan.enchanted_ui.api.client.gui.UITextValidator;
 import top.diaoyugan.enchanted_ui.api.client.gui.UISummaryItem;
-import top.diaoyugan.enchanted_ui.api.client.gui.UIScreenStyle;
 import top.diaoyugan.enchanted_ui.client.gui.layout.HorizontalLayout;
 import top.diaoyugan.enchanted_ui.client.gui.layout.VerticalLayout;
-import top.diaoyugan.enchanted_ui.client.gui.screen.base.BaseTabbedScreen;
 import top.diaoyugan.enchanted_ui.client.gui.widget.button.IconButton;
 import top.diaoyugan.enchanted_ui.client.gui.widget.button.TextureButton;
 import top.diaoyugan.enchanted_ui.client.gui.widget.display.EmptyStateWidget;
@@ -69,10 +65,6 @@ public final class UI {
     private UI() {
     }
 
-    public static TabbedScreen tabbed(net.minecraft.client.gui.screens.Screen parent, Component title) {
-        return new TabbedScreen(parent, title);
-    }
-
     public record BuildContext(int screenWidth, int screenHeight, int centerX) {
         public VerticalLayout vertical(int contentWidth, int startY, int gap) {
             int leftX = centerX - contentWidth / 2;
@@ -81,44 +73,6 @@ public final class UI {
 
         public HorizontalLayout horizontal(int startX, int startY, int gap) {
             return new HorizontalLayout(startX, startY, gap);
-        }
-    }
-
-    public interface Page {
-        List<AbstractWidget> build(BuildContext ctx);
-
-        default void onOpen() {
-        }
-
-        default void onClose() {
-        }
-
-        default void onShow() {
-        }
-
-        default void onHide() {
-        }
-
-        default void onPageChanged(int previousPage, int currentPage) {
-        }
-
-        default boolean onSave() { return true; }
-
-        default boolean hasUnsavedChanges() {
-            return false;
-        }
-
-        default void reload() {
-        }
-
-        default void markClean() {
-        }
-
-        default void tick() {
-        }
-
-        default boolean keyPressed(KeyEvent event) {
-            return false;
         }
     }
 
@@ -151,7 +105,7 @@ public final class UI {
         }
     }
 
-    public static final class FormPage implements Page {
+    public static final class FormPage {
 
         private final int contentWidth;
         private final int startY;
@@ -171,7 +125,6 @@ public final class UI {
             return lastForm;
         }
 
-        @Override
         public List<AbstractWidget> build(BuildContext ctx) {
             Form form = new Form(ctx, contentWidth, startY, gap);
             spec.build(form);
@@ -179,7 +132,6 @@ public final class UI {
             return form.widgets();
         }
 
-        @Override
         public boolean onSave() {
             if (lastForm == null) {
                 return true;
@@ -192,81 +144,63 @@ public final class UI {
             return true;
         }
 
-        @Override
         public void onOpen() {
             if (lastForm != null) {
                 spec.onOpen(lastForm);
             }
         }
 
-        @Override
         public void onClose() {
             if (lastForm != null) {
                 spec.onClose(lastForm);
             }
         }
 
-        @Override
         public void onShow() {
             if (lastForm != null) {
                 spec.onShow(lastForm);
             }
         }
 
-        @Override
         public void onHide() {
             if (lastForm != null) {
                 spec.onHide(lastForm);
             }
         }
 
-        @Override
         public void onPageChanged(int previousPage, int currentPage) {
             if (lastForm != null) {
                 spec.onPageChanged(lastForm, previousPage, currentPage);
             }
         }
 
-        @Override
         public void tick() {
             if (lastForm == null) return;
             lastForm.tick();
             spec.tick(lastForm);
         }
 
-        @Override
         public boolean keyPressed(KeyEvent event) {
             if (lastForm == null) return false;
             if (lastForm.keyPressed(event)) return true;
             return spec.keyPressed(lastForm, event);
         }
 
-        @Override
         public boolean hasUnsavedChanges() {
             return lastForm != null && lastForm.hasUnsavedChanges();
         }
 
-        @Override
         public void reload() {
             if (lastForm != null) {
                 lastForm.reload();
             }
         }
 
-        @Override
         public void markClean() {
             if (lastForm != null) {
                 lastForm.markClean();
             }
         }
-    }
-
-    public static FormPage formPage(int contentWidth, FormSpec spec) {
-        return new FormPage(contentWidth, 10, 4, spec);
-    }
-
-    public static FormPage formPage(int contentWidth, int startY, int gap, FormSpec spec) {
-        return new FormPage(contentWidth, startY, gap, spec);
     }
 
     public static final class Form {
@@ -775,6 +709,18 @@ public final class UI {
             return inputs.intField(label, width, min, max, getter, setter);
         }
 
+        public ValidatedTextFieldWidget intField(
+                Component label,
+                int width,
+                int min,
+                int max,
+                IntSupplier getter,
+                IntConsumer setter,
+                UILocalization.FieldValidationMessages validationMessages
+        ) {
+            return inputs.intField(label, width, min, max, getter, setter, validationMessages);
+        }
+
         public ValidatedTextFieldWidget doubleField(
                 Component label,
                 DoubleSupplier getter,
@@ -813,6 +759,18 @@ public final class UI {
             return inputs.doubleField(label, width, min, max, getter, setter);
         }
 
+        public ValidatedTextFieldWidget doubleField(
+                Component label,
+                int width,
+                double min,
+                double max,
+                DoubleSupplier getter,
+                DoubleConsumer setter,
+                UILocalization.FieldValidationMessages validationMessages
+        ) {
+            return inputs.doubleField(label, width, min, max, getter, setter, validationMessages);
+        }
+
         public MultiLineEditBox textArea(
                 Component label,
                 int height,
@@ -840,9 +798,9 @@ public final class UI {
                 Supplier<Component> displaySupplier,
                 KeyMapping vanillaKeyMapping,
                 boolean syncVanilla,
-                String listeningTranslationKey
+                UILocalization.KeyBindingMessages messages
         ) {
-            return inputs.keyBinding(label, getter, setter, displaySupplier, vanillaKeyMapping, syncVanilla, listeningTranslationKey);
+            return inputs.keyBinding(label, getter, setter, displaySupplier, vanillaKeyMapping, syncVanilla, messages);
         }
 
         public CombinationKeyBindingButtonWidget combinationKeyBinding(
@@ -857,9 +815,9 @@ public final class UI {
                 Component label,
                 Supplier<Set<Integer>> getter,
                 Consumer<Set<Integer>> setter,
-                String listeningTranslationKey
+                UILocalization.KeyBindingMessages messages
         ) {
-            return inputs.combinationKeyBinding(label, getter, setter, listeningTranslationKey);
+            return inputs.combinationKeyBinding(label, getter, setter, messages);
         }
 
         public ColorGroup rgbaSlidersWithPreview(
@@ -877,12 +835,32 @@ public final class UI {
             return inputs.rgbaSlidersWithPreview(title, rGetter, rSetter, gGetter, gSetter, bGetter, bSetter, aGetter, aSetter, alphaAsPercentage);
         }
 
+        public ColorGroup rgbaSlidersWithPreview(
+                Component title,
+                UILocalization.ColorLabels labels,
+                Supplier<Integer> rGetter,
+                IntConsumer rSetter,
+                Supplier<Integer> gGetter,
+                IntConsumer gSetter,
+                Supplier<Integer> bGetter,
+                IntConsumer bSetter,
+                Supplier<Integer> aGetter,
+                IntConsumer aSetter,
+                boolean alphaAsPercentage
+        ) {
+            return inputs.rgbaSlidersWithPreview(title, labels, rGetter, rSetter, gGetter, gSetter, bGetter, bSetter, aGetter, aSetter, alphaAsPercentage);
+        }
+
         public DropdownListWidget dropdownList(Component label, Supplier<List<Component>> entriesSupplier) {
             return inputs.dropdownList(label, entriesSupplier);
         }
 
         public DropdownListWidget dropdownList(Component label, int width, Supplier<List<Component>> entriesSupplier, int visibleRows) {
             return inputs.dropdownList(label, width, entriesSupplier, visibleRows);
+        }
+
+        public DropdownListWidget dropdownList(Component label, int width, Supplier<List<Component>> entriesSupplier, int visibleRows, Component emptyText) {
+            return inputs.dropdownList(label, width, entriesSupplier, visibleRows, emptyText);
         }
 
         public EditableDropdownListWidget editableDropdownList(
@@ -920,6 +898,22 @@ public final class UI {
             return inputs.editableDropdownList(label, width, getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates);
         }
 
+        public EditableDropdownListWidget editableDropdownList(
+                Component label,
+                int width,
+                Supplier<List<String>> getter,
+                Consumer<List<String>> setter,
+                Component inputHint,
+                Component addLabel,
+                int visibleRows,
+                UITextValidator validator,
+                boolean allowDuplicates,
+                Component duplicateEntryError,
+                Component emptyText
+        ) {
+            return inputs.editableDropdownList(label, width, getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates, duplicateEntryError, emptyText);
+        }
+
         public <T> SelectDropdownWidget<T> select(
                 Component label,
                 Supplier<T> getter,
@@ -942,6 +936,20 @@ public final class UI {
             return inputs.select(label, width, getter, setter, entriesSupplier, display, visibleRows);
         }
 
+        public <T> SelectDropdownWidget<T> select(
+                Component label,
+                int width,
+                Supplier<T> getter,
+                Consumer<T> setter,
+                Supplier<List<T>> entriesSupplier,
+                Function<T, Component> display,
+                int visibleRows,
+                Component noneText,
+                Component emptyText
+        ) {
+            return inputs.select(label, width, getter, setter, entriesSupplier, display, visibleRows, noneText, emptyText);
+        }
+
         public <E extends Enum<E>> SelectDropdownWidget<E> enumSelect(
                 Component label,
                 Class<E> enumClass,
@@ -961,6 +969,19 @@ public final class UI {
                 Component searchHint
         ) {
             return inputs.searchableSelect(label, getter, setter, entriesSupplier, display, searchHint);
+        }
+
+        public <T> SearchableSelectDropdownWidget<T> searchableSelect(
+                Component label,
+                Supplier<T> getter,
+                Consumer<T> setter,
+                Supplier<List<T>> entriesSupplier,
+                Function<T, Component> display,
+                Component searchHint,
+                Component noneText,
+                Component emptyText
+        ) {
+            return inputs.searchableSelect(label, getter, setter, entriesSupplier, display, searchHint, noneText, emptyText);
         }
 
         public <T> MultiSelectDropdownWidget<T> multiSelect(
@@ -1010,164 +1031,4 @@ public final class UI {
     ) {
     }
 
-    public static class TabbedScreen extends BaseTabbedScreen {
-        public TabbedScreen(@Nullable net.minecraft.client.gui.screens.Screen parent, Component title) {
-            super(parent, title);
-        }
-
-        public TabbedScreen tab(int x, int y, int height, Component label, Page page) {
-            super.tab(x, y, height, label, adapt(page));
-            return this;
-        }
-
-        public TabbedScreen tab(int x, int y, int height, Component label, Style style, Page page) {
-            super.tab(x, y, height, label, style, adapt(page));
-            return this;
-        }
-
-        public TabbedScreen bottomBar(BottomBar bottomBar) {
-            super.bottomBar(adapt(bottomBar));
-            return this;
-        }
-
-        @Override
-        public TabbedScreen style(UIScreenStyle style) {
-            super.style(style);
-            return this;
-        }
-
-        private static BaseTabbedScreen.Page adapt(Page page) {
-            return new BaseTabbedScreen.Page() {
-                @Override
-                public List<AbstractWidget> build(BaseTabbedScreen.BuildContext ctx) {
-                    return page.build(new BuildContext(ctx.screenWidth(), ctx.screenHeight(), ctx.centerX()));
-                }
-
-                @Override
-                public void onOpen() {
-                    page.onOpen();
-                }
-
-                @Override
-                public void onClose() {
-                    page.onClose();
-                }
-
-                @Override
-                public void onShow() {
-                    page.onShow();
-                }
-
-                @Override
-                public void onHide() {
-                    page.onHide();
-                }
-
-                @Override
-                public void onPageChanged(int previousPage, int currentPage) {
-                    page.onPageChanged(previousPage, currentPage);
-                }
-
-                @Override
-                public boolean onSave() {
-                    return page.onSave();
-                }
-
-                @Override
-                public void tick() {
-                    page.tick();
-                }
-
-                @Override
-                public boolean keyPressed(KeyEvent event) {
-                    return page.keyPressed(event);
-                }
-
-                @Override
-                public boolean hasUnsavedChanges() {
-                    return page.hasUnsavedChanges();
-                }
-
-                @Override
-                public void reload() {
-                    page.reload();
-                }
-
-                @Override
-                public void markClean() {
-                    page.markClean();
-                }
-            };
-        }
-
-        private static BaseTabbedScreen.BottomBar adapt(BottomBar bottomBar) {
-            return (screen, centerX, bottomY) -> bottomBar.add((TabbedScreen) screen, centerX, bottomY);
-        }
-    }
-
-    public interface BottomBar {
-        void add(TabbedScreen screen, int centerX, int bottomY);
-
-        static BottomBar none() {
-            return (screen, centerX, bottomY) -> {
-            };
-        }
-
-        static BottomBar closeOnly(Component label) {
-            return (screen, centerX, bottomY) -> screen.add(
-                    Button.builder(label, b -> screen.requestClose())
-                            .bounds(centerX - 75, bottomY, 150, 20)
-                            .build()
-            );
-        }
-
-        static BottomBar saveAndClose(
-                Component closeLabel,
-                Component saveAndExitLabel,
-                BooleanSupplier saveAction
-        ) {
-            Objects.requireNonNull(saveAction, "saveAction");
-            return (screen, centerX, bottomY) -> {
-                screen.add(Button.builder(closeLabel, b -> screen.requestClose())
-                        .bounds(centerX - 154, bottomY, 150, 20)
-                        .build());
-
-                screen.add(Button.builder(saveAndExitLabel, b -> {
-                            if (saveAction.getAsBoolean()) {
-                                screen.markAllClean();
-                                screen.requestClose();
-                            }
-                        })
-                        .bounds(centerX + 4, bottomY, 150, 20)
-                        .build());
-            };
-        }
-
-        static BottomBar saveAndCloseWithExtra(
-                Component closeLabel,
-                Component saveAndExitLabel,
-                BooleanSupplier saveAction,
-                Component extraLabel,
-                Tooltip extraTooltip,
-                Runnable extraAction
-        ) {
-            Objects.requireNonNull(saveAction, "saveAction");
-            Objects.requireNonNull(extraAction, "extraAction");
-            return (screen, centerX, bottomY) -> {
-                saveAndClose(closeLabel, saveAndExitLabel, saveAction).add(screen, centerX, bottomY);
-
-                Button extra = Button.builder(extraLabel, b -> extraAction.run())
-                        .bounds(centerX - 194, bottomY, 20, 20)
-                        .build();
-                if (extraTooltip != null) {
-                    extra.setTooltip(extraTooltip);
-                }
-                screen.add(extra);
-            };
-        }
-    }
-
-    public static Minecraft mc() {
-        return Minecraft.getInstance();
-    }
 }

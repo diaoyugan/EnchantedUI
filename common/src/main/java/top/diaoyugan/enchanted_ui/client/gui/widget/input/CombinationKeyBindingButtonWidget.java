@@ -9,6 +9,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
+import top.diaoyugan.enchanted_ui.api.client.gui.UILocalization;
 
 import java.util.Set;
 import java.util.function.Consumer;
@@ -16,12 +17,10 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class CombinationKeyBindingButtonWidget extends Button.Plain {
-    private static final String DEFAULT_LISTENING_TRANSLATION_KEY = "eui.config.keybind.listening";
-
     private final Component label;
     private final Supplier<Set<Integer>> getter;
     private final Consumer<Set<Integer>> setter;
-    private final String listeningTranslationKey;
+    private final UILocalization.KeyBindingMessages messages;
 
     private boolean listening = false;
 
@@ -42,7 +41,7 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
                 label,
                 getter,
                 setter,
-                DEFAULT_LISTENING_TRANSLATION_KEY
+                UILocalization.KeyBindingMessages.defaults()
         );
     }
 
@@ -54,7 +53,7 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
             Component label,
             Supplier<Set<Integer>> getter,
             Consumer<Set<Integer>> setter,
-            String listeningTranslationKey
+            UILocalization.KeyBindingMessages messages
     ) {
         super(
                 x,
@@ -69,7 +68,7 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
         this.label = label;
         this.getter = getter;
         this.setter = setter;
-        this.listeningTranslationKey = listeningTranslationKey;
+        this.messages = messages;
 
         refreshMessage();
     }
@@ -148,14 +147,14 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
 
         if (listening) {
             return Component.translatable(
-                    listeningTranslationKey,
+                    messages.listeningKey(),
                     label
             );
         }
 
         if (keys.isEmpty()) {
             return Component.translatable(
-                    "eui.config.keybind.none",
+                    messages.noneKey(),
                     label
             );
         }
@@ -167,7 +166,7 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
                 .collect(Collectors.joining(" + "));
 
         return Component.translatable(
-                "eui.config.keybind.current",
+                messages.currentKey(),
                 label,
                 text
         );

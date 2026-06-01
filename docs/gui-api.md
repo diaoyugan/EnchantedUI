@@ -17,6 +17,14 @@ Main types:
 - `UIFormSpec`
 - `UIForm`
 - `UIBottomBar`
+- `UIWidget`
+- `UISlider`
+- `UITextField`
+- `UITextArea`
+- `UIColorGroup`
+- `UILocalization.ColorLabels`
+- `UILocalization.FieldValidationMessages`
+- `UILocalization.KeyBindingMessages`
 
 ## Basic screen example
 
@@ -40,6 +48,64 @@ public final class ExampleScreen extends UITabbedScreen {
         bottomBar(UIBottomBar.closeOnly(Component.literal("Close")));
     }
 }
+```
+
+## Text and localization
+
+All user-facing labels are `Component` values. For reusable mods, pass
+`Component.translatable("your_mod.some_key")` instead of `Component.literal(...)`
+so the text belongs to your own namespace.
+
+EnchantedUI also ships fallback language keys under
+`assets/enchanted_ui/lang/*.json`. Those keys are global to the `enchanted_ui`
+namespace, so another mod or resource pack overriding them affects every screen
+that uses the fallback. When text belongs to your mod, use the overloads that
+accept your own labels or translation keys.
+
+Built-in generated text currently includes:
+
+- `eui.config.rgba.red`
+- `eui.config.rgba.green`
+- `eui.config.rgba.blue`
+- `eui.config.rgba.alpha`
+- `eui.config.color_preview`
+- `eui.config.keybind.current`
+- `eui.config.keybind.none`
+- `eui.config.keybind.listening`
+- `eui.dropdown.empty`
+- `eui.dropdown.add`
+- `eui.select.none`
+- `eui.validation.duplicate_entry`
+- `eui.validation.int.required`
+- `eui.validation.int.range`
+- `eui.validation.double.required`
+- `eui.validation.double.range`
+- `eui.display.empty`
+- `eui.display.more`
+- `eui.dialog.confirm`
+- `eui.dialog.unsaved_changes.title`
+- `eui.dialog.unsaved_changes.message`
+- `eui.dialog.unsaved_changes.discard`
+- `eui.dialog.unsaved_changes.cancel`
+
+Example for caller-owned generated text:
+
+```java
+form.rgbaSlidersWithPreview(
+        Component.translatable("my_mod.color.title"),
+        new UILocalization.ColorLabels(
+                Component.translatable("my_mod.color.red"),
+                Component.translatable("my_mod.color.green"),
+                Component.translatable("my_mod.color.blue"),
+                Component.translatable("my_mod.color.alpha"),
+                Component.translatable("my_mod.color.preview")
+        ),
+        () -> r, value -> r = value,
+        () -> g, value -> g = value,
+        () -> b, value -> b = value,
+        () -> a, value -> a = value,
+        false
+);
 ```
 
 ## Core concepts
@@ -143,6 +209,11 @@ Boolean / numeric:
 - `doubleSlider(...)`
 - `rgbaSlidersWithPreview(...)`
 
+Slider labels are supplied by the caller. `rgbaSlidersWithPreview(...)` has a
+fallback overload that uses the built-in RGBA keys listed above, and a safer
+overload that accepts `UILocalization.ColorLabels`. Use `UILocalization.ColorLabels` with your own
+namespace when building a screen for another mod.
+
 Text input:
 
 - `textField(...)`
@@ -150,10 +221,19 @@ Text input:
 - `doubleField(...)`
 - `textArea(...)`
 
+`intField(...)` and `doubleField(...)` validate input before saving. Their
+fallback error messages use the validation keys listed above. Use the overloads
+that accept `UILocalization.FieldValidationMessages` to provide your own translation keys, or
+`textField(..., UITextValidator)` for fully custom validation rules.
+
 Keybinding:
 
 - `keyBinding(...)`
 - `combinationKeyBinding(...)`
+
+Key binding helpers have fallback generated text for current, none, and
+listening states. Use the overloads that accept `UILocalization.KeyBindingMessages` when
+those labels should use your own namespace.
 
 Lists and selection:
 
@@ -164,6 +244,10 @@ Lists and selection:
 - `searchableSelect(...)`
 - `multiSelect(...)`
 - `radioGroup(...)`
+
+Dropdown and select helpers also include overloads for generated text such as
+empty-list text, duplicate-entry errors, and the "none selected" label. Prefer
+those overloads when the default copy would appear in your mod's screen.
 
 Validation:
 
@@ -189,16 +273,13 @@ The public API returns wrapper types rather than exposing internal widget classe
 Current wrappers include:
 
 - `UIWidget`
-- `UIButton`
-- `UIText`
-- `UIToggle`
 - `UISlider`
 - `UITextField`
-- `UIDropdownList`
-- `UIEditableDropdownList`
-- `UIKeyBinding`
-- `UICombinationKeyBinding`
-- `UIColorPreview`
+- `UITextArea`
+- `UIColorGroup`
+
+Most controls return `UIWidget`. Sliders, single-line text fields, and text
+areas return specialized wrappers because they expose extra value helpers.
 
 Common `UIWidget` capabilities:
 

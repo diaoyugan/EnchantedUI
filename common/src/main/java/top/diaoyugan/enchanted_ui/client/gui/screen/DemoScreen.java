@@ -9,7 +9,6 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
 import top.diaoyugan.enchanted_ui.api.client.gui.EnchantedUI;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIBottomBar;
-import top.diaoyugan.enchanted_ui.api.client.gui.UIButton;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIDialogAction;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIForm;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIFormSpec;
@@ -17,8 +16,8 @@ import top.diaoyugan.enchanted_ui.api.client.gui.UIScreenStyle;
 import top.diaoyugan.enchanted_ui.api.client.gui.UISlider;
 import top.diaoyugan.enchanted_ui.api.client.gui.UISummaryItem;
 import top.diaoyugan.enchanted_ui.api.client.gui.UITabbedScreen;
-import top.diaoyugan.enchanted_ui.api.client.gui.UIText;
 import top.diaoyugan.enchanted_ui.api.client.gui.UITextField;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIWidget;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -96,7 +95,7 @@ public class DemoScreen extends UITabbedScreen {
                 .build());
 
         tab(10, 30, 20, Component.literal("Main"), EnchantedUI.formPage(200, form -> {
-            UIText title = form.title(Component.literal("General Demo"));
+            UIWidget title = form.title(Component.literal("General Demo"));
             title.setTooltip(Tooltip.create(Component.literal("This is a demo title for the basic form layout.")));
 
             form.toggleRow(
@@ -247,7 +246,7 @@ public class DemoScreen extends UITabbedScreen {
                     })
             );
 
-            UIButton textureButton = form.textureButton(
+            UIWidget textureButton = form.textureButton(
                     20,
                     20,
                     DIAMOND_TEXTURE,
@@ -264,7 +263,7 @@ public class DemoScreen extends UITabbedScreen {
             );
             textureButton.tooltip(Component.literal("This is a demo texture button from the form API."));
 
-            UIButton iconButton = form.iconButton(
+            UIWidget iconButton = form.iconButton(
                     20,
                     REDSTONE_TEXTURE,
                     16,

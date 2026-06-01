@@ -18,17 +18,21 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
     protected static final int SCROLLBAR_WIDTH = 6;
     protected static final int DEFAULT_VISIBLE_ROWS = 5;
 
-    private static final Component EMPTY_TEXT = Component.translatable("eui.dropdown.empty");
-
     private final Component label;
+    private final Component emptyText;
     private final int visibleRows;
 
     private boolean expanded;
     private int scrollIndex;
 
     protected AbstractDropdownListWidget(int x, int y, int width, Component label, int visibleRows) {
+        this(x, y, width, label, visibleRows, Component.translatable("eui.dropdown.empty"));
+    }
+
+    protected AbstractDropdownListWidget(int x, int y, int width, Component label, int visibleRows, Component emptyText) {
         super(x, y, width, HEADER_HEIGHT, label);
         this.label = label;
+        this.emptyText = emptyText;
         this.visibleRows = Math.max(1, visibleRows);
     }
 
@@ -113,7 +117,7 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
         if (entryComponents.isEmpty()) {
             guiGraphics.text(
                     Minecraft.getInstance().font,
-                    EMPTY_TEXT,
+                    emptyText,
                     left + PANEL_PADDING,
                     listTop + 6,
                     0xFFAAAAAA,
