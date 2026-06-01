@@ -4,6 +4,10 @@
   "modmenu.summaryTranslation.enchanted_ui": "一个 Minecraft GUI API。",
 
   "eui.config.color_preview": "颜色预览",
+  "eui.config.rgba.red": "红色",
+  "eui.config.rgba.green": "绿色",
+  "eui.config.rgba.blue": "蓝色",
+  "eui.config.rgba.alpha": "透明度",
 
   "eui.config.value.block": "%d 个方块",
   "eui.config.value.durability": "%d 点耐久",
@@ -30,5 +34,9 @@
   "eui.dialog.unsaved_changes.message": "此界面有未保存的更改。要不保存并关闭吗？",
   "eui.dialog.unsaved_changes.discard": "放弃更改",
   "eui.dialog.unsaved_changes.cancel": "取消",
-  "eui.validation.duplicate_entry": "此条目已存在。"
+  "eui.validation.duplicate_entry": "此条目已存在。",
+  "eui.validation.int.required": "%s 需要输入整数。",
+  "eui.validation.int.range": "%s 必须介于 %d 和 %d 之间。",
+  "eui.validation.double.required": "%s 需要输入数字。",
+  "eui.validation.double.range": "%s 必须介于 %s 和 %s 之间。"
 }

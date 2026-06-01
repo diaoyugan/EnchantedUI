@@ -206,14 +206,14 @@ final class FormInputFactory {
         int sliderHeight = 20;
         int previewHeight = (sliderHeight * 4) + 24;
 
-        NumericSliderOptionWidget r = intSlider(Component.literal("R"), sliderWidth, 0, 255, rGetter::get, rSetter, false);
+        NumericSliderOptionWidget r = intSlider(Component.translatable("eui.config.rgba.red"), sliderWidth, 0, 255, rGetter::get, rSetter, false);
         int previewX = layout.x() + sliderWidth;
         ColorPreviewWidget preview = new ColorPreviewWidget(previewX + 20, r.getY(), sliderWidth, previewHeight, rGetter::get, gGetter::get, bGetter::get, aGetter::get);
         widgets.add(preview);
 
-        NumericSliderOptionWidget g = intSlider(Component.literal("G"), sliderWidth, 0, 255, gGetter::get, gSetter, false);
-        NumericSliderOptionWidget b = intSlider(Component.literal("B"), sliderWidth, 0, 255, bGetter::get, bSetter, false);
-        NumericSliderOptionWidget a = intSlider(Component.literal("A"), sliderWidth, 0, 255, aGetter::get, aSetter, alphaAsPercentage);
+        NumericSliderOptionWidget g = intSlider(Component.translatable("eui.config.rgba.green"), sliderWidth, 0, 255, gGetter::get, gSetter, false);
+        NumericSliderOptionWidget b = intSlider(Component.translatable("eui.config.rgba.blue"), sliderWidth, 0, 255, bGetter::get, bSetter, false);
+        NumericSliderOptionWidget a = intSlider(Component.translatable("eui.config.rgba.alpha"), sliderWidth, 0, 255, aGetter::get, aSetter, alphaAsPercentage);
         return new UI.ColorGroup(r, g, b, a, preview);
     }
 
@@ -349,32 +349,32 @@ final class FormInputFactory {
     private static Component validateInt(Component label, String value, int min, int max) {
         String trimmed = value.trim();
         if (trimmed.isEmpty()) {
-            return Component.literal(label.getString() + " requires a whole number.");
+            return Component.translatable("eui.validation.int.required", label);
         }
         try {
             int parsed = Integer.parseInt(trimmed);
             if (parsed < min || parsed > max) {
-                return Component.literal(label.getString() + " must be between " + min + " and " + max + ".");
+                return Component.translatable("eui.validation.int.range", label, min, max);
             }
             return null;
         } catch (NumberFormatException ignored) {
-            return Component.literal(label.getString() + " requires a whole number.");
+            return Component.translatable("eui.validation.int.required", label);
         }
     }
 
     private static Component validateDouble(Component label, String value, double min, double max) {
         String trimmed = value.trim();
         if (trimmed.isEmpty()) {
-            return Component.literal(label.getString() + " requires a numeric value.");
+            return Component.translatable("eui.validation.double.required", label);
         }
         try {
             double parsed = Double.parseDouble(trimmed);
             if (parsed < min || parsed > max) {
-                return Component.literal(label.getString() + " must be between " + formatDouble(min) + " and " + formatDouble(max) + ".");
+                return Component.translatable("eui.validation.double.range", label, formatDouble(min), formatDouble(max));
             }
             return null;
         } catch (NumberFormatException ignored) {
-            return Component.literal(label.getString() + " requires a numeric value.");
+            return Component.translatable("eui.validation.double.required", label);
         }
     }
 

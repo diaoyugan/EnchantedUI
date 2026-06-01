@@ -4,6 +4,10 @@
   "modmenu.summaryTranslation.enchanted_ui": "A Minecraft GUI API.",
 
   "eui.config.color_preview": "Color preview",
+  "eui.config.rgba.red": "Red",
+  "eui.config.rgba.green": "Green",
+  "eui.config.rgba.blue": "Blue",
+  "eui.config.rgba.alpha": "Alpha",
 
   "eui.config.value.block": "%d Blocks",
   "eui.config.value.durability": "%d Dur.",
@@ -30,5 +34,9 @@
   "eui.dialog.unsaved_changes.message": "This screen has unsaved changes. Close without saving?",
   "eui.dialog.unsaved_changes.discard": "Discard",
   "eui.dialog.unsaved_changes.cancel": "Cancel",
-  "eui.validation.duplicate_entry": "This entry already exists."
+  "eui.validation.duplicate_entry": "This entry already exists.",
+  "eui.validation.int.required": "%s requires a whole number.",
+  "eui.validation.int.range": "%s must be between %d and %d.",
+  "eui.validation.double.required": "%s requires a numeric value.",
+  "eui.validation.double.range": "%s must be between %s and %s."
 }
