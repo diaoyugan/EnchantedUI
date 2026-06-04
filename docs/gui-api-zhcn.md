@@ -89,7 +89,7 @@ EnchantedUI 自身也提供兜底语言文件：
 
 调用方接管框架生成文本的示例：
 
-```java
+```
 form.rgbaSlidersWithPreview(
         Component.translatable("my_mod.color.title"),
         new UILocalization.ColorLabels(

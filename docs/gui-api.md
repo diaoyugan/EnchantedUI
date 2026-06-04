@@ -90,7 +90,7 @@ Built-in generated text currently includes:
 
 Example for caller-owned generated text:
 
-```java
+```
 form.rgbaSlidersWithPreview(
         Component.translatable("my_mod.color.title"),
         new UILocalization.ColorLabels(
