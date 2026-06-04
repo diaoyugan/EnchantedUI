@@ -509,7 +509,7 @@ public class BaseTabbedScreen extends Screen {
         private final int screenWidth;
         private final int viewportTop;
         private final int viewportBottom;
-        private final int maxScroll;
+        private final int baseMaxScroll;
 
         private int scrollOffset;
 
@@ -533,25 +533,21 @@ public class BaseTabbedScreen extends Screen {
                     .max()
                     .orElse(viewportBottom);
             int viewportHeight = viewportBottom - viewportTop;
-            this.maxScroll = Math.max(0, contentBottom - viewportBottom);
+            this.baseMaxScroll = Math.max(0, contentBottom - viewportBottom);
 
-            if (maxScroll > 0) {
-                int contentRight = widgets.stream().mapToInt(AbstractWidget::getRight).max().orElse(screenWidth - 12);
-                int scrollBarX = Math.min(screenWidth - 12, contentRight + 4);
-                this.scrollBar = new ScrollBarWidget(
-                        scrollBarX,
-                        viewportTop,
-                        SCROLLBAR_WIDTH,
-                        viewportHeight,
-                        viewportHeight,
-                        contentBottom - viewportTop,
-                        () -> scrollOffset,
-                        () -> maxScroll,
-                        this::setScrollOffset
-                );
-            } else {
-                this.scrollBar = null;
-            }
+            int contentRight = widgets.stream().mapToInt(AbstractWidget::getRight).max().orElse(screenWidth - 12);
+            int scrollBarX = Math.min(screenWidth - 12, contentRight + 4);
+            this.scrollBar = new ScrollBarWidget(
+                    scrollBarX,
+                    viewportTop,
+                    SCROLLBAR_WIDTH,
+                    viewportHeight,
+                    viewportHeight,
+                    contentBottom - viewportTop,
+                    () -> scrollOffset,
+                    this::maxScroll,
+                    this::setScrollOffset
+            );
 
             applyScroll();
         }
@@ -560,22 +556,18 @@ public class BaseTabbedScreen extends Screen {
             for (AbstractWidget widget : widgets) {
                 screen.addWidget(widget);
             }
-            if (scrollBar != null) {
-                screen.addRenderableWidget(scrollBar);
-            }
+            screen.addRenderableWidget(scrollBar);
         }
 
         private void removeFrom(BaseTabbedScreen screen) {
             for (AbstractWidget widget : widgets) {
                 screen.removeWidget(widget);
             }
-            if (scrollBar != null) {
-                screen.removeWidget(scrollBar);
-            }
+            screen.removeWidget(scrollBar);
         }
 
         private boolean scrollBy(double verticalAmount) {
-            if (maxScroll <= 0 || verticalAmount == 0) {
+            if (maxScroll() <= 0 || verticalAmount == 0) {
                 return false;
             }
             int nextOffset = scrollOffset;
@@ -588,7 +580,7 @@ public class BaseTabbedScreen extends Screen {
         }
 
         private boolean setScrollOffset(int nextOffset) {
-            int clamped = Math.max(0, Math.min(maxScroll, nextOffset));
+            int clamped = Math.max(0, Math.min(maxScroll(), nextOffset));
             if (clamped == scrollOffset) {
                 return false;
             }
@@ -602,12 +594,28 @@ public class BaseTabbedScreen extends Screen {
         }
 
         private void refreshWidgetStates() {
+            positionWidgets();
+            int maxScroll = maxScroll();
+            if (scrollOffset > maxScroll) {
+                scrollOffset = maxScroll;
+                positionWidgets();
+                maxScroll = maxScroll();
+            }
+            scrollBar.visible = maxScroll > 0;
+            scrollBar.active = maxScroll > 0;
+        }
+
+        private void positionWidgets() {
+            int maxScroll = maxScroll();
+            if (scrollOffset > maxScroll) {
+                scrollOffset = maxScroll;
+            }
             for (AbstractWidget widget : widgets) {
                 WidgetPosition base = basePositions.get(widget);
                 widget.setX(base.x());
                 widget.setY(base.y() - scrollOffset);
-                boolean intersects = widget.getBottom() > viewportTop && widget.getY() < viewportBottom;
                 boolean conditionVisible = WidgetConditions.evaluateVisible(widget);
+                boolean intersects = intersectsViewport(widget) || expandedOverlayIntersectsViewport(widget);
                 widget.visible = intersects && conditionVisible;
                 widget.active = intersects && conditionVisible && WidgetConditions.evaluateActive(widget);
                 if (!widget.visible) {
@@ -627,14 +635,19 @@ public class BaseTabbedScreen extends Screen {
         }
 
         private void extractOverlayRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+            guiGraphics.enableScissor(0, viewportTop, screenWidth, viewportBottom);
             for (OverlayRenderableWidget overlay : overlays) {
                 if (overlay instanceof AbstractWidget widget && widget.visible) {
                     overlay.extractOverlayRenderState(guiGraphics, mouseX, mouseY, partialTick);
                 }
             }
+            guiGraphics.disableScissor();
         }
 
         private boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+            if (!insideViewport(event.y())) {
+                return false;
+            }
             for (int i = overlays.size() - 1; i >= 0; i--) {
                 OverlayRenderableWidget overlay = overlays.get(i);
                 if (!(overlay instanceof AbstractWidget widget) || !widget.visible || !overlay.isOverlayExpanded()) {
@@ -648,6 +661,9 @@ public class BaseTabbedScreen extends Screen {
         }
 
         private boolean mouseReleased(MouseButtonEvent event) {
+            if (!insideViewport(event.y())) {
+                return false;
+            }
             for (int i = overlays.size() - 1; i >= 0; i--) {
                 OverlayRenderableWidget overlay = overlays.get(i);
                 if (!(overlay instanceof AbstractWidget widget) || !widget.visible || !overlay.isOverlayExpanded()) {
@@ -661,6 +677,9 @@ public class BaseTabbedScreen extends Screen {
         }
 
         private boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+            if (!insideViewport(event.y())) {
+                return false;
+            }
             for (int i = overlays.size() - 1; i >= 0; i--) {
                 OverlayRenderableWidget overlay = overlays.get(i);
                 if (!(overlay instanceof AbstractWidget widget) || !widget.visible || !overlay.isOverlayExpanded()) {
@@ -674,6 +693,9 @@ public class BaseTabbedScreen extends Screen {
         }
 
         private boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+            if (!insideViewport(mouseY)) {
+                return false;
+            }
             for (int i = overlays.size() - 1; i >= 0; i--) {
                 OverlayRenderableWidget overlay = overlays.get(i);
                 if (!(overlay instanceof AbstractWidget widget) || !widget.visible || !overlay.isOverlayExpanded()) {
@@ -684,6 +706,32 @@ public class BaseTabbedScreen extends Screen {
                 }
             }
             return false;
+        }
+
+        private int maxScroll() {
+            int maxScroll = baseMaxScroll;
+            for (OverlayRenderableWidget overlay : overlays) {
+                if (!(overlay instanceof AbstractWidget widget) || !overlay.isOverlayExpanded() || !WidgetConditions.evaluateVisible(widget)) {
+                    continue;
+                }
+                maxScroll = Math.max(maxScroll, scrollOffset + overlay.overlayBottom() - viewportBottom);
+            }
+            return maxScroll;
+        }
+
+        private boolean insideViewport(double mouseY) {
+            return mouseY >= viewportTop && mouseY < viewportBottom;
+        }
+
+        private boolean intersectsViewport(AbstractWidget widget) {
+            return widget.getBottom() > viewportTop && widget.getY() < viewportBottom;
+        }
+
+        private boolean expandedOverlayIntersectsViewport(AbstractWidget widget) {
+            if (!(widget instanceof OverlayRenderableWidget overlay) || !overlay.isOverlayExpanded()) {
+                return false;
+            }
+            return widget.getBottom() < viewportBottom && overlay.overlayBottom() > viewportTop;
         }
 
         private boolean keyPressed(KeyEvent event) {

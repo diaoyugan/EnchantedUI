@@ -377,6 +377,22 @@ public class DemoScreen extends UITabbedScreen {
             for (int i = 1; i <= 18; i++) {
                 form.title(Component.literal("This is demo scroll content line " + i + "."));
             }
+            form.space(8);
+            form.title(Component.literal("Editable List Demo"));
+            form.editableDropdownList(
+                    Component.literal("Editable Dropdown"),
+                    220,
+                    () -> editableEntries,
+                    entries -> {
+                        editableEntries.clear();
+                        editableEntries.addAll(entries);
+                    },
+                    Component.literal("Add new entry"),
+                    Component.literal("Add"),
+                    5,
+                    value -> value.length() < 3 ? Component.literal("This demo entry must be at least 3 characters.") : null,
+                    false
+            ).setTooltip(Tooltip.create(Component.literal("This is a demo editable dropdown list.")));
         }));
 
         tab(10, 150, 20, Component.literal("Display"), EnchantedUI.formPage(220, form -> {

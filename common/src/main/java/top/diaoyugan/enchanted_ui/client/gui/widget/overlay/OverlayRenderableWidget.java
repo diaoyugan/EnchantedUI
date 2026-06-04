@@ -12,4 +12,8 @@ public interface OverlayRenderableWidget {
     default boolean overlayContains(double mouseX, double mouseY) {
         return false;
     }
+
+    default int overlayBottom() {
+        return 0;
+    }
 }

@@ -286,7 +286,8 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
         return PANEL_PADDING + listHeight() + (footerHeight() > 0 ? PANEL_PADDING + footerHeight() : 0) + PANEL_PADDING;
     }
 
-    protected int overlayBottom() {
+    @Override
+    public int overlayBottom() {
         return getY() + getHeight() + overlayHeight();
     }
 

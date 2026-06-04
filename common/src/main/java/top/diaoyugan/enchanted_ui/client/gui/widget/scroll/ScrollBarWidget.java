@@ -75,10 +75,12 @@ public class ScrollBarWidget extends AbstractWidget {
     }
 
     private int getThumbHeight() {
-        if (contentHeight <= 0) {
+        int dynamicContentHeight = Math.max(contentHeight, viewportHeight + maxScrollSupplier.getAsInt());
+        if (dynamicContentHeight <= 0) {
             return getHeight();
         }
-        return Math.max(MIN_THUMB_HEIGHT, Math.min(getHeight(), (int) Math.round((viewportHeight / (double) contentHeight) * getHeight())));
+        int computedHeight = (int) Math.round((viewportHeight / (double) dynamicContentHeight) * getHeight());
+        return Math.min(getHeight(), Math.max(Math.min(MIN_THUMB_HEIGHT, getHeight()), computedHeight));
     }
 
     private int getThumbY(int thumbHeight) {
@@ -87,8 +89,9 @@ public class ScrollBarWidget extends AbstractWidget {
             return getY();
         }
         int trackHeight = Math.max(0, getHeight() - thumbHeight);
-        double ratio = scrollSupplier.getAsInt() / (double) maxScroll;
-        return getY() + (int) Math.round(trackHeight * ratio);
+        double ratio = clamp(scrollSupplier.getAsInt() / (double) maxScroll, 0.0, 1.0);
+        int thumbY = getY() + (int) Math.round(trackHeight * ratio);
+        return (int) clamp(thumbY, getY(), getY() + getHeight() - thumbHeight);
     }
 
     private static double clamp(double value, double min, double max) {
