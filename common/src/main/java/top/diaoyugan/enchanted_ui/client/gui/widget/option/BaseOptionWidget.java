@@ -17,7 +17,7 @@ public abstract class BaseOptionWidget extends AbstractWidget {
         int w = getWidth();
         int h = getHeight();
 
-        int bg = isHoveredOrFocused() ? 0xFF555555 : 0xFF333333;
+        int bg = !active ? 0xFF252525 : isHoveredOrFocused() ? 0xFF555555 : 0xFF333333;
         g.fill(x, y, x + w, y + h, bg);
 
         renderContent(g, x, y ,w ,h , mouseX, mouseY);

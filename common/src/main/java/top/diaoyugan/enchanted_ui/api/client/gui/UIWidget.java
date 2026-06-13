@@ -50,7 +50,7 @@ public class UIWidget {
      * Sets a simple text tooltip.
      */
     public UIWidget tooltip(Component tooltip) {
-        delegate.setTooltip(Tooltip.create(tooltip));
+        WidgetConditions.setTooltip(delegate, Tooltip.create(tooltip));
         return this;
     }
 
@@ -59,12 +59,34 @@ public class UIWidget {
     }
 
     public UIWidget tooltip(Tooltip tooltip) {
-        delegate.setTooltip(tooltip);
+        WidgetConditions.setTooltip(delegate, tooltip);
         return this;
     }
 
     public UIWidget setTooltip(Tooltip tooltip) {
         return tooltip(tooltip);
+    }
+
+    /**
+     * Sets the tooltip shown while this widget is inactive.
+     * The normal tooltip remains the fallback when no disabled tooltip is set.
+     */
+    public UIWidget disabledTooltip(Component tooltip) {
+        WidgetConditions.setDisabledTooltip(delegate, Tooltip.create(tooltip));
+        return this;
+    }
+
+    public UIWidget disabledTooltip(Tooltip tooltip) {
+        WidgetConditions.setDisabledTooltip(delegate, tooltip);
+        return this;
+    }
+
+    public UIWidget inactiveTooltip(Component tooltip) {
+        return disabledTooltip(tooltip);
+    }
+
+    public UIWidget inactiveTooltip(Tooltip tooltip) {
+        return disabledTooltip(tooltip);
     }
 
     /**
@@ -186,6 +208,30 @@ abstract class UISpecializedWidget<T extends UISpecializedWidget<T>> extends UIW
     @Override
     public T setTooltip(Tooltip tooltip) {
         super.setTooltip(tooltip);
+        return self();
+    }
+
+    @Override
+    public T disabledTooltip(Component tooltip) {
+        super.disabledTooltip(tooltip);
+        return self();
+    }
+
+    @Override
+    public T disabledTooltip(Tooltip tooltip) {
+        super.disabledTooltip(tooltip);
+        return self();
+    }
+
+    @Override
+    public T inactiveTooltip(Component tooltip) {
+        super.inactiveTooltip(tooltip);
+        return self();
+    }
+
+    @Override
+    public T inactiveTooltip(Tooltip tooltip) {
+        super.inactiveTooltip(tooltip);
         return self();
     }
 

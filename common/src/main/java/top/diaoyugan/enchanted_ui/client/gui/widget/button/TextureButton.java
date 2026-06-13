@@ -56,6 +56,9 @@ public class TextureButton extends Button {
                 sprite.texW(),
                 sprite.texH()
         );
+        if (!active) {
+            guiGraphics.fill(getX(), getY(), getX() + width, getY() + height, 0x66000000);
+        }
     }
 
     /* ---------- Builder ---------- */

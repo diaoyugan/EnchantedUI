@@ -47,6 +47,9 @@ public class IconButton extends Button.Plain {
                 sprite.texW(),
                 sprite.texH()
         );
+        if (!active) {
+            g.fill(iconX, iconY, iconX + iconSize, iconY + iconSize, 0x66000000);
+        }
     }
 
     /* ---------- Builder ---------- */

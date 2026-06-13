@@ -46,6 +46,8 @@ public class BaseTabbedScreen extends Screen {
     private UIScreenStyle style = UIScreenStyle.DEFAULT;
     private UIUnsavedChangesPrompt unsavedChangesPrompt = UIUnsavedChangesPrompt.defaults();
     @Nullable
+    private Component sidebarTitle;
+    @Nullable
     private ModalDialog modal;
 
     public BaseTabbedScreen(@Nullable Screen parent, Component title) {
@@ -64,6 +66,11 @@ public class BaseTabbedScreen extends Screen {
 
     public BaseTabbedScreen tab(int x, int y, int height, Component label, Style style, Page page) {
         return tab(x, y, height, label.copy().setStyle(style), page);
+    }
+
+    public BaseTabbedScreen sidebarTitle(Component title) {
+        this.sidebarTitle = Objects.requireNonNull(title, "title");
+        return this;
     }
 
     public BaseTabbedScreen bottomBar(BottomBar bottomBar) {
@@ -153,6 +160,9 @@ public class BaseTabbedScreen extends Screen {
         int computedWidth = TAB_MIN_WIDTH;
         for (TabSpec tab : tabs) {
             computedWidth = Math.max(computedWidth, minecraft.font.width(tab.label) + TAB_PADDING);
+        }
+        if (sidebarTitle != null) {
+            computedWidth = Math.max(computedWidth, minecraft.font.width(sidebarTitle) + TAB_PADDING);
         }
 
         for (int i = 0; i < tabs.size(); i++) {
@@ -303,6 +313,7 @@ public class BaseTabbedScreen extends Screen {
         int backgroundMouseX = modal == null ? mouseX : Integer.MIN_VALUE;
         int backgroundMouseY = modal == null ? mouseY : Integer.MIN_VALUE;
         super.extractRenderState(guiGraphics, backgroundMouseX, backgroundMouseY, partialTick);
+        renderSidebarTitle(guiGraphics);
         if (currentPage >= 0 && currentPage < pages.size()) {
             pages.get(currentPage).extractWidgetRenderState(guiGraphics, backgroundMouseX, backgroundMouseY, partialTick);
             pages.get(currentPage).extractOverlayRenderState(guiGraphics, backgroundMouseX, backgroundMouseY, partialTick);
@@ -311,6 +322,15 @@ public class BaseTabbedScreen extends Screen {
         if (modal != null) {
             modal.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
         }
+    }
+
+    private void renderSidebarTitle(GuiGraphicsExtractor guiGraphics) {
+        if (minecraft == null || sidebarTitle == null || tabs.isEmpty() || tabButtons.isEmpty()) {
+            return;
+        }
+        int centerX = tabButtons.getFirst().getX() + tabButtons.getFirst().getWidth() / 2;
+        int top = tabs.stream().mapToInt(TabSpec::y).min().orElse(20);
+        guiGraphics.centeredText(minecraft.font, sidebarTitle, centerX, Math.max(4, top - 16), 0xFFFFFFFF);
     }
 
     @Override
@@ -618,6 +638,7 @@ public class BaseTabbedScreen extends Screen {
                 boolean intersects = intersectsViewport(widget) || expandedOverlayIntersectsViewport(widget);
                 widget.visible = intersects && conditionVisible;
                 widget.active = intersects && conditionVisible && WidgetConditions.evaluateActive(widget);
+                WidgetConditions.refreshTooltip(widget);
                 if (!widget.visible) {
                     widget.setFocused(false);
                 }

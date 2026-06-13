@@ -526,8 +526,6 @@ public final class UI {
                     leftGetter,
                     leftSetter
             );
-            left.setHalfWidth();
-
             BooleanOptionWidget right = new BooleanOptionWidget(
                     layout.x() + halfWidth + 4, layout.y(),
                     halfWidth, 20,
@@ -535,8 +533,6 @@ public final class UI {
                     rightGetter,
                     rightSetter
             );
-            right.setHalfWidth();
-
             trackModelValue(leftGetter::getAsBoolean, leftSetter, Function.identity(), null);
             trackModelValue(rightGetter::getAsBoolean, rightSetter, Function.identity(), null);
             widgets.add(left);
