@@ -98,6 +98,11 @@ public class UITabbedScreen extends BaseTabbedScreen {
         return this;
     }
 
+    public UITabbedScreen sidebarTitle(Component title) {
+        super.sidebarTitle(title);
+        return this;
+    }
+
     public UITabbedScreen bottomBar(UIBottomBar bottomBar) {
         super.bottomBar(adapt(bottomBar));
         return this;

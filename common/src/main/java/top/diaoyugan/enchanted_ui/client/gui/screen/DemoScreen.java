@@ -93,6 +93,7 @@ public class DemoScreen extends UITabbedScreen {
                 .bottomBarBackgroundColor(0x88202020)
                 .bottomBarSeparatorColor(0x66FFFFFF)
                 .build());
+        sidebarTitle(Component.literal("Enchanted UI"));
 
         tab(10, 30, 20, Component.literal("Main"), EnchantedUI.formPage(200, form -> {
             UIWidget title = form.title(Component.literal("General Demo"));
@@ -102,12 +103,15 @@ public class DemoScreen extends UITabbedScreen {
                     Component.literal("Feature A"),
                     () -> enabled,
                     v -> enabled = v,
+                    Component.literal("Controls the first demo feature."),
                     Component.literal("Feature B"),
                     () -> showAdvanced,
-                    v -> showAdvanced = v
+                    v -> showAdvanced = v,
+                    Component.literal("Controls whether advanced demo content is shown.")
             );
             form.toggle(Component.literal("Boolean Option"), () -> notifications, v -> notifications = v)
-                    .tooltip(Component.literal("This is a demo toggle using a full-width layout."));
+                    .tooltip(Component.literal("This is a demo toggle using a full-width layout."))
+                    .disabledTooltip(Component.literal("This option is currently unavailable."));
             form.toggle(Component.literal("Secondary Toggle"), () -> debugOverlay, v -> debugOverlay = v)
                     .tooltip(Component.literal("This is another demo toggle with a tooltip."));
             form.intSlider(Component.literal("Integer Slider"), 1, 16, () -> radius, v -> radius = v, false)
@@ -507,5 +511,4 @@ public class DemoScreen extends UITabbedScreen {
         a = 255;
     }
 }
-
 

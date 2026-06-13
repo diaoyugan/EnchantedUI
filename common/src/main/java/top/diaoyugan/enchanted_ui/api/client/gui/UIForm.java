@@ -264,6 +264,25 @@ public final class UIForm {
                 .toList();
     }
 
+    public List<UIWidget> toggleRow(
+            Component leftLabel,
+            BooleanSupplier leftGetter,
+            Consumer<Boolean> leftSetter,
+            Component leftTooltip,
+            Component rightLabel,
+            BooleanSupplier rightGetter,
+            Consumer<Boolean> rightSetter,
+            Component rightTooltip
+    ) {
+        List<UIWidget> row = toggleRow(
+                leftLabel, leftGetter, leftSetter,
+                rightLabel, rightGetter, rightSetter
+        );
+        row.getFirst().tooltip(leftTooltip);
+        row.getLast().tooltip(rightTooltip);
+        return row;
+    }
+
     /**
      * Adds an integer slider.
      *

@@ -208,6 +208,9 @@ form.rgbaSlidersWithPreview(
 - `doubleSlider(...)`
 - `rgbaSlidersWithPreview(...)`
 
+`toggleRow(...)` 提供了可分别传入左右 tooltip 的重载，不再需要先取得
+row 后再通过 `getFirst()` 和 `getLast()` 设置。
+
 普通滑块的 label 由调用方传入。`rgbaSlidersWithPreview(...)` 有一个使用上方
 RGBA 内置 key 的兜底重载，也有一个接受 `UILocalization.ColorLabels` 的重载。为其他 mod
 构建界面时，建议使用 `UILocalization.ColorLabels` 传入自己 namespace 下的通道文本。
@@ -261,6 +264,10 @@ validation key。需要自己的错误文案时，使用接受 `UILocalization.F
 
 - `visibleIf(...)`
 - `activeIf(...)`
+- `disabledTooltip(...)` / `inactiveTooltip(...)`
+
+分页屏幕可调用 `sidebarTitle(Component)` 在 tab 上方显示侧边栏标题。
+侧边栏宽度会同时适配 tab 和标题文本，标题按计算后的侧边栏宽度自动居中。
 
 ## Widget 包装类型
 

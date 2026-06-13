@@ -209,6 +209,9 @@ Boolean / numeric:
 - `doubleSlider(...)`
 - `rgbaSlidersWithPreview(...)`
 
+`toggleRow(...)` includes an overload that accepts one tooltip for each toggle,
+so callers do not need to retrieve the first and last row entries manually.
+
 Slider labels are supplied by the caller. `rgbaSlidersWithPreview(...)` has a
 fallback overload that uses the built-in RGBA keys listed above, and a safer
 overload that accepts `UILocalization.ColorLabels`. Use `UILocalization.ColorLabels` with your own
@@ -265,6 +268,11 @@ Widget state:
 
 - `visibleIf(...)`
 - `activeIf(...)`
+- `disabledTooltip(...)` / `inactiveTooltip(...)`
+
+Tabbed screens can call `sidebarTitle(Component)` to render a title above the
+tabs. The tab column expands to fit the title and the title is centered against
+the computed column width.
 
 ## Widget wrappers
 

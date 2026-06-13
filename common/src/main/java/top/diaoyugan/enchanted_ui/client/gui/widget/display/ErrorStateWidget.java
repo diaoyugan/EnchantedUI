@@ -54,11 +54,17 @@ public class ErrorStateWidget extends AbstractWidget implements OverlayRenderabl
         if (actionLabel != null && action != null) {
             int left = actionLeft();
             int top = actionTop();
-            int color = containsAction(mouseX, mouseY) ? 0xFF73403E : 0xFF5A3432;
+            int color = !active ? 0xFF382A29 : containsAction(mouseX, mouseY) ? 0xFF73403E : 0xFF5A3432;
             DisplayText.Fit actionText = DisplayText.fit(minecraft, actionLabel, actionWidth() - 8);
             guiGraphics.fill(left, top, left + actionWidth(), top + 18, color);
             guiGraphics.outline(left, top, actionWidth(), 18, 0xFF9A6A66);
-            guiGraphics.centeredText(minecraft.font, actionText.rendered(), left + actionWidth() / 2, top + 5, 0xFFFFFFFF);
+            guiGraphics.centeredText(
+                    minecraft.font,
+                    actionText.rendered(),
+                    left + actionWidth() / 2,
+                    top + 5,
+                    active ? 0xFFFFFFFF : 0xFF777777
+            );
             actionOverlay = DisplayText.overlay(actionText, left, top, actionWidth(), 18);
         } else {
             actionOverlay = DisplayText.noOverlay();
@@ -75,7 +81,7 @@ public class ErrorStateWidget extends AbstractWidget implements OverlayRenderabl
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (action != null && containsAction(event.x(), event.y())) {
+        if (active && action != null && containsAction(event.x(), event.y())) {
             action.run();
             return true;
         }

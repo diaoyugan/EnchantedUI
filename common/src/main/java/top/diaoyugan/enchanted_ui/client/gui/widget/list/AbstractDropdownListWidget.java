@@ -74,28 +74,47 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
         int width = getWidth();
         int height = getHeight();
 
-        guiGraphics.fill(x, y, x + width, y + height, isHoveredOrFocused() ? 0xFF555555 : 0xFF333333);
-        guiGraphics.text(
-                Minecraft.getInstance().font,
-                headerText(),
-                x + 6,
-                y + 6,
-                0xFFFFFFFF,
-                false
-        );
+        int backgroundColor = !active ? 0xFF252525 : isHoveredOrFocused() ? 0xFF555555 : 0xFF333333;
+        int textColor = active ? 0xFFFFFFFF : 0xFF777777;
+        guiGraphics.fill(x, y, x + width, y + height, backgroundColor);
+        drawScrollingHeader(guiGraphics, x + 6, x + width - 16, y + 6, textColor);
         guiGraphics.text(
                 Minecraft.getInstance().font,
                 Component.literal(expanded ? "^" : "v"),
                 x + width - 10,
                 y + 6,
-                0xFFFFFFFF,
+                textColor,
                 false
         );
     }
 
+    private void drawScrollingHeader(
+            GuiGraphicsExtractor guiGraphics,
+            int left,
+            int right,
+            int y,
+            int color
+    ) {
+        Minecraft minecraft = Minecraft.getInstance();
+        Component text = headerText();
+        int availableWidth = right - left;
+        int textWidth = minecraft.font.width(text);
+        int offset = 0;
+        if (textWidth > availableWidth) {
+            int overflow = textWidth - availableWidth;
+            double phase = (System.currentTimeMillis() % 6000L) / 6000.0D;
+            double pingPong = 0.5D - 0.5D * Math.cos(phase * Math.PI * 2.0D);
+            offset = (int) Math.round(overflow * pingPong);
+        }
+
+        guiGraphics.enableScissor(left, getY(), right, getY() + getHeight());
+        guiGraphics.text(minecraft.font, text, left - offset, y, color, false);
+        guiGraphics.disableScissor();
+    }
+
     @Override
     public void extractOverlayRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
-        if (!expanded || !visible) {
+        if (!active || !expanded || !visible) {
             return;
         }
 
@@ -157,6 +176,11 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (!active) {
+            expanded = false;
+            setInnerFocus(false);
+            return false;
+        }
         double mouseX = event.x();
         double mouseY = event.y();
         if (isHeaderHovered(mouseX, mouseY)) {
@@ -167,7 +191,7 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
             return true;
         }
 
-        if (!expanded) {
+        if (!active || !expanded) {
             return false;
         }
 
@@ -192,7 +216,7 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
 
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
-        if (!expanded) {
+        if (!active || !expanded) {
             return false;
         }
         return mouseReleasedInFooter(event, getX(), footerTop());
@@ -208,7 +232,7 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        if (!expanded || !overlayContains(mouseX, mouseY)) {
+        if (!active || !expanded || !overlayContains(mouseX, mouseY)) {
             return false;
         }
         int maxScrollIndex = Math.max(0, entries().size() - visibleEntryCount());
@@ -225,7 +249,7 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
 
     @Override
     public boolean keyPressed(KeyEvent event) {
-        if (!expanded) {
+        if (!active || !expanded) {
             return false;
         }
         return keyPressedInFooter(event);
@@ -233,7 +257,7 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
 
     @Override
     public boolean charTyped(net.minecraft.client.input.CharacterEvent event) {
-        if (!expanded) {
+        if (!active || !expanded) {
             return false;
         }
         return charTypedInFooter(event);
@@ -241,7 +265,7 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
 
     @Override
     public boolean preeditUpdated(net.minecraft.client.input.PreeditEvent event) {
-        if (!expanded) {
+        if (!active || !expanded) {
             return false;
         }
         return preeditUpdatedInFooter(event);
@@ -254,7 +278,7 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
 
     @Override
     public boolean isOverlayExpanded() {
-        return expanded;
+        return active && expanded;
     }
 
     @Override

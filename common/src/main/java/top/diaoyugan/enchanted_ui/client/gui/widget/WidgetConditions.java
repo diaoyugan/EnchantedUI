@@ -1,6 +1,7 @@
 package top.diaoyugan.enchanted_ui.client.gui.widget;
 
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Tooltip;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -12,6 +13,8 @@ public final class WidgetConditions {
     private static final Map<AbstractWidget, Boolean> BASE_ACTIVE = new WeakHashMap<>();
     private static final Map<AbstractWidget, BooleanSupplier> VISIBLE = new WeakHashMap<>();
     private static final Map<AbstractWidget, BooleanSupplier> ACTIVE = new WeakHashMap<>();
+    private static final Map<AbstractWidget, Tooltip> TOOLTIP = new WeakHashMap<>();
+    private static final Map<AbstractWidget, Tooltip> DISABLED_TOOLTIP = new WeakHashMap<>();
 
     private WidgetConditions() {
     }
@@ -39,6 +42,7 @@ public final class WidgetConditions {
     public static void refresh(AbstractWidget widget) {
         widget.visible = evaluateVisible(widget);
         widget.active = evaluateActive(widget);
+        refreshTooltip(widget);
     }
 
     public static boolean evaluateVisible(AbstractWidget widget) {
@@ -61,5 +65,34 @@ public final class WidgetConditions {
     public static void setActiveState(AbstractWidget widget, boolean active) {
         BASE_ACTIVE.put(widget, active);
         widget.active = active;
+        refreshTooltip(widget);
+    }
+
+    public static void setTooltip(AbstractWidget widget, @Nullable Tooltip tooltip) {
+        if (tooltip == null) {
+            TOOLTIP.remove(widget);
+        } else {
+            TOOLTIP.put(widget, tooltip);
+        }
+        refreshTooltip(widget);
+    }
+
+    public static void setDisabledTooltip(AbstractWidget widget, @Nullable Tooltip tooltip) {
+        if (tooltip == null) {
+            DISABLED_TOOLTIP.remove(widget);
+        } else {
+            DISABLED_TOOLTIP.put(widget, tooltip);
+        }
+        refreshTooltip(widget);
+    }
+
+    public static void refreshTooltip(AbstractWidget widget) {
+        if (!TOOLTIP.containsKey(widget) && !DISABLED_TOOLTIP.containsKey(widget)) {
+            return;
+        }
+        Tooltip tooltip = widget.active
+                ? TOOLTIP.get(widget)
+                : DISABLED_TOOLTIP.getOrDefault(widget, TOOLTIP.get(widget));
+        widget.setTooltip(tooltip);
     }
 }
