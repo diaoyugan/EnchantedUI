@@ -76,10 +76,11 @@ All labels are `Component` values. For reusable mods, prefer
 `Component.translatable("your_mod.some_key")` so text belongs to your own
 namespace.
 
-EnchantedUI includes fallback `eui.*` language keys for generated text such as
-RGBA channel names, validation errors, empty-list labels, keybinding states, and
-dialog buttons. Use the overloads that accept custom `Component` values or
-`UILocalization.*` records when that text appears in another mod's UI.
+Framework-generated text uses keys derived from
+`UILocalization.class.getPackageName()` and includes an English fallback.
+Relocating the library therefore relocates its default translation keys too.
+Use the overloads that accept custom `Component` values or `UILocalization.*`
+records when the consumer mod owns the wording.
 
 ## Widget surface today
 
@@ -137,6 +138,7 @@ For local integration testing, the project currently publishes:
 
 - `enchanted_ui-common-<minecraft_version>`
 - `enchanted_ui-fabric-<minecraft_version>`
+- `enchanted_ui-neoforge-<minecraft_version>`
 
 Publish them with:
 
@@ -150,22 +152,21 @@ Output:
 build/test-maven
 ```
 
-The NeoForge side is intentionally not part of the active testing path yet.
-
 ## Recommended usage modes
 
 Standalone runtime dependency:
 
 - compile against `enchanted_ui-common`
-- place `enchanted_ui-fabric` in the game `mods` folder
+- place the matching `enchanted_ui-fabric` or `enchanted_ui-neoforge` shell in
+  the game `mods` folder
 
 Embedded usage:
 
-- embed `enchanted_ui-common` into another mod when you want to ship the framework implementation with it
-
-Fabric nested-mod packaging:
-
-- use `modImplementation` plus `include` on `enchanted_ui-fabric`
+- shade/merge only `enchanted_ui-common`
+- relocate `top.diaoyugan.enchanted_ui` into a private package owned by the
+  consumer mod
+- do not embed either platform shell, because those jars intentionally contain
+  Loader metadata and the public standalone resource namespace
 
 See [docs/internal-testing-usage.md](docs/internal-testing-usage.md) for the concrete local testing flow.
 

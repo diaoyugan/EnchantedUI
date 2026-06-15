@@ -159,10 +159,7 @@ public class KeyBindingButtonWidget extends Button.Plain {
 
     public void refreshMessage() {
         if (listening) {
-            setMessage(Component.translatable(
-                    messages.listeningKey(),
-                    label
-            ));
+            setMessage(messages.listening(label));
             return;
         }
 
@@ -180,11 +177,7 @@ public class KeyBindingButtonWidget extends Button.Plain {
     }
 
     private Component currentMessage(Component keyName) {
-        return Component.translatable(
-                messages.currentKey(),
-                label,
-                keyName
-        );
+        return messages.current(label, keyName);
     }
 
     @Override

@@ -1,98 +1,64 @@
-# 内部测试使用说明
+# 产物与内嵌使用说明
 
-当前项目提供两种适合本地联调的构建产物：
+构建会发布三个产物：
 
-- `enchanted_ui-common-<minecraft_version>`：普通库 jar，适合嵌入到其他 mod
-- `enchanted_ui-fabric-<minecraft_version>`：Fabric 运行时 mod jar，适合独立安装或 jar-in-jar 使用
+- `enchanted_ui-common-<minecraft_version>`：只包含 UI 类的 Loader 无关库
+- `enchanted_ui-fabric-<minecraft_version>`：Fabric 独立 Mod 外壳
+- `enchanted_ui-neoforge-<minecraft_version>`：NeoForge 独立 Mod 外壳
 
-在编写接入代码时，建议优先使用公共 API 包：
-
-```text
-top.diaoyugan.enchanted_ui.api.client.gui
-```
-
-不要直接基于下面这种内部实现包去写新集成：
-
-```text
-top.diaoyugan.enchanted_ui.client.gui.builder
-```
-
-## 发布本地测试产物
-
-运行：
+发布本地测试产物：
 
 ```powershell
 ./gradlew publishForInternalTesting
 ```
 
-产物会发布到：
+产物会写入 `build/test-maven`。
 
-```text
-build/test-maven
-```
+## 独立 Mod 模式
 
-## 模式 1：独立运行时依赖
-
-当 `EnchantedUI` 作为独立 mod 安装进游戏 `mods` 文件夹时，使用这种方式。
-
-消费方项目仓库配置：
-
-```groovy
-repositories {
-    maven {
-        url = uri("C:/path/to/EnchantedUI/build/test-maven")
-    }
-}
-```
-
-消费方依赖：
+消费方编译时依赖 common，运行时安装对应平台外壳，并在自己的 Loader metadata 中正常声明
+对 `enchanted_ui` 的依赖。
 
 ```groovy
 dependencies {
-    compileOnly "unspecified:enchanted_ui-common-26.2-snapshot-6:0.0.1-dev"
+    compileOnly "<group>:enchanted_ui-common-<minecraft_version>:<version>"
 }
 ```
 
-运行时：
+平台外壳包含 Loader metadata、入口、演示命令、独立版图标和本地化资源。
 
-- 把 `enchanted_ui-fabric-26.2-snapshot-6-0.0.1-dev.jar` 放进游戏 `mods` 文件夹
-- 在消费方 mod 元数据里正常声明对 `enchanted_ui` 的 Fabric 依赖
+## 内嵌模式
 
-## 模式 2：内嵌依赖
+只允许内嵌 common。不要内嵌 Fabric 或 NeoForge 产物：它们是真正的 Mod，按设计包含公共
+Loader metadata 和 `assets/enchanted_ui`。
 
-当其他 mod 想把 UI 实现一起打包进去时，使用这种方式。
-
-消费方仓库配置：
+common jar 不包含 Mod metadata、assets、data、Mixin 配置或公共 `eui.*` 翻译 key。
+消费方必须 relocation 整个根包，使每个 Mod 拥有自己的私有副本：
 
 ```groovy
-repositories {
-    maven {
-        url = uri("C:/path/to/EnchantedUI/build/test-maven")
-    }
+configurations {
+    enchantedUiEmbed
 }
-```
 
-消费方依赖：
-
-```groovy
 dependencies {
-    implementation "unspecified:enchanted_ui-common-26.2-snapshot-6:0.0.1-dev"
+    compileOnly "<group>:enchanted_ui-common-<minecraft_version>:<version>"
+    enchantedUiEmbed "<group>:enchanted_ui-common-<minecraft_version>:<version>"
+}
+
+tasks.named("shadowJar") {
+    configurations = [project.configurations.enchantedUiEmbed]
+    relocate(
+            "top.diaoyugan.enchanted_ui",
+            "com.example.yourmod.internal.enchantedui"
+    )
 }
 ```
 
-然后按照消费方项目自己的打包流程，把这个库一起打进最终 mod jar。
+再按消费方现有构建流程配置 Loom 或 ModDevGradle，对 shadow jar 执行 remap/打包。
+Shadow 会同时改写消费方类和库类中的类型引用。
 
-如果是 Fabric 项目，并且你更偏向嵌套 mod 打包而不是普通类库嵌入，也可以直接依赖 Fabric 产物：
+框架 fallback 翻译 key 基于 `UILocalization.class.getPackageName()` 动态生成，relocation 后会
+自动使用私有包前缀。需要本地化框架默认文案时，可在消费 Mod 自己的语言 JSON 中提供 relocation
+后的 key；业务文案仍应使用消费 Mod 自己的常规翻译 key。
 
-```groovy
-dependencies {
-    modImplementation "unspecified:enchanted_ui-fabric-26.2-snapshot-6:0.0.1-dev"
-    include "unspecified:enchanted_ui-fabric-26.2-snapshot-6:0.0.1-dev"
-}
-```
-
-## 当前建议
-
-- 独立依赖：编译依赖 `common`，运行时安装 `fabric`
-- 内嵌依赖：嵌入 `common`
-- Fabric 嵌套 mod 打包：对 `fabric` 使用 `modImplementation` 加 `include`
+运行 `./gradlew :common:verifyIsolation` 可检查 common 产物边界。

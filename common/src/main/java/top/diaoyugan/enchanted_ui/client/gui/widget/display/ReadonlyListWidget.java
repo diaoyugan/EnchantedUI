@@ -5,6 +5,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
+import top.diaoyugan.enchanted_ui.api.client.gui.UILocalization;
 import top.diaoyugan.enchanted_ui.client.gui.widget.overlay.OverlayRenderableWidget;
 
 import java.util.List;
@@ -28,8 +29,8 @@ public class ReadonlyListWidget extends AbstractWidget implements OverlayRendera
                 label,
                 entriesSupplier,
                 visibleRows,
-                Component.translatable("eui.display.empty"),
-                hiddenCount -> Component.translatable("eui.display.more", hiddenCount)
+                UILocalization.frameworkText("display.empty", "No data"),
+                hiddenCount -> UILocalization.frameworkText("display.more", "+%d more", hiddenCount)
         );
     }
 

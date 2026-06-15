@@ -20,6 +20,7 @@ import top.diaoyugan.enchanted_ui.client.gui.widget.overlay.OverlayRenderableWid
 import top.diaoyugan.enchanted_ui.client.gui.widget.scroll.ScrollBarWidget;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIScreenStyle;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIUnsavedChangesPrompt;
+import top.diaoyugan.enchanted_ui.api.client.gui.UILocalization;
 
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
@@ -411,7 +412,7 @@ public class BaseTabbedScreen extends Screen {
         showConfirm(
                 title,
                 message,
-                Component.translatable("eui.dialog.confirm"),
+                UILocalization.frameworkText("dialog.confirm", "Confirm"),
                 CommonComponents.GUI_CANCEL,
                 confirmAction
         );

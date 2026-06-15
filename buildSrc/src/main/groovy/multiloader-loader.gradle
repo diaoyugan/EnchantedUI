@@ -2,6 +2,13 @@ plugins {
     id 'multiloader-common'
 }
 
+sourceSets {
+    main {
+        java.srcDir rootProject.file('standalone/src/main/java')
+        resources.srcDir rootProject.file('standalone/src/main/resources')
+    }
+}
+
 configurations {
     commonJava {
         canBeResolved = true

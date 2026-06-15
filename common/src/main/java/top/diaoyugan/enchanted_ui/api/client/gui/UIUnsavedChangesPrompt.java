@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * Text shown when a screen with unsaved form changes is closed.
  * <p>
- * The default prompt uses EnchantedUI translation keys. Use {@link #of(Component, Component)}
+ * The default prompt uses relocation-aware framework translation keys. Use {@link #of(Component, Component)}
  * or {@link #of(Component, List, Component, Component)} when a screen needs
  * domain-specific wording.
  *
@@ -35,10 +35,13 @@ public record UIUnsavedChangesPrompt(
      */
     public static UIUnsavedChangesPrompt defaults() {
         return new UIUnsavedChangesPrompt(
-                Component.translatable("eui.dialog.unsaved_changes.title"),
-                List.of(Component.translatable("eui.dialog.unsaved_changes.message")),
-                Component.translatable("eui.dialog.unsaved_changes.discard"),
-                Component.translatable("eui.dialog.unsaved_changes.cancel")
+                UILocalization.frameworkText("dialog.unsaved_changes.title", "Unsaved Changes"),
+                List.of(UILocalization.frameworkText(
+                        "dialog.unsaved_changes.message",
+                        "This screen has unsaved changes. Close without saving?"
+                )),
+                UILocalization.frameworkText("dialog.unsaved_changes.discard", "Discard"),
+                UILocalization.frameworkText("dialog.unsaved_changes.cancel", "Cancel")
         );
     }
 
@@ -49,8 +52,8 @@ public record UIUnsavedChangesPrompt(
         return new UIUnsavedChangesPrompt(
                 title,
                 List.of(message),
-                Component.translatable("eui.dialog.unsaved_changes.discard"),
-                Component.translatable("eui.dialog.unsaved_changes.cancel")
+                UILocalization.frameworkText("dialog.unsaved_changes.discard", "Discard"),
+                UILocalization.frameworkText("dialog.unsaved_changes.cancel", "Cancel")
         );
     }
 

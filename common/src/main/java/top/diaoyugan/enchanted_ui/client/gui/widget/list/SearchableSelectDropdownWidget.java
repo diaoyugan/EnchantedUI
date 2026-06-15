@@ -6,6 +6,7 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import top.diaoyugan.enchanted_ui.api.client.gui.UILocalization;
 
 import java.util.List;
 import java.util.Locale;
@@ -33,7 +34,20 @@ public class SearchableSelectDropdownWidget<T> extends AbstractDropdownListWidge
             Component searchHint,
             int visibleRows
     ) {
-        this(x, y, width, label, getter, setter, entriesSupplier, display, searchHint, visibleRows, Component.translatable("eui.select.none"), Component.translatable("eui.dropdown.empty"));
+        this(
+                x,
+                y,
+                width,
+                label,
+                getter,
+                setter,
+                entriesSupplier,
+                display,
+                searchHint,
+                visibleRows,
+                UILocalization.frameworkText("select.none", "None"),
+                UILocalization.frameworkText("dropdown.empty", "No entries")
+        );
     }
 
     public SearchableSelectDropdownWidget(

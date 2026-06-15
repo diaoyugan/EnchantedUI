@@ -1,0 +1,42 @@
+{
+  "modmenu.nameTranslation.enchanted_ui": "Enchanted UI",
+  "modmenu.descriptionTranslation.enchanted_ui": "一个用于 Minecraft 的 GUI API，用于构建模块化、可组合的 UI 界面。",
+  "modmenu.summaryTranslation.enchanted_ui": "一个 Minecraft GUI API。",
+
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.color_preview": "颜色预览",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.rgba.red": "红色",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.rgba.green": "绿色",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.rgba.blue": "蓝色",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.rgba.alpha": "透明度",
+
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.value.block": "%d 个方块",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.value.durability": "%d 点耐久",
+
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.value.times": "%d 次",
+
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.message.highlightblocks": "方块：%d",
+
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.save_and_exit": "保存并关闭",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.close": "关闭",
+
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.keys.listening": "等待输入...",
+
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.keybind.current": "%s：%s",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.keybind.none": "%s：无",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.keybind.listening": "%s：请按下按键...",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.dropdown.empty": "没有条目",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.display.empty": "没有数据",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.display.more": "还有 %d 项",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.dropdown.add": "添加",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.select.none": "无",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.dialog.confirm": "确认",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.dialog.unsaved_changes.title": "未保存的更改",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.dialog.unsaved_changes.message": "此界面有未保存的更改。要不保存并关闭吗？",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.dialog.unsaved_changes.discard": "放弃更改",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.dialog.unsaved_changes.cancel": "取消",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.validation.duplicate_entry": "此条目已存在。",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.validation.int.required": "%s 需要输入整数。",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.validation.int.range": "%s 必须介于 %d 和 %d 之间。",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.validation.double.required": "%s 需要输入数字。",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.validation.double.range": "%s 必须介于 %s 和 %s 之间。"
+}

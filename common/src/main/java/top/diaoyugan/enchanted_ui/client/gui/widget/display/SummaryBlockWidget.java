@@ -5,6 +5,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
+import top.diaoyugan.enchanted_ui.api.client.gui.UILocalization;
 import top.diaoyugan.enchanted_ui.api.client.gui.UISummaryItem;
 import top.diaoyugan.enchanted_ui.client.gui.widget.overlay.OverlayRenderableWidget;
 
@@ -20,7 +21,7 @@ public class SummaryBlockWidget extends AbstractWidget implements OverlayRendera
     private DisplayText.Overlay textOverlay = DisplayText.noOverlay();
 
     public SummaryBlockWidget(int x, int y, int width, Component title, Supplier<List<UISummaryItem>> itemsSupplier, int rows) {
-        this(x, y, width, title, itemsSupplier, rows, Component.translatable("eui.display.empty"));
+        this(x, y, width, title, itemsSupplier, rows, UILocalization.frameworkText("display.empty", "No data"));
     }
 
     public SummaryBlockWidget(int x, int y, int width, Component title, Supplier<List<UISummaryItem>> itemsSupplier, int rows, Component emptyText) {

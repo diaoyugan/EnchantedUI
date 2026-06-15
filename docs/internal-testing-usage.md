@@ -1,98 +1,71 @@
-# Internal Testing Usage
+# Artifact And Embedding Guide
 
-This project now exposes two practical artifacts for local integration testing:
+The build publishes three artifacts:
 
-- `enchanted_ui-common-<minecraft_version>`: plain library jar for embedding into another mod
-- `enchanted_ui-fabric-<minecraft_version>`: Fabric runtime mod jar for standalone installation or jar-in-jar use
+- `enchanted_ui-common-<minecraft_version>`: loader-neutral UI classes only
+- `enchanted_ui-fabric-<minecraft_version>`: standalone Fabric mod shell
+- `enchanted_ui-neoforge-<minecraft_version>`: standalone NeoForge mod shell
 
-When writing integration code, prefer the public API package:
-
-```text
-top.diaoyugan.enchanted_ui.api.client.gui
-```
-
-Avoid building new integrations directly on top of internal implementation packages such as:
-
-```text
-top.diaoyugan.enchanted_ui.client.gui.builder
-```
-
-## Publish local test artifacts
-
-Run:
+Publish local artifacts with:
 
 ```powershell
 ./gradlew publishForInternalTesting
 ```
 
-Artifacts are published to:
+They are written to `build/test-maven`.
 
-```text
-build/test-maven
-```
+## Standalone Mode
 
-## Mode 1: standalone runtime dependency
-
-Use this when `EnchantedUI` is installed as its own mod in the game `mods` folder.
-
-Consumer project repository:
-
-```groovy
-repositories {
-    maven {
-        url = uri("C:/path/to/EnchantedUI/build/test-maven")
-    }
-}
-```
-
-Consumer dependencies:
+Compile against the common artifact and install the matching platform shell at
+runtime. Declare a normal `enchanted_ui` mod dependency in the consumer's Loader
+metadata.
 
 ```groovy
 dependencies {
-    compileOnly "unspecified:enchanted_ui-common-26.2-snapshot-6:0.0.1-dev"
+    compileOnly "<group>:enchanted_ui-common-<minecraft_version>:<version>"
 }
 ```
 
-Runtime:
+The platform shells contain the Loader metadata, entrypoints, demo command,
+standalone icon, and standalone localization resources.
 
-- put `enchanted_ui-fabric-26.2-snapshot-6-0.0.1-dev.jar` in the game `mods` folder
-- declare a normal Fabric mod dependency on `enchanted_ui` in the consumer mod metadata
+## Embedded Mode
 
-## Mode 2: embedded dependency
+Embed only the common artifact. Never embed the Fabric or NeoForge artifact:
+those are real mods and intentionally contain public Loader metadata and
+`assets/enchanted_ui`.
 
-Use this when another mod wants to bundle the UI implementation itself.
-
-Consumer repository:
+The common jar contains no mod metadata, assets, data, mixin configuration, or
+public `eui.*` translation keys. Relocate its entire root package so every
+consumer owns a private copy:
 
 ```groovy
-repositories {
-    maven {
-        url = uri("C:/path/to/EnchantedUI/build/test-maven")
-    }
+configurations {
+    enchantedUiEmbed
 }
-```
 
-Consumer dependency:
-
-```groovy
 dependencies {
-    implementation "unspecified:enchanted_ui-common-26.2-snapshot-6:0.0.1-dev"
+    compileOnly "<group>:enchanted_ui-common-<minecraft_version>:<version>"
+    enchantedUiEmbed "<group>:enchanted_ui-common-<minecraft_version>:<version>"
+}
+
+tasks.named("shadowJar") {
+    configurations = [project.configurations.enchantedUiEmbed]
+    relocate(
+            "top.diaoyugan.enchanted_ui",
+            "com.example.yourmod.internal.enchantedui"
+    )
 }
 ```
 
-Then embed that library into the final mod jar using the consumer project's packaging flow.
+Configure Loom or ModDevGradle to remap/package that shadow jar according to the
+consumer project's normal build flow. Shadow rewrites references from consumer
+classes as well as the library classes.
 
-For Fabric projects, if you prefer nested mod packaging instead of plain class embedding, depend on the Fabric artifact instead:
+Framework fallback translation keys are derived from
+`UILocalization.class.getPackageName()`. After relocation they use the private
+package prefix automatically. Consumers that need localized framework defaults
+can add those relocated keys to their own language JSON; consumer-owned UI text
+should continue using the consumer mod's normal translation keys.
 
-```groovy
-dependencies {
-    modImplementation "unspecified:enchanted_ui-fabric-26.2-snapshot-6:0.0.1-dev"
-    include "unspecified:enchanted_ui-fabric-26.2-snapshot-6:0.0.1-dev"
-}
-```
-
-## Current recommendation
-
-- standalone dependency: compile against `common`, run with `fabric`
-- embedded dependency: embed `common`
-- nested mod packaging on Fabric: `modImplementation` + `include` on `fabric`
+Run `./gradlew :common:verifyIsolation` to check the common artifact boundary.

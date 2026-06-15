@@ -1,0 +1,42 @@
+{
+  "modmenu.nameTranslation.enchanted_ui": "Enchanted UI",
+  "modmenu.descriptionTranslation.enchanted_ui": "A Minecraft GUI API for building modular and composable UI screens.",
+  "modmenu.summaryTranslation.enchanted_ui": "A Minecraft GUI API.",
+
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.color_preview": "Color preview",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.rgba.red": "Red",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.rgba.green": "Green",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.rgba.blue": "Blue",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.rgba.alpha": "Alpha",
+
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.value.block": "%d Blocks",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.value.durability": "%d Dur.",
+
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.value.times": "%d Passes",
+
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.message.highlightblocks": "Blocks: %d",
+
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.save_and_exit": "Save & Close",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.close": "Close",
+
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.keys.listening": "Waiting input...",
+
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.keybind.current": "%s: %s",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.keybind.none": "%s: None",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.config.keybind.listening": "%s: Press keys...",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.dropdown.empty": "No entries",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.display.empty": "No data",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.display.more": "+%d more",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.dropdown.add": "Add",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.select.none": "None",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.dialog.confirm": "Confirm",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.dialog.unsaved_changes.title": "Unsaved Changes",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.dialog.unsaved_changes.message": "This screen has unsaved changes. Close without saving?",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.dialog.unsaved_changes.discard": "Discard",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.dialog.unsaved_changes.cancel": "Cancel",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.validation.duplicate_entry": "This entry already exists.",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.validation.int.required": "%s requires a whole number.",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.validation.int.range": "%s must be between %d and %d.",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.validation.double.required": "%s requires a numeric value.",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.validation.double.range": "%s must be between %s and %s."
+}

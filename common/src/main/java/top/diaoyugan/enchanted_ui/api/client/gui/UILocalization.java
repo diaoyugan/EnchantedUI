@@ -6,11 +6,22 @@ import net.minecraft.network.chat.Component;
  * Small value objects for framework-generated text.
  * <p>
  * Use these when EnchantedUI creates text for you, such as RGBA channel names,
- * field validation errors, or key binding state labels. Passing keys from your
- * own mod namespace keeps your UI isolated from EnchantedUI fallback keys.
+ * field validation errors, or key binding state labels. Built-in keys are based
+ * on this class' runtime package, so relocating the library also relocates its
+ * translation namespace.
  */
 public final class UILocalization {
+    private static final String FRAMEWORK_KEY_PREFIX = UILocalization.class.getPackageName() + ".text.";
+
     private UILocalization() {
+    }
+
+    public static String frameworkKey(String name) {
+        return FRAMEWORK_KEY_PREFIX + name;
+    }
+
+    public static Component frameworkText(String name, String fallback, Object... args) {
+        return Component.translatableWithFallback(frameworkKey(name), fallback, args);
     }
 
     /**
@@ -25,11 +36,11 @@ public final class UILocalization {
     public record ColorLabels(Component red, Component green, Component blue, Component alpha, Component preview) {
         public static ColorLabels defaults() {
             return new ColorLabels(
-                    Component.translatable("eui.config.rgba.red"),
-                    Component.translatable("eui.config.rgba.green"),
-                    Component.translatable("eui.config.rgba.blue"),
-                    Component.translatable("eui.config.rgba.alpha"),
-                    Component.translatable("eui.config.color_preview")
+                    frameworkText("config.rgba.red", "Red"),
+                    frameworkText("config.rgba.green", "Green"),
+                    frameworkText("config.rgba.blue", "Blue"),
+                    frameworkText("config.rgba.alpha", "Alpha"),
+                    frameworkText("config.color_preview", "Color preview")
             );
         }
     }
@@ -42,23 +53,29 @@ public final class UILocalization {
      */
     public record FieldValidationMessages(String requiredKey, String rangeKey) {
         public static FieldValidationMessages intDefaults() {
-            return new FieldValidationMessages("eui.validation.int.required", "eui.validation.int.range");
+            return new FieldValidationMessages(
+                    frameworkKey("validation.int.required"),
+                    frameworkKey("validation.int.range")
+            );
         }
 
         public static FieldValidationMessages doubleDefaults() {
-            return new FieldValidationMessages("eui.validation.double.required", "eui.validation.double.range");
+            return new FieldValidationMessages(
+                    frameworkKey("validation.double.required"),
+                    frameworkKey("validation.double.range")
+            );
         }
 
         public Component required(Component label) {
-            return Component.translatable(requiredKey, label);
+            return Component.translatableWithFallback(requiredKey, "%s requires a numeric value.", label);
         }
 
         public Component intRange(Component label, int min, int max) {
-            return Component.translatable(rangeKey, label, min, max);
+            return Component.translatableWithFallback(rangeKey, "%s must be between %d and %d.", label, min, max);
         }
 
         public Component doubleRange(Component label, String min, String max) {
-            return Component.translatable(rangeKey, label, min, max);
+            return Component.translatableWithFallback(rangeKey, "%s must be between %s and %s.", label, min, max);
         }
     }
 
@@ -72,10 +89,22 @@ public final class UILocalization {
     public record KeyBindingMessages(String currentKey, String noneKey, String listeningKey) {
         public static KeyBindingMessages defaults() {
             return new KeyBindingMessages(
-                    "eui.config.keybind.current",
-                    "eui.config.keybind.none",
-                    "eui.config.keybind.listening"
+                    frameworkKey("config.keybind.current"),
+                    frameworkKey("config.keybind.none"),
+                    frameworkKey("config.keybind.listening")
             );
+        }
+
+        public Component current(Component label, Object keyName) {
+            return Component.translatableWithFallback(currentKey, "%s: %s", label, keyName);
+        }
+
+        public Component none(Component label) {
+            return Component.translatableWithFallback(noneKey, "%s: None", label);
+        }
+
+        public Component listening(Component label) {
+            return Component.translatableWithFallback(listeningKey, "%s: Press keys...", label);
         }
     }
 }

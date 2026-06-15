@@ -1,4 +1,4 @@
-package top.diaoyugan.enchanted_ui.client.gui.screen;
+package top.diaoyugan.enchanted_ui.standalone.gui.screen;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
@@ -12,6 +12,7 @@ import top.diaoyugan.enchanted_ui.api.client.gui.UIBottomBar;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIDialogAction;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIForm;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIFormSpec;
+import top.diaoyugan.enchanted_ui.api.client.gui.UILocalization;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIScreenStyle;
 import top.diaoyugan.enchanted_ui.api.client.gui.UISlider;
 import top.diaoyugan.enchanted_ui.api.client.gui.UISummaryItem;
@@ -215,7 +216,7 @@ public class DemoScreen extends UITabbedScreen {
                         v -> passes = v,
                         false
                 );
-                passesSlider.setCustomValueKey("eui.config.value.times");
+                passesSlider.setCustomValueKey(UILocalization.frameworkKey("config.value.times"));
                 passesSlider.tooltip(Component.literal("This is a demo slider using a translated value label."));
             }
 
@@ -511,4 +512,3 @@ public class DemoScreen extends UITabbedScreen {
         a = 255;
     }
 }
-

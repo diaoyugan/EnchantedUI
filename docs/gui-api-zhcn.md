@@ -56,36 +56,10 @@ public final class ExampleScreen extends UITabbedScreen {
 `Component.translatable("your_mod.some_key")`，而不是把文案写成
 `Component.literal(...)`，这样文本会归属于你自己的 namespace。
 
-EnchantedUI 自身也提供兜底语言文件：
-`assets/enchanted_ui/lang/*.json`。这些 key 对整个 `enchanted_ui` namespace
-都是全局的；如果其他 mod 或资源包覆写它们，所有使用这些兜底 key 的界面都会受到影响。
-因此，当文案属于你的 mod 时，应使用可传入自定义 label 或 translation key 的重载。
-
-当前框架自动生成的内置文案包括：
-
-- `eui.config.rgba.red`
-- `eui.config.rgba.green`
-- `eui.config.rgba.blue`
-- `eui.config.rgba.alpha`
-- `eui.config.color_preview`
-- `eui.config.keybind.current`
-- `eui.config.keybind.none`
-- `eui.config.keybind.listening`
-- `eui.dropdown.empty`
-- `eui.dropdown.add`
-- `eui.select.none`
-- `eui.validation.duplicate_entry`
-- `eui.validation.int.required`
-- `eui.validation.int.range`
-- `eui.validation.double.required`
-- `eui.validation.double.range`
-- `eui.display.empty`
-- `eui.display.more`
-- `eui.dialog.confirm`
-- `eui.dialog.unsaved_changes.title`
-- `eui.dialog.unsaved_changes.message`
-- `eui.dialog.unsaved_changes.discard`
-- `eui.dialog.unsaved_changes.cancel`
+框架自动生成的内置文案使用 `UILocalization.frameworkKey(...)`。key 前缀由
+`UILocalization` 的运行时包名计算，因此 Shadow relocation 会同时隔离默认翻译 key。
+所有内置文案都有英文 fallback；Fabric 和 NeoForge 独立外壳还会为原始包前缀提供本地化值。
+内嵌方可以为 relocation 后的私有前缀提供翻译，也可以直接传入自己的 label 或 translation key。
 
 调用方接管框架生成文本的示例：
 
@@ -326,4 +300,4 @@ unsavedChangesPrompt(UIUnsavedChangesPrompt.of(
 
 参考实现：
 
-- `common/src/main/java/top/diaoyugan/enchanted_ui/client/gui/screen/DemoScreen.java`
+- `standalone/src/main/java/top/diaoyugan/enchanted_ui/standalone/gui/screen/DemoScreen.java`

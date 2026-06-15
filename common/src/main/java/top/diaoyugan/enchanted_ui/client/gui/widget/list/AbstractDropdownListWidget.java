@@ -7,6 +7,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import top.diaoyugan.enchanted_ui.api.client.gui.UILocalization;
 import top.diaoyugan.enchanted_ui.client.gui.widget.overlay.OverlayRenderableWidget;
 
 import java.util.List;
@@ -26,7 +27,7 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
     private int scrollIndex;
 
     protected AbstractDropdownListWidget(int x, int y, int width, Component label, int visibleRows) {
-        this(x, y, width, label, visibleRows, Component.translatable("eui.dropdown.empty"));
+        this(x, y, width, label, visibleRows, UILocalization.frameworkText("dropdown.empty", "No entries"));
     }
 
     protected AbstractDropdownListWidget(int x, int y, int width, Component label, int visibleRows, Component emptyText) {

@@ -3,7 +3,7 @@ package top.diaoyugan.enchanted_ui.client;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import top.diaoyugan.enchanted_ui.client.command.Command;
+import top.diaoyugan.enchanted_ui.standalone.command.Command;
 
 
 

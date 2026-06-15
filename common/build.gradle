@@ -12,13 +12,6 @@ neoForge {
     }
 }
 
-dependencies {
-    compileOnly group: 'org.spongepowered', name: 'mixin', version: '0.8.7'
-    // fabric and neoforge both bundle mixinextras, so it is safe to use it in common
-    compileOnly group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.3.5'
-    annotationProcessor group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.3.5'
-}
-
 configurations {
     commonJava {
         canBeResolved = false
@@ -33,6 +26,56 @@ configurations {
 artifacts {
     commonJava sourceSets.main.java.sourceDirectories.singleFile
     commonResources sourceSets.main.resources.sourceDirectories.singleFile
+}
+
+tasks.named('jar', Jar) {
+    exclude 'LICENSE'
+}
+
+tasks.register('verifyIsolation') {
+    group = 'verification'
+    description = 'Checks that the common jar is a class-only, loader-neutral, relocatable library.'
+    dependsOn tasks.named('jar')
+
+    doLast {
+        def jarFile = tasks.named('jar', Jar).get().archiveFile.get().asFile
+        def forbiddenEntries = zipTree(jarFile).matching {
+            include 'fabric.mod.json'
+            include 'META-INF/mods.toml'
+            include 'META-INF/neoforge.mods.toml'
+            include '**/*.mixins.json'
+            include 'assets/**'
+            include 'data/**'
+            include 'pack.mcmeta'
+            include 'LICENSE'
+            include '**/standalone/**'
+        }.files
+
+        if (!forbiddenEntries.empty) {
+            throw new GradleException("Common jar contains non-relocatable resources or mod metadata: ${forbiddenEntries}")
+        }
+
+        def forbiddenSource = fileTree('src/main/java') {
+            include '**/*.java'
+        }.findAll { source ->
+            def text = source.getText('UTF-8')
+            text.contains('net.fabricmc.') ||
+                    text.contains('net.neoforged.') ||
+                    text.contains('"eui.')
+        }
+
+        if (!forbiddenSource.empty) {
+            throw new GradleException("Common sources contain Loader APIs or public eui translation keys: ${forbiddenSource}")
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('verifyIsolation')
+}
+
+tasks.withType(org.gradle.api.publish.maven.tasks.PublishToMavenRepository).configureEach {
+    dependsOn tasks.named('verifyIsolation')
 }
 
 publishing {

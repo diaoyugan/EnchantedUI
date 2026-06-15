@@ -1,10 +1,10 @@
-package top.diaoyugan.enchanted_ui.client.command;
+package top.diaoyugan.enchanted_ui.standalone.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import top.diaoyugan.enchanted_ui.client.gui.screen.DemoScreen;
+import top.diaoyugan.enchanted_ui.standalone.gui.screen.DemoScreen;
 
 public final class Command {
     private static boolean pendingOpenDemo = false;

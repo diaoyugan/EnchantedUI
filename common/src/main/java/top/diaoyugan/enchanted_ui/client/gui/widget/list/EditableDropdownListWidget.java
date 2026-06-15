@@ -8,6 +8,7 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
+import top.diaoyugan.enchanted_ui.api.client.gui.UILocalization;
 import top.diaoyugan.enchanted_ui.api.client.gui.UITextValidator;
 
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class EditableDropdownListWidget extends AbstractDropdownListWidget {
-    private static final Component DEFAULT_ADD_LABEL = Component.translatable("eui.dropdown.add");
+    private static final Component DEFAULT_ADD_LABEL = UILocalization.frameworkText("dropdown.add", "Add");
 
     private final Supplier<List<String>> getter;
     private final Consumer<List<String>> setter;
@@ -69,7 +70,21 @@ public class EditableDropdownListWidget extends AbstractDropdownListWidget {
             UITextValidator validator,
             boolean allowDuplicates
     ) {
-        this(x, y, width, label, getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates, Component.translatable("eui.validation.duplicate_entry"), Component.translatable("eui.dropdown.empty"));
+        this(
+                x,
+                y,
+                width,
+                label,
+                getter,
+                setter,
+                inputHint,
+                addLabel,
+                visibleRows,
+                validator,
+                allowDuplicates,
+                UILocalization.frameworkText("validation.duplicate_entry", "This entry already exists."),
+                UILocalization.frameworkText("dropdown.empty", "No entries")
+        );
     }
 
     public EditableDropdownListWidget(

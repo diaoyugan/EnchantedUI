@@ -235,7 +235,7 @@ final class FormInputFactory {
     }
 
     DropdownListWidget dropdownList(Component label, int width, Supplier<List<Component>> entriesSupplier, int visibleRows) {
-        return dropdownList(label, width, entriesSupplier, visibleRows, Component.translatable("eui.dropdown.empty"));
+        return dropdownList(label, width, entriesSupplier, visibleRows, UILocalization.frameworkText("dropdown.empty", "No entries"));
     }
 
     DropdownListWidget dropdownList(Component label, int width, Supplier<List<Component>> entriesSupplier, int visibleRows, Component emptyText) {
@@ -246,7 +246,7 @@ final class FormInputFactory {
     }
 
     EditableDropdownListWidget editableDropdownList(Component label, Supplier<List<String>> getter, Consumer<List<String>> setter, Component inputHint) {
-        return editableDropdownList(label, contentWidth, getter, setter, inputHint, Component.translatable("eui.dropdown.add"), 5, UITextValidator.alwaysValid(), true);
+        return editableDropdownList(label, contentWidth, getter, setter, inputHint, UILocalization.frameworkText("dropdown.add", "Add"), 5, UITextValidator.alwaysValid(), true);
     }
 
     EditableDropdownListWidget editableDropdownList(Component label, int width, Supplier<List<String>> getter, Consumer<List<String>> setter, Component inputHint, Component addLabel, int visibleRows) {
@@ -254,7 +254,19 @@ final class FormInputFactory {
     }
 
     EditableDropdownListWidget editableDropdownList(Component label, int width, Supplier<List<String>> getter, Consumer<List<String>> setter, Component inputHint, Component addLabel, int visibleRows, UITextValidator validator, boolean allowDuplicates) {
-        return editableDropdownList(label, width, getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates, Component.translatable("eui.validation.duplicate_entry"), Component.translatable("eui.dropdown.empty"));
+        return editableDropdownList(
+                label,
+                width,
+                getter,
+                setter,
+                inputHint,
+                addLabel,
+                visibleRows,
+                validator,
+                allowDuplicates,
+                UILocalization.frameworkText("validation.duplicate_entry", "This entry already exists."),
+                UILocalization.frameworkText("dropdown.empty", "No entries")
+        );
     }
 
     EditableDropdownListWidget editableDropdownList(Component label, int width, Supplier<List<String>> getter, Consumer<List<String>> setter, Component inputHint, Component addLabel, int visibleRows, UITextValidator validator, boolean allowDuplicates, Component duplicateEntryError, Component emptyText) {
@@ -272,7 +284,17 @@ final class FormInputFactory {
     }
 
     <T> SelectDropdownWidget<T> select(Component label, int width, Supplier<T> getter, Consumer<T> setter, Supplier<List<T>> entriesSupplier, Function<T, Component> display, int visibleRows) {
-        return select(label, width, getter, setter, entriesSupplier, display, visibleRows, Component.translatable("eui.select.none"), Component.translatable("eui.dropdown.empty"));
+        return select(
+                label,
+                width,
+                getter,
+                setter,
+                entriesSupplier,
+                display,
+                visibleRows,
+                UILocalization.frameworkText("select.none", "None"),
+                UILocalization.frameworkText("dropdown.empty", "No entries")
+        );
     }
 
     <T> SelectDropdownWidget<T> select(Component label, int width, Supplier<T> getter, Consumer<T> setter, Supplier<List<T>> entriesSupplier, Function<T, Component> display, int visibleRows, Component noneText, Component emptyText) {
@@ -288,7 +310,16 @@ final class FormInputFactory {
     }
 
     <T> SearchableSelectDropdownWidget<T> searchableSelect(Component label, Supplier<T> getter, Consumer<T> setter, Supplier<List<T>> entriesSupplier, Function<T, Component> display, Component searchHint) {
-        return searchableSelect(label, getter, setter, entriesSupplier, display, searchHint, Component.translatable("eui.select.none"), Component.translatable("eui.dropdown.empty"));
+        return searchableSelect(
+                label,
+                getter,
+                setter,
+                entriesSupplier,
+                display,
+                searchHint,
+                UILocalization.frameworkText("select.none", "None"),
+                UILocalization.frameworkText("dropdown.empty", "No entries")
+        );
     }
 
     <T> SearchableSelectDropdownWidget<T> searchableSelect(Component label, Supplier<T> getter, Consumer<T> setter, Supplier<List<T>> entriesSupplier, Function<T, Component> display, Component searchHint, Component noneText, Component emptyText) {

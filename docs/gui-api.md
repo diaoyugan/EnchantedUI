@@ -56,37 +56,12 @@ All user-facing labels are `Component` values. For reusable mods, pass
 `Component.translatable("your_mod.some_key")` instead of `Component.literal(...)`
 so the text belongs to your own namespace.
 
-EnchantedUI also ships fallback language keys under
-`assets/enchanted_ui/lang/*.json`. Those keys are global to the `enchanted_ui`
-namespace, so another mod or resource pack overriding them affects every screen
-that uses the fallback. When text belongs to your mod, use the overloads that
-accept your own labels or translation keys.
-
-Built-in generated text currently includes:
-
-- `eui.config.rgba.red`
-- `eui.config.rgba.green`
-- `eui.config.rgba.blue`
-- `eui.config.rgba.alpha`
-- `eui.config.color_preview`
-- `eui.config.keybind.current`
-- `eui.config.keybind.none`
-- `eui.config.keybind.listening`
-- `eui.dropdown.empty`
-- `eui.dropdown.add`
-- `eui.select.none`
-- `eui.validation.duplicate_entry`
-- `eui.validation.int.required`
-- `eui.validation.int.range`
-- `eui.validation.double.required`
-- `eui.validation.double.range`
-- `eui.display.empty`
-- `eui.display.more`
-- `eui.dialog.confirm`
-- `eui.dialog.unsaved_changes.title`
-- `eui.dialog.unsaved_changes.message`
-- `eui.dialog.unsaved_changes.discard`
-- `eui.dialog.unsaved_changes.cancel`
+Built-in generated text uses `UILocalization.frameworkKey(...)`. Its prefix is
+computed from the runtime package of `UILocalization`, so Shadow relocation also
+isolates the translation keys. Every built-in component has an English fallback;
+the standalone Fabric and NeoForge shells additionally ship localized values for
+the original package prefix. Embedded consumers may provide localized values for
+their relocated prefix or pass their own labels and translation keys.
 
 Example for caller-owned generated text:
 
@@ -332,5 +307,5 @@ unsavedChangesPrompt(UIUnsavedChangesPrompt.of(
 
 Reference implementation:
 
-- `common/src/main/java/top/diaoyugan/enchanted_ui/client/gui/screen/DemoScreen.java`
+- `standalone/src/main/java/top/diaoyugan/enchanted_ui/standalone/gui/screen/DemoScreen.java`
 

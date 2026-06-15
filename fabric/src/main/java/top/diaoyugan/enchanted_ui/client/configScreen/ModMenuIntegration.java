@@ -2,7 +2,7 @@ package top.diaoyugan.enchanted_ui.client.configScreen;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
-import top.diaoyugan.enchanted_ui.client.gui.screen.DemoScreen;
+import top.diaoyugan.enchanted_ui.standalone.gui.screen.DemoScreen;
 
 
 public class ModMenuIntegration implements ModMenuApi {

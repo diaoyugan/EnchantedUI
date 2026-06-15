@@ -4,6 +4,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
+import top.diaoyugan.enchanted_ui.api.client.gui.UILocalization;
 
 import java.util.function.Supplier;
 
@@ -18,7 +19,7 @@ public class ColorPreviewWidget extends AbstractWidget {
     public ColorPreviewWidget(int x, int y, int width, int height,
                               Supplier<Integer> red, Supplier<Integer> green,
                               Supplier<Integer> blue, Supplier<Integer> alpha) {
-        this(x, y, width, height, Component.translatable("eui.config.color_preview"), red, green, blue, alpha);
+        this(x, y, width, height, UILocalization.frameworkText("config.color_preview", "Color preview"), red, green, blue, alpha);
     }
 
     public ColorPreviewWidget(int x, int y, int width, int height, Component label,

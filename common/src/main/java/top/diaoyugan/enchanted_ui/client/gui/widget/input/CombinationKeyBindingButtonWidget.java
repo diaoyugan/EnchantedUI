@@ -146,17 +146,11 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
         Set<Integer> keys = getter.get();
 
         if (listening) {
-            return Component.translatable(
-                    messages.listeningKey(),
-                    label
-            );
+            return messages.listening(label);
         }
 
         if (keys.isEmpty()) {
-            return Component.translatable(
-                    messages.noneKey(),
-                    label
-            );
+            return messages.none(label);
         }
 
         String text = keys.stream()
@@ -165,11 +159,7 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
                 .map(Component::getString)
                 .collect(Collectors.joining(" + "));
 
-        return Component.translatable(
-                messages.currentKey(),
-                label,
-                text
-        );
+        return messages.current(label, text);
     }
 
     // -------------------------

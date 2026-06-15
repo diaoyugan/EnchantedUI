@@ -10,6 +10,7 @@ tasks.register('publishForInternalTesting') {
     description = 'Publishes common and fabric artifacts to build/test-maven for local integration testing.'
     dependsOn(
             ':common:publishAllPublicationsToInternalTestingRepository',
-            ':fabric:publishAllPublicationsToInternalTestingRepository'
+            ':fabric:publishAllPublicationsToInternalTestingRepository',
+            ':neoforge:publishAllPublicationsToInternalTestingRepository'
     )
 }
