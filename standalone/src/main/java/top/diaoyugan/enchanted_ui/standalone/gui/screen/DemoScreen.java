@@ -368,7 +368,6 @@ public class DemoScreen extends UISidebarConfigScreen {
             form.title(Component.literal("Editable List Demo"));
             form.editableDropdownList(
                     Component.literal("Editable Dropdown"),
-                    220,
                     () -> editableEntries,
                     entries -> {
                         editableEntries.clear();
@@ -400,7 +399,6 @@ public class DemoScreen extends UISidebarConfigScreen {
             form.title(Component.literal("Editable List Demo"));
             form.editableDropdownList(
                     Component.literal("Editable Dropdown"),
-                    220,
                     () -> editableEntries,
                     entries -> {
                         editableEntries.clear();
