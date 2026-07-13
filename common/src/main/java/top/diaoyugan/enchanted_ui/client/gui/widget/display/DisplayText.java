@@ -3,11 +3,62 @@ package top.diaoyugan.enchanted_ui.client.gui.widget.display;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.FormattedCharSequence;
+
+import java.util.List;
 
 final class DisplayText {
     private static final String ELLIPSIS = "...";
 
     private DisplayText() {
+    }
+
+    static List<FormattedCharSequence> wrap(Minecraft minecraft, Component text, int maxWidth) {
+        return minecraft.font.split(text, Math.max(1, maxWidth));
+    }
+
+    static int wrappedBlockHeight(
+            Minecraft minecraft,
+            Component title,
+            Component body,
+            int maxWidth,
+            int topPadding,
+            int lineGap,
+            int bottomPadding
+    ) {
+        int titleLines = Math.max(1, wrap(minecraft, title, maxWidth).size());
+        int bodyLines = Math.max(1, wrap(minecraft, body, maxWidth).size());
+        return topPadding
+                + titleLines * minecraft.font.lineHeight
+                + lineGap
+                + bodyLines * minecraft.font.lineHeight
+                + bottomPadding;
+    }
+
+    static int renderWrapped(
+            GuiGraphicsExtractor guiGraphics,
+            Minecraft minecraft,
+            Component text,
+            int x,
+            int y,
+            int maxWidth,
+            int color,
+            boolean centered
+    ) {
+        List<FormattedCharSequence> lines = wrap(minecraft, text, maxWidth);
+        if (lines.isEmpty()) {
+            return y + minecraft.font.lineHeight;
+        }
+        int lineY = y;
+        for (FormattedCharSequence line : lines) {
+            if (centered) {
+                guiGraphics.centeredText(minecraft.font, line, x + maxWidth / 2, lineY, color);
+            } else {
+                guiGraphics.text(minecraft.font, line, x, lineY, color, false);
+            }
+            lineY += minecraft.font.lineHeight;
+        }
+        return lineY;
     }
 
     static Fit fit(Minecraft minecraft, Component text, int maxWidth) {

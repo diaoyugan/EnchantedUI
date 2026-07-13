@@ -14,11 +14,13 @@ import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.ApiStatus;
 import top.diaoyugan.enchanted_ui.client.gui.widget.button.TabButtonWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.WidgetConditions;
 import top.diaoyugan.enchanted_ui.client.gui.widget.overlay.OverlayRenderableWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.scroll.ScrollBarWidget;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIScreenStyle;
+import top.diaoyugan.enchanted_ui.api.client.gui.UITabLayout;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIUnsavedChangesPrompt;
 import top.diaoyugan.enchanted_ui.api.client.gui.UILocalization;
 
@@ -28,6 +30,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Runtime screen engine behind the public {@code UITabbedScreen} facade.
+ * <p>
+ * This class deliberately owns the Minecraft {@link Screen} lifecycle and the
+ * collaborators that depend on it directly: responsive tab placement, active
+ * page attachment, modal/toast rendering, and close/save coordination. Form
+ * construction remains in the builder package; visual presets remain in the
+ * public API package.
+ */
+@ApiStatus.Internal
 public class BaseTabbedScreen extends Screen {
     private static final int TAB_MIN_WIDTH = 60;
     private static final int TAB_PADDING = 10;
@@ -39,6 +51,30 @@ public class BaseTabbedScreen extends Screen {
     private final List<Button> tabButtons = new ArrayList<>();
     private final List<ToastEntry> toasts = new ArrayList<>();
 
+    // Declarative screen configuration. Presets populate these before the first init.
+    @Nullable
+    private UITabLayout tabLayout;
+    @Nullable
+    private Button previousTabsButton;
+    @Nullable
+    private Button nextTabsButton;
+    @Nullable
+    private Component headerTitle;
+    private boolean tabsVisible = true;
+    private int tabWindowStart;
+    private int visibleTabCount;
+    private int computedTabWidth = TAB_MIN_WIDTH;
+    private boolean tabStripOverflow;
+    private int tabStripLeft;
+    private int tabStripTop;
+    private int tabStripRight;
+    private int tabStripBottom;
+    private int contentLeft;
+    private int contentTop = 10;
+    private int contentRightMargin;
+    private int contentBottomMargin = 36;
+
+    // Runtime state rebuilt or reattached when Minecraft resizes the screen.
     private int currentPage = 0;
     private BottomBar bottomBar = BottomBar.none();
     private boolean opened;
@@ -71,6 +107,32 @@ public class BaseTabbedScreen extends Screen {
 
     public BaseTabbedScreen sidebarTitle(Component title) {
         this.sidebarTitle = Objects.requireNonNull(title, "title");
+        return this;
+    }
+
+    public BaseTabbedScreen headerTitle(Component title) {
+        this.headerTitle = Objects.requireNonNull(title, "title");
+        return this;
+    }
+
+    public BaseTabbedScreen tabLayout(UITabLayout layout) {
+        this.tabLayout = Objects.requireNonNull(layout, "layout");
+        return this;
+    }
+
+    public BaseTabbedScreen tabsVisible(boolean visible) {
+        this.tabsVisible = visible;
+        return this;
+    }
+
+    public BaseTabbedScreen contentViewport(int left, int top, int rightMargin, int bottomMargin) {
+        if (left < 0 || top < 0 || rightMargin < 0 || bottomMargin < 0) {
+            throw new IllegalArgumentException("Content viewport values cannot be negative");
+        }
+        this.contentLeft = left;
+        this.contentTop = top;
+        this.contentRightMargin = rightMargin;
+        this.contentBottomMargin = bottomMargin;
         return this;
     }
 
@@ -130,15 +192,27 @@ public class BaseTabbedScreen extends Screen {
 
     @Override
     protected void init() {
-        int centerX = width / 2 + 10;
-
         pages.clear();
         tabButtons.clear();
         clearWidgets();
         pageAttached = false;
 
+        buildTabButtons();
+
+        int viewportRight = Math.max(1, width - contentRightMargin);
+        int viewportLeft = Math.min(effectiveContentLeft(), Math.max(0, viewportRight - 40));
+        int viewportTop = effectiveContentTop();
+        int viewportBottom = Math.max(viewportTop + 20, height - contentBottomMargin);
+        int centerX = viewportLeft + (viewportRight - viewportLeft) / 2;
+
         for (TabSpec tab : tabs) {
-            pages.add(new PageView(tab.page.build(new BuildContext(width, height, centerX)), width, height));
+            pages.add(new PageView(
+                    tab.page.build(new BuildContext(width, height, centerX, viewportLeft, viewportRight)),
+                    viewportLeft,
+                    viewportTop,
+                    viewportRight,
+                    viewportBottom
+            ));
         }
 
         if (!opened) {
@@ -148,7 +222,6 @@ public class BaseTabbedScreen extends Screen {
             opened = true;
         }
 
-        buildTabButtons();
         showPage(currentPage);
 
         addRenderableWidget(new BottomBarBackdropWidget(0, height - 36, width, 36, style));
@@ -156,7 +229,7 @@ public class BaseTabbedScreen extends Screen {
     }
 
     private void buildTabButtons() {
-        if (minecraft == null) return;
+        if (minecraft == null || !tabsVisible) return;
 
         int computedWidth = TAB_MIN_WIDTH;
         for (TabSpec tab : tabs) {
@@ -166,11 +239,13 @@ public class BaseTabbedScreen extends Screen {
             computedWidth = Math.max(computedWidth, minecraft.font.width(sidebarTitle) + TAB_PADDING);
         }
 
+        computedTabWidth = Math.min(computedWidth, Math.max(TAB_MIN_WIDTH, width - 20));
+
         for (int i = 0; i < tabs.size(); i++) {
             TabSpec tab = tabs.get(i);
             int index = i;
             Button btn = new TabButtonWidget(
-                    tab.x, tab.y, computedWidth, tab.height,
+                    tab.x, tab.y, computedTabWidth, tab.height,
                     tab.label,
                     b -> showPage(index)
             );
@@ -178,10 +253,180 @@ public class BaseTabbedScreen extends Screen {
             addRenderableWidget(btn);
         }
 
+        if (tabLayout != null && !tabButtons.isEmpty()) {
+            previousTabsButton = Button.builder(
+                            tabLayout.orientation() == UITabLayout.Orientation.VERTICAL
+                                    ? Component.literal("▲") : Component.literal("◀"),
+                            button -> shiftTabWindow(-1)
+                    )
+                    .bounds(0, 0, 20, 16)
+                    .build();
+            nextTabsButton = Button.builder(
+                            tabLayout.orientation() == UITabLayout.Orientation.VERTICAL
+                                    ? Component.literal("▼") : Component.literal("▶"),
+                            button -> shiftTabWindow(1)
+                    )
+                    .bounds(0, 0, 20, 16)
+                    .build();
+            addRenderableWidget(previousTabsButton);
+            addRenderableWidget(nextTabsButton);
+            layoutAutomaticTabs();
+        }
+
         updateTabButtons();
     }
 
+    private int effectiveContentLeft() {
+        if (tabLayout != null
+                && tabLayout.reserveContentSpace()
+                && tabLayout.orientation() == UITabLayout.Orientation.VERTICAL) {
+            return Math.max(contentLeft, tabLayout.startX() + computedTabWidth + 8);
+        }
+        return contentLeft;
+    }
+
+    private int effectiveContentTop() {
+        if (tabLayout != null
+                && tabLayout.reserveContentSpace()
+                && tabLayout.orientation() == UITabLayout.Orientation.HORIZONTAL) {
+            int tabHeight = tabs.stream().mapToInt(TabSpec::height).max().orElse(20);
+            return Math.max(contentTop, tabLayout.startY() + tabHeight + 8);
+        }
+        return contentTop;
+    }
+
+    private void layoutAutomaticTabs() {
+        if (tabLayout == null || previousTabsButton == null || nextTabsButton == null || tabButtons.isEmpty()) {
+            return;
+        }
+        if (tabLayout.orientation() == UITabLayout.Orientation.VERTICAL) {
+            layoutVerticalTabs();
+        } else {
+            layoutHorizontalTabs();
+        }
+    }
+
+    private void layoutVerticalTabs() {
+        if (tabLayout == null || previousTabsButton == null || nextTabsButton == null) return;
+
+        int tabHeight = tabs.stream().mapToInt(TabSpec::height).max().orElse(20);
+        int availableBottom = Math.max(tabLayout.startY() + tabHeight, height - tabLayout.endMargin());
+        int availableHeight = availableBottom - tabLayout.startY();
+        int fullHeight = tabButtons.size() * tabHeight + Math.max(0, tabButtons.size() - 1) * tabLayout.gap();
+        tabStripOverflow = fullHeight > availableHeight;
+
+        int contentStart = tabLayout.startY();
+        int contentBottom = availableBottom;
+        if (tabStripOverflow) {
+            contentStart += 20;
+            contentBottom -= 20;
+        }
+        visibleTabCount = Math.max(1, (contentBottom - contentStart + tabLayout.gap()) / (tabHeight + tabLayout.gap()));
+        tabWindowStart = Math.max(0, Math.min(tabWindowStart, Math.max(0, tabButtons.size() - visibleTabCount)));
+
+        for (int i = 0; i < tabButtons.size(); i++) {
+            Button button = tabButtons.get(i);
+            boolean visible = !tabStripOverflow || (i >= tabWindowStart && i < tabWindowStart + visibleTabCount);
+            button.visible = visible;
+            if (visible) {
+                int visibleIndex = tabStripOverflow ? i - tabWindowStart : i;
+                button.setX(tabLayout.startX());
+                button.setY(contentStart + visibleIndex * (tabHeight + tabLayout.gap()));
+                button.setWidth(computedTabWidth);
+            }
+        }
+
+        previousTabsButton.visible = tabStripOverflow;
+        nextTabsButton.visible = tabStripOverflow;
+        previousTabsButton.active = tabWindowStart > 0;
+        nextTabsButton.active = tabWindowStart + visibleTabCount < tabButtons.size();
+        previousTabsButton.setX(tabLayout.startX());
+        previousTabsButton.setY(tabLayout.startY());
+        previousTabsButton.setWidth(computedTabWidth);
+        nextTabsButton.setX(tabLayout.startX());
+        nextTabsButton.setY(availableBottom - 16);
+        nextTabsButton.setWidth(computedTabWidth);
+
+        tabStripLeft = tabLayout.startX();
+        tabStripTop = tabLayout.startY();
+        tabStripRight = tabLayout.startX() + computedTabWidth;
+        tabStripBottom = availableBottom;
+    }
+
+    private void layoutHorizontalTabs() {
+        if (tabLayout == null || previousTabsButton == null || nextTabsButton == null) return;
+
+        int tabHeight = tabs.stream().mapToInt(TabSpec::height).max().orElse(20);
+        int availableRight = Math.max(tabLayout.startX() + TAB_MIN_WIDTH, width - tabLayout.endMargin());
+        int availableWidth = availableRight - tabLayout.startX();
+        int fullWidth = tabButtons.size() * computedTabWidth
+                + Math.max(0, tabButtons.size() - 1) * tabLayout.gap();
+        tabStripOverflow = fullWidth > availableWidth;
+
+        int contentStart = tabLayout.startX();
+        int contentRight = availableRight;
+        int horizontalTabWidth = computedTabWidth;
+        if (tabStripOverflow) {
+            contentStart += 24;
+            contentRight -= 24;
+            horizontalTabWidth = Math.min(computedTabWidth, Math.max(20, contentRight - contentStart));
+        }
+        visibleTabCount = Math.max(1, (contentRight - contentStart + tabLayout.gap())
+                / (horizontalTabWidth + tabLayout.gap()));
+        tabWindowStart = Math.max(0, Math.min(tabWindowStart, Math.max(0, tabButtons.size() - visibleTabCount)));
+
+        for (int i = 0; i < tabButtons.size(); i++) {
+            Button button = tabButtons.get(i);
+            boolean visible = !tabStripOverflow || (i >= tabWindowStart && i < tabWindowStart + visibleTabCount);
+            button.visible = visible;
+            if (visible) {
+                int visibleIndex = tabStripOverflow ? i - tabWindowStart : i;
+                button.setX(contentStart + visibleIndex * (horizontalTabWidth + tabLayout.gap()));
+                button.setY(tabLayout.startY());
+                button.setWidth(horizontalTabWidth);
+            }
+        }
+
+        previousTabsButton.visible = tabStripOverflow;
+        nextTabsButton.visible = tabStripOverflow;
+        previousTabsButton.active = tabWindowStart > 0;
+        nextTabsButton.active = tabWindowStart + visibleTabCount < tabButtons.size();
+        previousTabsButton.setX(tabLayout.startX());
+        previousTabsButton.setY(tabLayout.startY() + Math.max(0, (tabHeight - 16) / 2));
+        nextTabsButton.setX(availableRight - 20);
+        nextTabsButton.setY(tabLayout.startY() + Math.max(0, (tabHeight - 16) / 2));
+
+        tabStripLeft = tabLayout.startX();
+        tabStripTop = tabLayout.startY();
+        tabStripRight = availableRight;
+        tabStripBottom = tabLayout.startY() + tabHeight;
+    }
+
+    private void shiftTabWindow(int direction) {
+        if (!tabStripOverflow || direction == 0) return;
+        int next = Math.max(0, Math.min(
+                Math.max(0, tabButtons.size() - visibleTabCount),
+                tabWindowStart + direction
+        ));
+        if (next != tabWindowStart) {
+            tabWindowStart = next;
+            layoutAutomaticTabs();
+        }
+    }
+
+    private void revealCurrentTab() {
+        if (!tabStripOverflow || currentPage < 0 || currentPage >= tabButtons.size()) return;
+        if (currentPage < tabWindowStart) {
+            tabWindowStart = currentPage;
+            layoutAutomaticTabs();
+        } else if (currentPage >= tabWindowStart + visibleTabCount) {
+            tabWindowStart = currentPage - visibleTabCount + 1;
+            layoutAutomaticTabs();
+        }
+    }
+
     private void updateTabButtons() {
+        revealCurrentTab();
         for (int i = 0; i < tabButtons.size(); i++) {
             WidgetConditions.setActiveState(tabButtons.get(i), i != currentPage);
         }
@@ -290,6 +535,15 @@ public class BaseTabbedScreen extends Screen {
         if (modal != null) {
             return true;
         }
+        if (tabStripOverflow
+                && mouseX >= tabStripLeft && mouseX < tabStripRight
+                && mouseY >= tabStripTop && mouseY < tabStripBottom) {
+            double amount = horizontalAmount != 0 ? horizontalAmount : verticalAmount;
+            if (amount != 0) {
+                shiftTabWindow(amount > 0 ? -1 : 1);
+                return true;
+            }
+        }
         if (currentPage >= 0 && currentPage < pages.size() && pages.get(currentPage).mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
             return true;
         }
@@ -314,6 +568,7 @@ public class BaseTabbedScreen extends Screen {
         int backgroundMouseX = modal == null ? mouseX : Integer.MIN_VALUE;
         int backgroundMouseY = modal == null ? mouseY : Integer.MIN_VALUE;
         super.extractRenderState(guiGraphics, backgroundMouseX, backgroundMouseY, partialTick);
+        renderHeaderTitle(guiGraphics);
         renderSidebarTitle(guiGraphics);
         if (currentPage >= 0 && currentPage < pages.size()) {
             pages.get(currentPage).extractWidgetRenderState(guiGraphics, backgroundMouseX, backgroundMouseY, partialTick);
@@ -332,6 +587,11 @@ public class BaseTabbedScreen extends Screen {
         int centerX = tabButtons.getFirst().getX() + tabButtons.getFirst().getWidth() / 2;
         int top = tabs.stream().mapToInt(TabSpec::y).min().orElse(20);
         guiGraphics.centeredText(minecraft.font, sidebarTitle, centerX, Math.max(4, top - 16), 0xFFFFFFFF);
+    }
+
+    private void renderHeaderTitle(GuiGraphicsExtractor guiGraphics) {
+        if (minecraft == null || headerTitle == null) return;
+        guiGraphics.centeredText(minecraft.font, headerTitle, width / 2, 8, 0xFFFFFFFF);
     }
 
     @Override
@@ -452,7 +712,20 @@ public class BaseTabbedScreen extends Screen {
         }
     }
 
-    public record BuildContext(int screenWidth, int screenHeight, int centerX) {
+    public record BuildContext(
+            int screenWidth,
+            int screenHeight,
+            int centerX,
+            int viewportLeft,
+            int viewportRight
+    ) {
+        public BuildContext(int screenWidth, int screenHeight, int centerX) {
+            this(screenWidth, screenHeight, centerX, 0, screenWidth);
+        }
+
+        public int availableWidth() {
+            return Math.max(0, viewportRight - viewportLeft);
+        }
     }
 
     public interface Page {
@@ -517,26 +790,38 @@ public class BaseTabbedScreen extends Screen {
         }
     }
 
+    /**
+     * Owns one built page's viewport state.
+     * <p>
+     * Widget coordinates in {@code basePositions} never include scroll offset.
+     * Every refresh derives visible positions from those coordinates, which
+     * prevents resize, reload, and overlay expansion from accumulating drift.
+     */
     private static final class PageView {
-        private static final int VIEWPORT_TOP = 10;
-        private static final int VIEWPORT_BOTTOM_MARGIN = 36;
         private static final int SCROLLBAR_WIDTH = 8;
 
         private final List<AbstractWidget> widgets;
         private final List<OverlayRenderableWidget> overlays;
         private final Map<AbstractWidget, WidgetPosition> basePositions;
-        @Nullable
         private final ScrollBarWidget scrollBar;
-        private final int screenWidth;
+        private final int viewportLeft;
+        private final int viewportRight;
         private final int viewportTop;
         private final int viewportBottom;
         private final int baseMaxScroll;
 
         private int scrollOffset;
 
-        private PageView(List<AbstractWidget> widgets, int screenWidth, int screenHeight) {
+        private PageView(
+                List<AbstractWidget> widgets,
+                int viewportLeft,
+                int viewportTop,
+                int viewportRight,
+                int viewportBottom
+        ) {
             this.widgets = widgets;
-            this.screenWidth = screenWidth;
+            this.viewportLeft = viewportLeft;
+            this.viewportRight = viewportRight;
             this.overlays = widgets.stream()
                     .filter(OverlayRenderableWidget.class::isInstance)
                     .map(OverlayRenderableWidget.class::cast)
@@ -546,18 +831,21 @@ public class BaseTabbedScreen extends Screen {
                 basePositions.put(widget, new WidgetPosition(widget.getX(), widget.getY()));
             }
 
-            this.viewportTop = VIEWPORT_TOP;
-            this.viewportBottom = Math.max(VIEWPORT_TOP + 20, screenHeight - VIEWPORT_BOTTOM_MARGIN);
+            this.viewportTop = viewportTop;
+            this.viewportBottom = viewportBottom;
 
             int contentBottom = widgets.stream()
                     .mapToInt(widget -> widget.getY() + widget.getHeight())
                     .max()
-                    .orElse(viewportBottom);
+                    .orElse(this.viewportBottom);
             int viewportHeight = viewportBottom - viewportTop;
             this.baseMaxScroll = Math.max(0, contentBottom - viewportBottom);
 
-            int contentRight = widgets.stream().mapToInt(AbstractWidget::getRight).max().orElse(screenWidth - 12);
-            int scrollBarX = Math.min(screenWidth - 12, contentRight + 4);
+            int contentRight = widgets.stream().mapToInt(AbstractWidget::getRight).max().orElse(viewportRight - 12);
+            int scrollBarX = Math.max(
+                    viewportLeft,
+                    Math.min(viewportRight - SCROLLBAR_WIDTH, contentRight + 4)
+            );
             this.scrollBar = new ScrollBarWidget(
                     scrollBarX,
                     viewportTop,
@@ -570,7 +858,7 @@ public class BaseTabbedScreen extends Screen {
                     this::setScrollOffset
             );
 
-            applyScroll();
+            refreshWidgetStates();
         }
 
         private void addTo(BaseTabbedScreen screen) {
@@ -606,12 +894,8 @@ public class BaseTabbedScreen extends Screen {
                 return false;
             }
             scrollOffset = clamped;
-            applyScroll();
-            return true;
-        }
-
-        private void applyScroll() {
             refreshWidgetStates();
+            return true;
         }
 
         private void refreshWidgetStates() {
@@ -647,7 +931,7 @@ public class BaseTabbedScreen extends Screen {
         }
 
         private void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
-            guiGraphics.enableScissor(0, viewportTop, screenWidth, viewportBottom);
+            guiGraphics.enableScissor(viewportLeft, viewportTop, viewportRight, viewportBottom);
             for (AbstractWidget widget : widgets) {
                 if (widget.visible) {
                     widget.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
@@ -657,7 +941,7 @@ public class BaseTabbedScreen extends Screen {
         }
 
         private void extractOverlayRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
-            guiGraphics.enableScissor(0, viewportTop, screenWidth, viewportBottom);
+            guiGraphics.enableScissor(viewportLeft, viewportTop, viewportRight, viewportBottom);
             for (OverlayRenderableWidget overlay : overlays) {
                 if (overlay instanceof AbstractWidget widget && widget.visible) {
                     overlay.extractOverlayRenderState(guiGraphics, mouseX, mouseY, partialTick);
@@ -667,7 +951,7 @@ public class BaseTabbedScreen extends Screen {
         }
 
         private boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-            if (!insideViewport(event.y())) {
+            if (!insideViewport(event.x(), event.y())) {
                 return false;
             }
             for (int i = overlays.size() - 1; i >= 0; i--) {
@@ -683,7 +967,7 @@ public class BaseTabbedScreen extends Screen {
         }
 
         private boolean mouseReleased(MouseButtonEvent event) {
-            if (!insideViewport(event.y())) {
+            if (!insideViewport(event.x(), event.y())) {
                 return false;
             }
             for (int i = overlays.size() - 1; i >= 0; i--) {
@@ -699,7 +983,7 @@ public class BaseTabbedScreen extends Screen {
         }
 
         private boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
-            if (!insideViewport(event.y())) {
+            if (!insideViewport(event.x(), event.y())) {
                 return false;
             }
             for (int i = overlays.size() - 1; i >= 0; i--) {
@@ -715,7 +999,7 @@ public class BaseTabbedScreen extends Screen {
         }
 
         private boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-            if (!insideViewport(mouseY)) {
+            if (!insideViewport(mouseX, mouseY)) {
                 return false;
             }
             for (int i = overlays.size() - 1; i >= 0; i--) {
@@ -741,12 +1025,14 @@ public class BaseTabbedScreen extends Screen {
             return maxScroll;
         }
 
-        private boolean insideViewport(double mouseY) {
-            return mouseY >= viewportTop && mouseY < viewportBottom;
+        private boolean insideViewport(double mouseX, double mouseY) {
+            return mouseX >= viewportLeft && mouseX < viewportRight
+                    && mouseY >= viewportTop && mouseY < viewportBottom;
         }
 
         private boolean intersectsViewport(AbstractWidget widget) {
-            return widget.getBottom() > viewportTop && widget.getY() < viewportBottom;
+            return widget.getRight() > viewportLeft && widget.getX() < viewportRight
+                    && widget.getBottom() > viewportTop && widget.getY() < viewportBottom;
         }
 
         private boolean expandedOverlayIntersectsViewport(AbstractWidget widget) {

@@ -152,6 +152,7 @@ public class EditableDropdownListWidget extends AbstractDropdownListWidget {
         int buttonLeft = left + getWidth() - PANEL_PADDING - 36;
         if (event.x() >= buttonLeft && event.x() < buttonLeft + 36 && event.y() >= top && event.y() < top + ROW_HEIGHT) {
             addCurrentInput();
+            playClickSound();
             return true;
         }
         return false;

@@ -66,6 +66,10 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
     protected void onEntryClicked(int index) {
     }
 
+    protected boolean entrySelectable() {
+        return false;
+    }
+
     protected abstract void setInnerFocus(boolean focused);
 
     @Override
@@ -189,6 +193,7 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
             if (!expanded) {
                 setInnerFocus(false);
             }
+            playClickSound();
             return true;
         }
 
@@ -206,8 +211,10 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
         if (clickedIndex >= 0 && clickedIndex < entries().size()) {
             if (entryActionWidth() > 0 && mouseX >= actionLeft()) {
                 onEntryAction(clickedIndex);
-            } else {
+                playClickSound();
+            } else if (entrySelectable()) {
                 onEntryClicked(clickedIndex);
+                playClickSound();
             }
             return true;
         }
@@ -331,6 +338,10 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
     protected void collapse() {
         expanded = false;
         setInnerFocus(false);
+    }
+
+    protected void playClickSound() {
+        playDownSound(Minecraft.getInstance().getSoundManager());
     }
 
     protected int actionLeft() {

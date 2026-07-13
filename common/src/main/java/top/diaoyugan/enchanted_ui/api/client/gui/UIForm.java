@@ -115,7 +115,8 @@ public final class UIForm {
     }
 
     /**
-     * Builds a titled nested section using the default indent.
+     * Builds a titled nested section aligned to the parent form. Use the
+     * overload with an explicit indent when a visual hierarchy is desired.
      */
     public UIForm section(Component title, Consumer<UIForm> builder) {
         delegate.section(title, nested -> builder.accept(new UIForm(nested)));

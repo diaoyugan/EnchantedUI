@@ -87,6 +87,11 @@ public class SelectDropdownWidget<T> extends AbstractDropdownListWidget {
     }
 
     @Override
+    protected boolean entrySelectable() {
+        return true;
+    }
+
+    @Override
     protected int footerHeight() {
         return 0;
     }

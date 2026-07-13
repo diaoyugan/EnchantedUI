@@ -11,6 +11,11 @@
 主要类型：
 
 - `EnchantedUI`
+- `UIConfigScreenPreset`
+- `UISidebarConfigScreen`
+- `UITopTabbedConfigScreen`
+- `UIInfoScreen`
+- `UITabLayout`
 - `UITabbedScreen`
 - `UIPage`
 - `UIFormPage`
@@ -49,6 +54,74 @@ public final class ExampleScreen extends UITabbedScreen {
     }
 }
 ```
+
+## 页面预设
+
+常规 mod 配置界面可以直接继承 `UISidebarConfigScreen`。预设统一管理侧边栏坐标、
+页签间距和默认表单宽度，实现类只需声明页面内容和底栏动作：
+
+```java
+public final class ExampleConfigScreen extends UISidebarConfigScreen {
+    private boolean enabled = true;
+
+    public ExampleConfigScreen(Screen parent) {
+        super(
+                parent,
+                Component.translatable("example.config.title"),
+                Component.translatable("example.name")
+        );
+    }
+
+    @Override
+    protected void buildConfig(Builder config) {
+        config.formPage(Component.translatable("example.config.general"), form -> {
+            form.toggle(
+                    Component.translatable("example.config.enabled"),
+                    () -> enabled,
+                    value -> enabled = value
+            );
+        });
+
+        config.bottomBar(UIBottomBar.saveAndClose(
+                Component.translatable("example.config.close"),
+                Component.translatable("example.config.save"),
+                this::saveAll
+        ));
+    }
+}
+```
+
+自动布局的表单页使用 `config.formPage(...)`，自定义 `UIPage` 使用
+`config.page(...)`。高级重载仍允许调整表单宽度或页签文字样式，但实现类无需接触
+界面坐标。小型无状态界面也可以使用 `EnchantedUI.configScreen(...)`，无需声明具名子类。
+
+其他预设：
+
+- `UITopTabbedConfigScreen`：顶部居中显示标题，下一行横向排列 tab，适合不希望侧边栏
+  占用横向空间的配置界面。
+- `UIInfoScreen`：提供单个带标题、可滚动的表单内容区，适用于关于、帮助、状态、摘要等
+  页面；除了展示控件，也可以使用按钮、开关等交互元素。
+
+无状态页面可以使用 `EnchantedUI.topTabbedConfigScreen(...)` 和
+`EnchantedUI.infoScreen(...)`。独立集成示例可通过 `/enchantedui demo top` 与
+`/enchantedui demo info` 打开。
+
+### 响应式与溢出行为
+
+预设通过 `UITabLayout` 管理页签。当 tab 数量超过可用高度或宽度时，只显示完整落在
+页签 viewport 中的按钮，并提供方向按钮和鼠标滚轮移动页签窗口。代码切换到隐藏页签时，
+对应 tab 也会自动滚动到可见位置。
+
+页面内容使用独立的 scissor viewport，标题、页签条和底栏保持固定；长内容自动垂直滚动。
+表单宽度现在表示最大宽度，在小窗口中会收缩到内容 viewport。展开式控件使用同一个裁切
+边界，并参与动态滚动范围计算。
+
+文本型展示控件（`infoBlock`、`emptyState`、`loadingState`、`errorState`）会根据
+当前控件宽度自动换行并向下扩充。自定义高度现在作为最小高度；完整正文不再依赖省略文本的
+悬浮 overlay。
+
+`section(title, builder)` 默认只负责分组，内部控件与父表单保持相同起点和宽度。
+需要明确的层级缩进时，可以使用 `section(title, indent, builder)`。
 
 ## 文本和本地化
 

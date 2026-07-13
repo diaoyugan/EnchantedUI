@@ -13,6 +13,8 @@ EnchantedUI is a Minecraft client-side GUI framework for building modular screen
 EnchantedUI is no longer just a small config-screen helper. The current codebase provides:
 
 - tabbed screens with page lifecycle hooks
+- sidebar, top-tabbed, and single-page information screen presets
+- responsive tab overflow navigation and clipped content viewports
 - form-style builders for common widgets
 - automatic page scrolling when content exceeds the viewport
 - overlay-aware dropdown and list widgets
@@ -33,6 +35,11 @@ Preferred public entrypoints live under:
 Main entry helpers:
 
 - `EnchantedUI`
+- `UIConfigScreenPreset`
+- `UISidebarConfigScreen`
+- `UITopTabbedConfigScreen`
+- `UIInfoScreen`
+- `UITabLayout`
 - `UITabbedScreen`
 - `UIFormPage`
 - `UIForm`
@@ -51,24 +58,35 @@ The older internal builder entrypoint `top.diaoyugan.enchanted_ui.client.gui.bui
 ```java
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import top.diaoyugan.enchanted_ui.api.client.gui.EnchantedUI;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIBottomBar;
-import top.diaoyugan.enchanted_ui.api.client.gui.UITabbedScreen;
+import top.diaoyugan.enchanted_ui.api.client.gui.UISidebarConfigScreen;
 
-public final class ExampleScreen extends UITabbedScreen {
+public final class ExampleScreen extends UISidebarConfigScreen {
     public ExampleScreen(Screen parent) {
-        super(parent, Component.translatable("example.screen.title"));
+        super(
+                parent,
+                Component.translatable("example.screen.title"),
+                Component.translatable("example.name")
+        );
+    }
 
-        tab(10, 30, 20, Component.translatable("example.tab.main"), EnchantedUI.formPage(220, form -> {
+    @Override
+    protected void buildConfig(Builder config) {
+        config.formPage(Component.translatable("example.tab.main"), form -> {
             form.title(Component.translatable("example.section.general"));
             form.toggle(Component.translatable("example.enabled"), () -> true, value -> {});
             form.button(Component.translatable("example.ping"), () -> showToast(Component.translatable("example.clicked")));
-        }));
+        });
 
-        bottomBar(UIBottomBar.closeOnly(Component.translatable("example.close")));
+        config.bottomBar(UIBottomBar.closeOnly(Component.translatable("example.close")));
     }
 }
 ```
+
+Use `UITopTabbedConfigScreen` for horizontal tabs below a centered title and
+`UIInfoScreen` for a single scrollable information page with optional
+interactive controls. Extend `UITabbedScreen` directly when a custom layout is
+more appropriate than a preset.
 
 ## Text and localization
 
@@ -101,6 +119,7 @@ records when the consumer mod owns the wording.
 - select, enum-select, searchable select, multi-select
 - radio groups
 - section nesting and custom widget mounting
+- wrapped display blocks that grow with their title and body text
 - form dirty-state helpers (`hasUnsavedChanges()`, `save()`, `reload()`, `markClean()`)
 - widget state conditions (`visibleIf(...)`, `activeIf(...)`)
 
@@ -120,7 +139,13 @@ At screen level, `UITabbedScreen` currently exposes:
 
 ## Demo coverage
 
-`DemoScreen` is the current integration surface check for the framework. It exercises:
+The standalone module includes three mutually navigable integration demos:
+
+- `/enchantedui demo` — sidebar config preset
+- `/enchantedui demo top` — overflowing horizontal tab preset
+- `/enchantedui demo info` — long, interactive information page
+
+Together they exercise:
 
 - form widgets
 - validated input
@@ -131,6 +156,7 @@ At screen level, `UITabbedScreen` currently exposes:
 - scrolling
 - toast and dialog helpers
 - page lifecycle callbacks
+- responsive tab overflow and viewport clipping
 
 ## Internal testing artifacts
 
@@ -173,6 +199,7 @@ See [docs/internal-testing-usage.md](docs/internal-testing-usage.md) for the con
 ## Documentation
 
 - [docs/gui-api.md](docs/gui-api.md)
+- [docs/architecture.md](docs/architecture.md)
 - [docs/internal-testing-usage.md](docs/internal-testing-usage.md)
 
 ## Notes

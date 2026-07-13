@@ -103,6 +103,26 @@ public class UITabbedScreen extends BaseTabbedScreen {
         return this;
     }
 
+    public UITabbedScreen headerTitle(Component title) {
+        super.headerTitle(title);
+        return this;
+    }
+
+    public UITabbedScreen tabLayout(UITabLayout layout) {
+        super.tabLayout(layout);
+        return this;
+    }
+
+    public UITabbedScreen tabsVisible(boolean visible) {
+        super.tabsVisible(visible);
+        return this;
+    }
+
+    public UITabbedScreen contentViewport(int left, int top, int rightMargin, int bottomMargin) {
+        super.contentViewport(left, top, rightMargin, bottomMargin);
+        return this;
+    }
+
     public UITabbedScreen bottomBar(UIBottomBar bottomBar) {
         super.bottomBar(adapt(bottomBar));
         return this;
