@@ -295,6 +295,13 @@ Key binding helpers have fallback generated text for current, none, and
 listening states. Use the overloads that accept `UILocalization.KeyBindingMessages` when
 those labels should use your own namespace.
 
+`combinationKeyBinding(...)` uses the immutable `CombinationKeyBinding` value
+object. It supports keyboard and mouse inputs and exposes `isDown()`,
+`displayName()`, and `serialize()`. The serialized form is a list of stable
+Minecraft input names such as `key.keyboard.v` and `key.mouse.4`; use
+`serializedCombinationKeyBinding(...)` to bind a widget directly to such a
+`List<String>` or `Set<String>` configuration value.
+
 Lists and selection:
 
 - `dropdownList(...)`

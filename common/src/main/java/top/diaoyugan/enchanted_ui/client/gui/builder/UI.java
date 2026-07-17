@@ -23,6 +23,7 @@ import top.diaoyugan.enchanted_ui.client.gui.widget.display.ReadonlyListWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.display.StatusBadgeWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.display.SummaryBlockWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.input.CombinationKeyBindingButtonWidget;
+import top.diaoyugan.enchanted_ui.api.client.input.CombinationKeyBinding;
 import top.diaoyugan.enchanted_ui.client.gui.widget.input.KeyBindingButtonWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.input.ValidatedTextFieldWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.list.DropdownListWidget;
@@ -39,6 +40,7 @@ import net.minecraft.client.KeyMapping;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -824,19 +826,36 @@ public final class UI {
 
         public CombinationKeyBindingButtonWidget combinationKeyBinding(
                 Component label,
-                Supplier<Set<Integer>> getter,
-                Consumer<Set<Integer>> setter
+                Supplier<CombinationKeyBinding> getter,
+                Consumer<CombinationKeyBinding> setter
         ) {
             return inputs.combinationKeyBinding(label, getter, setter);
         }
 
         public CombinationKeyBindingButtonWidget combinationKeyBinding(
                 Component label,
-                Supplier<Set<Integer>> getter,
-                Consumer<Set<Integer>> setter,
+                Supplier<CombinationKeyBinding> getter,
+                Consumer<CombinationKeyBinding> setter,
                 UILocalization.KeyBindingMessages messages
         ) {
             return inputs.combinationKeyBinding(label, getter, setter, messages);
+        }
+
+        public CombinationKeyBindingButtonWidget serializedCombinationKeyBinding(
+                Component label,
+                Supplier<? extends Collection<String>> getter,
+                Consumer<List<String>> setter
+        ) {
+            return inputs.serializedCombinationKeyBinding(label, getter, setter);
+        }
+
+        public CombinationKeyBindingButtonWidget serializedCombinationKeyBinding(
+                Component label,
+                Supplier<? extends Collection<String>> getter,
+                Consumer<List<String>> setter,
+                UILocalization.KeyBindingMessages messages
+        ) {
+            return inputs.serializedCombinationKeyBinding(label, getter, setter, messages);
         }
 
         public ColorGroup rgbaSlidersWithPreview(

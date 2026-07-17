@@ -19,6 +19,7 @@ import top.diaoyugan.enchanted_ui.api.client.gui.UISlider;
 import top.diaoyugan.enchanted_ui.api.client.gui.UISummaryItem;
 import top.diaoyugan.enchanted_ui.api.client.gui.UITextField;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIWidget;
+import top.diaoyugan.enchanted_ui.api.client.input.CombinationKeyBinding;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,9 +56,9 @@ public class DemoScreen extends UISidebarConfigScreen {
     private String themePreset = "Classic";
     private int inputTabShows = 0;
 
-    private final Set<Integer> comboKeys = new HashSet<>();
+    private CombinationKeyBinding comboKeys = CombinationKeyBinding.EMPTY;
     private final Set<String> enabledPanels = new HashSet<>(List.of("Map", "Stats"));
-    private InputConstants.Key demoKeyValue = InputConstants.Type.KEYBOARD.getOrCreate(InputConstants.KEY_G);
+    private InputConstants.Key demoKeyValue = InputConstants.getKey("key.keyboard.g");
     private final KeyMapping demoKey = new KeyMapping("enchantedui.demo.dummy", InputConstants.KEY_G, KeyMapping.Category.MISC);
     private final List<String> editableEntries = new ArrayList<>(List.of("Custom ore", "Custom log"));
     private final List<String> biomeOptions = List.of(
@@ -216,10 +217,7 @@ public class DemoScreen extends UISidebarConfigScreen {
                 form.combinationKeyBinding(
                         Component.literal("Key Combination"),
                         () -> comboKeys,
-                        v -> {
-                            comboKeys.clear();
-                            comboKeys.addAll(v);
-                        }
+                        v -> comboKeys = v
                 ).tooltip(Component.literal("This is a demo control for capturing multiple keys."));
 
                 UISlider passesSlider = form.intSlider(
@@ -512,8 +510,8 @@ public class DemoScreen extends UISidebarConfigScreen {
         editableEntries.addAll(List.of("Custom ore", "Custom log"));
         enabledPanels.clear();
         enabledPanels.addAll(List.of("Map", "Stats"));
-        comboKeys.clear();
-        demoKeyValue = InputConstants.Type.KEYBOARD.getOrCreate(InputConstants.KEY_G);
+        comboKeys = CombinationKeyBinding.EMPTY;
+        demoKeyValue = InputConstants.getKey("key.keyboard.g");
         demoKey.setKey(demoKeyValue);
         KeyMapping.resetMapping();
         textureClicks = 0;

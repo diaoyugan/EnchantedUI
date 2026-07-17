@@ -8,6 +8,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.network.chat.Component;
 import top.diaoyugan.enchanted_ui.api.client.gui.UILocalization;
+import top.diaoyugan.enchanted_ui.api.client.input.CombinationKeyBinding;
 import org.jetbrains.annotations.Nullable;
 import top.diaoyugan.enchanted_ui.api.client.gui.UITextValidator;
 import top.diaoyugan.enchanted_ui.client.gui.layout.VerticalLayout;
@@ -195,18 +196,28 @@ final class FormInputFactory {
         return widget;
     }
 
-    CombinationKeyBindingButtonWidget combinationKeyBinding(Component label, Supplier<Set<Integer>> getter, Consumer<Set<Integer>> setter) {
+    CombinationKeyBindingButtonWidget combinationKeyBinding(Component label, Supplier<CombinationKeyBinding> getter, Consumer<CombinationKeyBinding> setter) {
         return combinationKeyBinding(label, getter, setter, UILocalization.KeyBindingMessages.defaults());
     }
 
-    CombinationKeyBindingButtonWidget combinationKeyBinding(Component label, Supplier<Set<Integer>> getter, Consumer<Set<Integer>> setter, UILocalization.KeyBindingMessages messages) {
+    CombinationKeyBindingButtonWidget combinationKeyBinding(Component label, Supplier<CombinationKeyBinding> getter, Consumer<CombinationKeyBinding> setter, UILocalization.KeyBindingMessages messages) {
         CombinationKeyBindingButtonWidget widget = new CombinationKeyBindingButtonWidget(
                 layout.x(), layout.y(), contentWidth, 20, label, getter, setter, messages
         );
-        trackModelValue(getter, setter, value -> value == null ? Set.of() : new LinkedHashSet<>(value), null);
+        trackModelValue(getter, widget::applyExternalBinding, Function.identity(), widget::refreshMessage);
         widgets.add(widget);
         layout.next(20);
         return widget;
+    }
+
+    CombinationKeyBindingButtonWidget serializedCombinationKeyBinding(Component label, Supplier<? extends java.util.Collection<String>> getter, Consumer<List<String>> setter) {
+        return serializedCombinationKeyBinding(label, getter, setter, UILocalization.KeyBindingMessages.defaults());
+    }
+
+    CombinationKeyBindingButtonWidget serializedCombinationKeyBinding(Component label, Supplier<? extends java.util.Collection<String>> getter, Consumer<List<String>> setter, UILocalization.KeyBindingMessages messages) {
+        Supplier<CombinationKeyBinding> bindingGetter = () -> CombinationKeyBinding.deserialize(getter.get());
+        Consumer<CombinationKeyBinding> bindingSetter = binding -> setter.accept(binding.serialize());
+        return combinationKeyBinding(label, bindingGetter, bindingSetter, messages);
     }
 
     UI.ColorGroup rgbaSlidersWithPreview(Component title, Supplier<Integer> rGetter, IntConsumer rSetter, Supplier<Integer> gGetter, IntConsumer gSetter, Supplier<Integer> bGetter, IntConsumer bSetter, Supplier<Integer> aGetter, IntConsumer aSetter, boolean alphaAsPercentage) {

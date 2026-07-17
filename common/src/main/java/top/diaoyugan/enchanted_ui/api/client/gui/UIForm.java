@@ -6,6 +6,7 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import top.diaoyugan.enchanted_ui.client.gui.builder.UI;
+import top.diaoyugan.enchanted_ui.api.client.input.CombinationKeyBinding;
 
 import java.util.List;
 import java.util.Set;
@@ -602,8 +603,8 @@ public final class UIForm {
      */
     public UIWidget combinationKeyBinding(
             Component label,
-            Supplier<Set<Integer>> getter,
-            Consumer<Set<Integer>> setter
+            Supplier<CombinationKeyBinding> getter,
+            Consumer<CombinationKeyBinding> setter
     ) {
         return UIWidget.wrap(delegate.combinationKeyBinding(label, getter, setter));
     }
@@ -613,13 +614,35 @@ public final class UIForm {
      */
     public UIWidget combinationKeyBinding(
             Component label,
-            Supplier<Set<Integer>> getter,
-            Consumer<Set<Integer>> setter,
+            Supplier<CombinationKeyBinding> getter,
+            Consumer<CombinationKeyBinding> setter,
             UILocalization.KeyBindingMessages messages
     ) {
         return UIWidget.wrap(
                 delegate.combinationKeyBinding(label, getter, setter, messages)
         );
+    }
+
+    /**
+     * Adds a combination binding backed directly by serialized input names.
+     * Values use names such as {@code key.keyboard.v} and {@code key.mouse.4}.
+     */
+    public UIWidget serializedCombinationKeyBinding(
+            Component label,
+            Supplier<? extends java.util.Collection<String>> getter,
+            Consumer<List<String>> setter
+    ) {
+        return UIWidget.wrap(delegate.serializedCombinationKeyBinding(label, getter, setter));
+    }
+
+    /** Adds a serialized combination binding with caller-owned generated text keys. */
+    public UIWidget serializedCombinationKeyBinding(
+            Component label,
+            Supplier<? extends java.util.Collection<String>> getter,
+            Consumer<List<String>> setter,
+            UILocalization.KeyBindingMessages messages
+    ) {
+        return UIWidget.wrap(delegate.serializedCombinationKeyBinding(label, getter, setter, messages));
     }
 
     /**

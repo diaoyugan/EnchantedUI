@@ -1,16 +1,17 @@
 package top.diaoyugan.enchanted_ui.client.gui.widget.input;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.platform.Window;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import top.diaoyugan.enchanted_ui.api.client.input.CombinationKeyBinding;
 import top.diaoyugan.enchanted_ui.api.client.gui.UILocalization;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -18,11 +19,12 @@ import java.util.stream.Collectors;
 
 public class CombinationKeyBindingButtonWidget extends Button.Plain {
     private final Component label;
-    private final Supplier<Set<Integer>> getter;
-    private final Consumer<Set<Integer>> setter;
+    private final Supplier<CombinationKeyBinding> getter;
+    private final Consumer<CombinationKeyBinding> setter;
     private final UILocalization.KeyBindingMessages messages;
 
     private boolean listening = false;
+    private final Set<InputConstants.Key> pendingKeys = new LinkedHashSet<>();
 
     public CombinationKeyBindingButtonWidget(
             int x,
@@ -30,8 +32,8 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
             int width,
             int height,
             Component label,
-            Supplier<Set<Integer>> getter,
-            Consumer<Set<Integer>> setter
+            Supplier<CombinationKeyBinding> getter,
+            Consumer<CombinationKeyBinding> setter
     ) {
         this(
                 x,
@@ -51,8 +53,8 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
             int width,
             int height,
             Component label,
-            Supplier<Set<Integer>> getter,
-            Consumer<Set<Integer>> setter,
+            Supplier<CombinationKeyBinding> getter,
+            Consumer<CombinationKeyBinding> setter,
             UILocalization.KeyBindingMessages messages
     ) {
         super(
@@ -84,10 +86,7 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
     @Override
     public void onPress(InputWithModifiers input) {
         listening = true;
-
-        Set<Integer> keys = getter.get();
-        keys.clear();
-
+        pendingKeys.clear();
         refreshMessage();
     }
 
@@ -96,18 +95,39 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
             return false;
         }
 
-        if (event.key() == InputConstants.KEY_ESCAPE) {
-            listening = false;
-            refreshMessage();
+        InputConstants.Key key = InputConstants.getKey(event);
+        InputConstants.Key escape = InputConstants.getKey("key.keyboard.escape");
+        if (key.equals(escape)) {
+            pendingKeys.clear();
+            finishBinding();
             return true;
         }
 
-        Set<Integer> keys = getter.get();
-
-        keys.add(event.key());
+        pendingKeys.add(key);
         refreshMessage();
 
         return true;
+    }
+
+    @Override
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (!listening) {
+            return super.mouseClicked(event, doubleClick);
+        }
+
+        pendingKeys.add(InputConstants.Type.MOUSE.getOrCreate(event.button()));
+        refreshMessage();
+        return true;
+    }
+
+    @Override
+    public boolean mouseReleased(MouseButtonEvent event) {
+        InputConstants.Key key = InputConstants.Type.MOUSE.getOrCreate(event.button());
+        if (listening && pendingKeys.contains(key)) {
+            finishBinding();
+            return true;
+        }
+        return super.mouseReleased(event);
     }
 
     public void tick() {
@@ -115,8 +135,8 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
             return;
         }
 
-        for (int key : getter.get()) {
-            if (!InputConstants.isKeyDown(key)) {
+        for (InputConstants.Key key : pendingKeys) {
+            if (key.getType() == InputConstants.Type.KEYBOARD && !InputConstants.isKeyDown(key.getValue())) {
                 finishBinding();
                 return;
             }
@@ -128,7 +148,15 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
     // -------------------------
 
     private void finishBinding() {
+        setter.accept(CombinationKeyBinding.of(pendingKeys));
         listening = false;
+        refreshMessage();
+    }
+
+    public void applyExternalBinding(CombinationKeyBinding binding) {
+        setter.accept(binding);
+        listening = false;
+        pendingKeys.clear();
         refreshMessage();
     }
 
@@ -136,23 +164,22 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
     // UI text
     // -------------------------
 
-    private void refreshMessage() {
+    public void refreshMessage() {
         setMessage(formatMessage());
     }
 
     private Component formatMessage() {
-        Set<Integer> keys = getter.get();
+        CombinationKeyBinding binding = getter.get();
 
         if (listening) {
             return messages.listening(label);
         }
 
-        if (keys.isEmpty()) {
+        if (binding.isEmpty()) {
             return messages.none(label);
         }
 
-        String text = keys.stream()
-                .map(InputConstants.Type.KEYBOARD::getOrCreate)
+        String text = binding.keys().stream()
                 .map(InputConstants.Key::getDisplayName)
                 .map(Component::getString)
                 .collect(Collectors.joining(" + "));

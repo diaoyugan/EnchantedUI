@@ -279,6 +279,11 @@ validation key。需要自己的错误文案时，使用接受 `UILocalization.F
 - `keyBinding(...)`
 - `combinationKeyBinding(...)`
 
+`combinationKeyBinding(...)` 使用不可变的 `CombinationKeyBinding` 值对象，支持键盘和鼠标输入，并提供
+`isDown()`、`displayName()` 与 `serialize()`。序列化结果是稳定的 Minecraft 输入名称列表，例如
+`key.keyboard.v`、`key.mouse.4`。如果配置本身使用 `List<String>` 或 `Set<String>`，可以直接调用
+`serializedCombinationKeyBinding(...)`。
+
 按键绑定控件会生成当前按键、未设置、等待输入等状态文本。需要这些文本归属于你的 mod
 时，使用接受 `UILocalization.KeyBindingMessages` 的重载传入自己的 namespace key。
 
