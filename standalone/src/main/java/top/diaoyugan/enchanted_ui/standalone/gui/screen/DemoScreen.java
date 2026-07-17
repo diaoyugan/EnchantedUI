@@ -57,7 +57,7 @@ public class DemoScreen extends UISidebarConfigScreen {
 
     private final Set<Integer> comboKeys = new HashSet<>();
     private final Set<String> enabledPanels = new HashSet<>(List.of("Map", "Stats"));
-    private InputConstants.Key demoKeyValue = InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_G);
+    private InputConstants.Key demoKeyValue = InputConstants.Type.KEYBOARD.getOrCreate(InputConstants.KEY_G);
     private final KeyMapping demoKey = new KeyMapping("enchantedui.demo.dummy", InputConstants.KEY_G, KeyMapping.Category.MISC);
     private final List<String> editableEntries = new ArrayList<>(List.of("Custom ore", "Custom log"));
     private final List<String> biomeOptions = List.of(
@@ -513,7 +513,7 @@ public class DemoScreen extends UISidebarConfigScreen {
         enabledPanels.clear();
         enabledPanels.addAll(List.of("Map", "Stats"));
         comboKeys.clear();
-        demoKeyValue = InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_G);
+        demoKeyValue = InputConstants.Type.KEYBOARD.getOrCreate(InputConstants.KEY_G);
         demoKey.setKey(demoKeyValue);
         KeyMapping.resetMapping();
         textureClicks = 0;

@@ -115,10 +115,8 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
             return;
         }
 
-        Window window = Minecraft.getInstance().getWindow();
-
         for (int key : getter.get()) {
-            if (!InputConstants.isKeyDown(window, key)) {
+            if (!InputConstants.isKeyDown(key)) {
                 finishBinding();
                 return;
             }
@@ -154,7 +152,7 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
         }
 
         String text = keys.stream()
-                .map(InputConstants.Type.KEYSYM::getOrCreate)
+                .map(InputConstants.Type.KEYBOARD::getOrCreate)
                 .map(InputConstants.Key::getDisplayName)
                 .map(Component::getString)
                 .collect(Collectors.joining(" + "));
