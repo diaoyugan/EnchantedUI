@@ -97,6 +97,11 @@ public class SearchableSelectDropdownWidget<T> extends AbstractDropdownListWidge
     }
 
     @Override
+    protected boolean entrySelectable() {
+        return true;
+    }
+
+    @Override
     protected int footerHeight() {
         return ROW_HEIGHT;
     }

@@ -2,21 +2,21 @@ package top.diaoyugan.enchanted_ui.standalone.gui.screen;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
-import top.diaoyugan.enchanted_ui.api.client.gui.EnchantedUI;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIBottomBar;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIDialogAction;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIForm;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIFormSpec;
 import top.diaoyugan.enchanted_ui.api.client.gui.UILocalization;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIScreenStyle;
+import top.diaoyugan.enchanted_ui.api.client.gui.UISidebarConfigScreen;
 import top.diaoyugan.enchanted_ui.api.client.gui.UISlider;
 import top.diaoyugan.enchanted_ui.api.client.gui.UISummaryItem;
-import top.diaoyugan.enchanted_ui.api.client.gui.UITabbedScreen;
 import top.diaoyugan.enchanted_ui.api.client.gui.UITextField;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIWidget;
 
@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public class DemoScreen extends UITabbedScreen {
+public class DemoScreen extends UISidebarConfigScreen {
     private enum RenderProfile {
         COMPACT,
         BALANCED,
@@ -87,18 +87,32 @@ public class DemoScreen extends UITabbedScreen {
     private int a = 255;
 
     public DemoScreen(Screen parent) {
-        super(parent, Component.literal("EnchantedUI Demo Screen"));
-        style(UIScreenStyle.builder()
+        super(
+                parent,
+                Component.literal("EnchantedUI Demo Screen"),
+                Component.literal("Enchanted UI")
+        );
+    }
+
+    @Override
+    protected void buildConfig(Builder config) {
+        config.style(UIScreenStyle.builder()
                 .backgroundBlur(true)
                 .bottomBarBlur(true)
                 .bottomBarBackgroundColor(0x88202020)
                 .bottomBarSeparatorColor(0x66FFFFFF)
                 .build());
-        sidebarTitle(Component.literal("Enchanted UI"));
 
-        tab(10, 30, 20, Component.literal("Main"), EnchantedUI.formPage(200, form -> {
+        config.formPage(Component.literal("Main"), form -> {
             UIWidget title = form.title(Component.literal("General Demo"));
             title.setTooltip(Tooltip.create(Component.literal("This is a demo title for the basic form layout.")));
+
+            form.buttonRow(
+                    Component.literal("Open Top Tabs Preset"),
+                    () -> Minecraft.getInstance().setScreenAndShow(new TopTabbedDemoScreen(parent())),
+                    Component.literal("Open Information Preset"),
+                    () -> Minecraft.getInstance().setScreenAndShow(new InfoDemoScreen(parent()))
+            ).forEach(button -> button.tooltip(Component.literal("Switches to another EnchantedUI screen preset.")));
 
             form.toggleRow(
                     Component.literal("Feature A"),
@@ -158,9 +172,9 @@ public class DemoScreen extends UITabbedScreen {
             form.space(4);
             form.title(Component.literal("Text Area Demo"));
             form.textArea(Component.literal("Notes"), 40, () -> notes, v -> notes = v);
-        }));
+        });
 
-        tab(10, 54, 20, Component.literal("Input"), EnchantedUI.formPage(200, new UIFormSpec() {
+        config.formPage(Component.literal("Input"), new UIFormSpec() {
             @Override
             public void build(UIForm form) {
                 form.title(Component.literal("Input Demo"));
@@ -225,9 +239,9 @@ public class DemoScreen extends UITabbedScreen {
                 inputTabShows++;
                 showToast(Component.literal("This demo tab has been opened " + inputTabShows + " times."), 40);
             }
-        }));
+        });
 
-        tab(10, 78, 20, Component.literal("Colors"), EnchantedUI.formPage(200, form -> {
+        config.formPage(Component.literal("Colors"), form -> {
             form.rgbaSlidersWithPreview(
                     Component.literal("Color Preview Demo"),
                     () -> r, v -> r = v,
@@ -236,9 +250,9 @@ public class DemoScreen extends UITabbedScreen {
                     () -> a, v -> a = v,
                     false
             );
-        }));
+        });
 
-        tab(10, 102, 20, Component.literal("Actions"), Style.EMPTY.withItalic(true), EnchantedUI.formPage(220, form -> {
+        config.formPage(Component.literal("Actions"), Style.EMPTY.withItalic(true), form -> {
             form.title(Component.literal("Button Demo"));
             form.buttonRow(
                     Component.literal("Toast Button"),
@@ -311,9 +325,9 @@ public class DemoScreen extends UITabbedScreen {
                         new UIDialogAction(Component.literal("Close"), () -> {}, true)
                 )).tooltip(Component.literal("This is a demo button that opens a custom dialog."));
             });
-        }));
+        });
 
-        tab(10, 126, 20, Component.literal("Selection"), EnchantedUI.formPage(220, form -> {
+        config.formPage(Component.literal("Selection"), form -> {
             form.section(Component.literal("Selection Demo"), nested -> {
                 nested.enumSelect(
                         Component.literal("Enum Select"),
@@ -354,7 +368,6 @@ public class DemoScreen extends UITabbedScreen {
             form.title(Component.literal("Editable List Demo"));
             form.editableDropdownList(
                     Component.literal("Editable Dropdown"),
-                    220,
                     () -> editableEntries,
                     entries -> {
                         editableEntries.clear();
@@ -386,7 +399,6 @@ public class DemoScreen extends UITabbedScreen {
             form.title(Component.literal("Editable List Demo"));
             form.editableDropdownList(
                     Component.literal("Editable Dropdown"),
-                    220,
                     () -> editableEntries,
                     entries -> {
                         editableEntries.clear();
@@ -398,9 +410,9 @@ public class DemoScreen extends UITabbedScreen {
                     value -> value.length() < 3 ? Component.literal("This demo entry must be at least 3 characters.") : null,
                     false
             ).setTooltip(Tooltip.create(Component.literal("This is a demo editable dropdown list.")));
-        }));
+        });
 
-        tab(10, 150, 20, Component.literal("Display"), EnchantedUI.formPage(220, form -> {
+        config.formPage(Component.literal("Display"), form -> {
             form.title(Component.literal("Display Demo"));
             form.infoBlock(
                     Component.literal("Info Block"),
@@ -464,9 +476,9 @@ public class DemoScreen extends UITabbedScreen {
                             new UISummaryItem(Component.literal("Panels"), Component.literal(Integer.toString(enabledPanels.size())))
                     )
             ).tooltip(Component.literal("This is a demo summary block."));
-        }));
+        });
 
-        bottomBar(UIBottomBar.saveAndCloseWithExtra(
+        config.bottomBar(UIBottomBar.saveAndCloseWithExtra(
                 Component.literal("Close Demo"),
                 Component.literal("Save Demo"),
                 this::saveAll,

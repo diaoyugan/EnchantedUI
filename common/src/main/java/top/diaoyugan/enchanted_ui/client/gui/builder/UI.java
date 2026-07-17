@@ -56,16 +56,38 @@ import java.util.function.LongConsumer;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
- * Public entrypoint for building EnchantedUI-based screens.
+ * Internal form engine used by the public {@code UIForm}/{@code UIFormPage}
+ * facade. It is public only because the facade lives in the relocatable API
+ * package; consumers should not depend on this implementation namespace.
+ * <p>
+ * The form surface stays cohesive here so every control shares one layout
+ * cursor and one dirty-state controller. Widget construction details are
+ * delegated to {@link FormInputFactory} and {@link FormDisplayFactory}.
  */
+@ApiStatus.Internal
 public final class UI {
 
     private UI() {
     }
 
-    public record BuildContext(int screenWidth, int screenHeight, int centerX) {
+    public record BuildContext(
+            int screenWidth,
+            int screenHeight,
+            int centerX,
+            int viewportLeft,
+            int viewportRight
+    ) {
+        public BuildContext(int screenWidth, int screenHeight, int centerX) {
+            this(screenWidth, screenHeight, centerX, 0, screenWidth);
+        }
+
+        public int availableWidth() {
+            return Math.max(0, viewportRight - viewportLeft);
+        }
+
         public VerticalLayout vertical(int contentWidth, int startY, int gap) {
             int leftX = centerX - contentWidth / 2;
             return new VerticalLayout(leftX, startY, gap);
@@ -126,7 +148,8 @@ public final class UI {
         }
 
         public List<AbstractWidget> build(BuildContext ctx) {
-            Form form = new Form(ctx, contentWidth, startY, gap);
+            int responsiveWidth = Math.min(contentWidth, Math.max(40, ctx.availableWidth() - 24));
+            Form form = new Form(ctx, responsiveWidth, startY, gap);
             spec.build(form);
             lastForm = form;
             return form.widgets();
@@ -310,7 +333,7 @@ public final class UI {
         }
 
         public Form section(Component title, Consumer<Form> builder) {
-            return section(title, 12, builder);
+            return section(title, 0, builder);
         }
 
         public Form section(Component title, int indent, Consumer<Form> builder) {

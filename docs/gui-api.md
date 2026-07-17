@@ -11,6 +11,11 @@ Preferred package:
 Main types:
 
 - `EnchantedUI`
+- `UIConfigScreenPreset`
+- `UISidebarConfigScreen`
+- `UITopTabbedConfigScreen`
+- `UIInfoScreen`
+- `UITabLayout`
 - `UITabbedScreen`
 - `UIPage`
 - `UIFormPage`
@@ -49,6 +54,83 @@ public final class ExampleScreen extends UITabbedScreen {
     }
 }
 ```
+
+## Screen presets
+
+For a conventional mod config screen, extend `UISidebarConfigScreen`. The
+preset owns sidebar coordinates, tab spacing, and the default form width, so
+the implementation only declares pages and actions:
+
+```java
+public final class ExampleConfigScreen extends UISidebarConfigScreen {
+    private boolean enabled = true;
+
+    public ExampleConfigScreen(Screen parent) {
+        super(
+                parent,
+                Component.translatable("example.config.title"),
+                Component.translatable("example.name")
+        );
+    }
+
+    @Override
+    protected void buildConfig(Builder config) {
+        config.formPage(Component.translatable("example.config.general"), form -> {
+            form.toggle(
+                    Component.translatable("example.config.enabled"),
+                    () -> enabled,
+                    value -> enabled = value
+            );
+        });
+
+        config.bottomBar(UIBottomBar.saveAndClose(
+                Component.translatable("example.config.close"),
+                Component.translatable("example.config.save"),
+                this::saveAll
+        ));
+    }
+}
+```
+
+Use `config.formPage(...)` for automatically laid-out forms and
+`config.page(...)` for a custom `UIPage`. Advanced overloads allow a custom
+form width or tab text style without exposing screen coordinates. For small
+stateless screens, `EnchantedUI.configScreen(...)` provides the same preset
+without a named subclass.
+
+Additional presets:
+
+- `UITopTabbedConfigScreen` renders a centered title with a horizontal tab
+  strip below it. Use it when the sidebar would consume too much horizontal
+  space.
+- `UIInfoScreen` provides one titled, scrollable form surface for about, help,
+  status, summary, and similar pages. It supports all display helpers plus
+  interactive form elements such as buttons and toggles.
+
+`EnchantedUI.topTabbedConfigScreen(...)` and `EnchantedUI.infoScreen(...)`
+provide anonymous variants. The standalone integration demos can be opened
+with `/enchantedui demo top` and `/enchantedui demo info`.
+
+### Responsive and overflow behavior
+
+Preset layouts use `UITabLayout`. When tabs exceed the available height or
+width, only complete buttons inside the strip viewport are shown; arrow buttons
+and the mouse wheel move the tab window. Selecting a page programmatically also
+reveals its tab. Page content uses a separate scissored viewport, keeps the
+title/tab strip and bottom bar fixed, and scrolls vertically when needed.
+
+Form widths are maximums rather than hard minimums: they shrink to the current
+content viewport on small windows. Overlay widgets are clipped to the same
+viewport and participate in dynamic vertical scroll-range calculation.
+
+Text-oriented display blocks (`infoBlock`, `emptyState`, `loadingState`, and
+`errorState`) wrap their title and body and grow downward automatically. A
+custom height is treated as a minimum height. Full prose no longer depends on
+the truncated-text hover overlay.
+
+`section(title, builder)` groups controls without changing their horizontal
+alignment or width. Use `section(title, indent, builder)` when an intentionally
+indented nested layout is desired.
 
 ## Text and localization
 

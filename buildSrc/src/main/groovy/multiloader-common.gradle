@@ -93,7 +93,7 @@ processResources {
 publishing {
     publications {
         register('mavenJava', MavenPublication) {
-            artifactId base.archivesName.get()
+            artifactId = base.archivesName.get()
             from components.java
         }
     }
@@ -105,9 +105,9 @@ publishing {
         maven {
             def localMavenUrl = System.getenv('local_maven_url')
             if (localMavenUrl != null && !localMavenUrl.isBlank()) {
-                url localMavenUrl
+                url = localMavenUrl
             } else {
-                url rootProject.layout.buildDirectory.dir('unused-maven-repo')
+                url = rootProject.layout.buildDirectory.dir('unused-maven-repo')
             }
         }
     }

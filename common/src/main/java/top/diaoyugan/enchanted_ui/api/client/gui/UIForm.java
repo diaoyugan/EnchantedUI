@@ -115,7 +115,8 @@ public final class UIForm {
     }
 
     /**
-     * Builds a titled nested section using the default indent.
+     * Builds a titled nested section aligned to the parent form. Use the
+     * overload with an explicit indent when a visual hierarchy is desired.
      */
     public UIForm section(Component title, Consumer<UIForm> builder) {
         delegate.section(title, nested -> builder.accept(new UIForm(nested)));
@@ -743,6 +744,29 @@ public final class UIForm {
         return UIWidget.wrap(delegate.dropdownList(label, entriesSupplier));
     }
 
+    /**
+     * Adds a read-only dropdown list using the form's automatic width.
+     */
+    public UIWidget dropdownList(
+            Component label,
+            Supplier<List<Component>> entriesSupplier,
+            int visibleRows
+    ) {
+        return UIWidget.wrap(delegate.dropdownList(label, contentWidth(), entriesSupplier, visibleRows));
+    }
+
+    /**
+     * Adds a read-only dropdown list with caller-provided empty text and automatic width.
+     */
+    public UIWidget dropdownList(
+            Component label,
+            Supplier<List<Component>> entriesSupplier,
+            int visibleRows,
+            Component emptyText
+    ) {
+        return UIWidget.wrap(delegate.dropdownList(label, contentWidth(), entriesSupplier, visibleRows, emptyText));
+    }
+
     public UIWidget dropdownList(
             Component label,
             int width,
@@ -775,6 +799,60 @@ public final class UIForm {
             Component inputHint
     ) {
         return UIWidget.wrap(delegate.editableDropdownList(label, getter, setter, inputHint));
+    }
+
+    /**
+     * Adds a configurable editable dropdown using the form's automatic width.
+     */
+    public UIWidget editableDropdownList(
+            Component label,
+            Supplier<List<String>> getter,
+            Consumer<List<String>> setter,
+            Component inputHint,
+            Component addLabel,
+            int visibleRows
+    ) {
+        return UIWidget.wrap(
+                delegate.editableDropdownList(label, contentWidth(), getter, setter, inputHint, addLabel, visibleRows)
+        );
+    }
+
+    /**
+     * Adds a validated editable dropdown using the form's automatic width.
+     */
+    public UIWidget editableDropdownList(
+            Component label,
+            Supplier<List<String>> getter,
+            Consumer<List<String>> setter,
+            Component inputHint,
+            Component addLabel,
+            int visibleRows,
+            UITextValidator validator,
+            boolean allowDuplicates
+    ) {
+        return UIWidget.wrap(
+                delegate.editableDropdownList(label, contentWidth(), getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates)
+        );
+    }
+
+    /**
+     * Adds a fully localized editable dropdown using the form's automatic width.
+     */
+    public UIWidget editableDropdownList(
+            Component label,
+            Supplier<List<String>> getter,
+            Consumer<List<String>> setter,
+            Component inputHint,
+            Component addLabel,
+            int visibleRows,
+            UITextValidator validator,
+            boolean allowDuplicates,
+            Component duplicateEntryError,
+            Component emptyText
+    ) {
+        return UIWidget.wrap(
+                delegate.editableDropdownList(label, contentWidth(), getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates, duplicateEntryError, emptyText)
+        );
     }
 
     public UIWidget editableDropdownList(
@@ -841,6 +919,36 @@ public final class UIForm {
             Function<T, Component> display
     ) {
         return UIWidget.wrap(delegate.select(label, getter, setter, entriesSupplier, display));
+    }
+
+    /**
+     * Adds a single-select dropdown with a custom row count and automatic width.
+     */
+    public <T> UIWidget select(
+            Component label,
+            Supplier<T> getter,
+            Consumer<T> setter,
+            Supplier<List<T>> entriesSupplier,
+            Function<T, Component> display,
+            int visibleRows
+    ) {
+        return UIWidget.wrap(delegate.select(label, contentWidth(), getter, setter, entriesSupplier, display, visibleRows));
+    }
+
+    /**
+     * Adds a fully localized single-select dropdown using the form's automatic width.
+     */
+    public <T> UIWidget select(
+            Component label,
+            Supplier<T> getter,
+            Consumer<T> setter,
+            Supplier<List<T>> entriesSupplier,
+            Function<T, Component> display,
+            int visibleRows,
+            Component noneText,
+            Component emptyText
+    ) {
+        return UIWidget.wrap(delegate.select(label, contentWidth(), getter, setter, entriesSupplier, display, visibleRows, noneText, emptyText));
     }
 
     /**

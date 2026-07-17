@@ -15,7 +15,6 @@ public class ErrorStateWidget extends AbstractWidget implements OverlayRenderabl
     private final Component actionLabel;
     @Nullable
     private final Runnable action;
-    private DisplayText.Overlay textOverlay = DisplayText.noOverlay();
     private DisplayText.Overlay actionOverlay = DisplayText.noOverlay();
 
     public ErrorStateWidget(
@@ -28,7 +27,12 @@ public class ErrorStateWidget extends AbstractWidget implements OverlayRenderabl
             @Nullable Component actionLabel,
             @Nullable Runnable action
     ) {
-        super(x, y, width, height, title);
+        super(x, y, width, Math.max(
+                height,
+                DisplayText.wrappedBlockHeight(
+                        Minecraft.getInstance(), title, message, width - 16, 7, 4, action == null ? 7 : 31
+                )
+        ), title);
         this.message = message;
         this.actionLabel = actionLabel;
         this.action = action;
@@ -42,14 +46,16 @@ public class ErrorStateWidget extends AbstractWidget implements OverlayRenderabl
         int y = getY();
         int width = getWidth();
         int height = getHeight();
-        DisplayText.Fit title = DisplayText.fit(minecraft, getMessage(), width - 14);
-        DisplayText.Fit body = DisplayText.fit(minecraft, message, action == null ? width - 14 : width - 78);
 
         guiGraphics.fill(x, y, x + width, y + height, 0xBB2A2020);
         guiGraphics.fill(x, y, x + 3, y + height, 0xFFB94A48);
         guiGraphics.outline(x, y, width, height, 0xFF6F4A4A);
-        guiGraphics.text(minecraft.font, title.rendered(), x + 8, y + 7, 0xFFFFFFFF, false);
-        guiGraphics.text(minecraft.font, body.rendered(), x + 8, y + 23, 0xFFFFB0A8, false);
+        int bodyY = DisplayText.renderWrapped(
+                guiGraphics, minecraft, getMessage(), x + 8, y + 7, width - 16, 0xFFFFFFFF, false
+        ) + 4;
+        DisplayText.renderWrapped(
+                guiGraphics, minecraft, message, x + 8, bodyY, width - 16, 0xFFFFB0A8, false
+        );
 
         if (actionLabel != null && action != null) {
             int left = actionLeft();
@@ -69,14 +75,12 @@ public class ErrorStateWidget extends AbstractWidget implements OverlayRenderabl
         } else {
             actionOverlay = DisplayText.noOverlay();
         }
-        textOverlay = DisplayText.overlay(title.truncated() ? title : body, x, y, width, height);
     }
 
     @Override
     public void extractOverlayRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         Minecraft minecraft = Minecraft.getInstance();
         DisplayText.renderOverlay(guiGraphics, minecraft, actionOverlay, mouseX, mouseY);
-        DisplayText.renderOverlay(guiGraphics, minecraft, textOverlay, mouseX, mouseY);
     }
 
     @Override
