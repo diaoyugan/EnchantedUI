@@ -65,6 +65,11 @@ public final class UIFormPage implements UIPage {
             public boolean keyPressed(UI.Form form, KeyEvent event) {
                 return spec.keyPressed(wrap(form), event);
             }
+
+            @Override
+            public boolean keyReleased(UI.Form form, KeyEvent event) {
+                return spec.keyReleased(wrap(form), event);
+            }
         };
     }
 
@@ -119,6 +124,11 @@ public final class UIFormPage implements UIPage {
     @Override
     public boolean keyPressed(KeyEvent event) {
         return delegate.keyPressed(event);
+    }
+
+    @Override
+    public boolean keyReleased(KeyEvent event) {
+        return delegate.keyReleased(event);
     }
 
     @Override

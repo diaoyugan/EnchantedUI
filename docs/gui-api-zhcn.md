@@ -277,12 +277,14 @@ validation key。需要自己的错误文案时，使用接受 `UILocalization.F
 按键绑定：
 
 - `keyBinding(...)`
-- `combinationKeyBinding(...)`
+- `keyCombination(...)`
 
-`combinationKeyBinding(...)` 使用不可变的 `CombinationKeyBinding` 值对象，支持键盘和鼠标输入，并提供
-`isDown()`、`displayName()` 与 `serialize()`。序列化结果是稳定的 Minecraft 输入名称列表，例如
-`key.keyboard.v`、`key.mouse.4`。如果配置本身使用 `List<String>` 或 `Set<String>`，可以直接调用
-`serializedCombinationKeyBinding(...)`。
+`keyCombination(...)` 把键盘和鼠标输入记录为有序的稳定 Minecraft 输入名称列表，例如
+`key.keyboard.v`、`key.mouse.4`。getter 可以返回任意 `Collection<String>`，setter 接收不可变的
+`List<String>`。
+
+这些控件只负责编辑值。EnchantedUI 不负责注册绑定、轮询绑定是否触发、持久化配置，也不会修改
+Vanilla `KeyMapping`；这些运行时与配置职责由调用方 mod 自己承担。
 
 按键绑定控件会生成当前按键、未设置、等待输入等状态文本。需要这些文本归属于你的 mod
 时，使用接受 `UILocalization.KeyBindingMessages` 的重载传入自己的 namespace key。

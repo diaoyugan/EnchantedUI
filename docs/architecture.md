@@ -28,4 +28,19 @@ New tabbed presets should extend `UIConfigScreenPreset` instead of copying its b
 - Responsive tab strips show complete buttons only and reveal hidden tabs through navigation, wheel input, or page selection.
 - `section(title, builder)` preserves parent alignment; indentation is explicit.
 
-`BaseTabbedScreen` keeps its lifecycle-local PageView, modal, and toast collaborators together. Extract them only when they can expose a stable interface without Screen bridge methods. Internal `UI` is the implementation engine behind `UIForm`, not a second recommended consumer API.
+`BaseTabbedScreen` keeps its lifecycle-local PageView, modal, and toast collaborators together. Extract them only when they can expose a stable interface without Screen bridge methods.
+
+`UIForm` is the only consumer-facing form surface. It delegates widget creation
+directly to `FormInputFactory` and `FormDisplayFactory`; internal `UI.Form` owns
+only shared layout, state, lifecycle, and the remaining compound controls. New
+controls should be added to a factory and exposed once through `UIForm`, without
+adding another forwarding method to `UI.Form`.
+
+Every overloaded control family has one public canonical overload containing
+the complete parameter set. Shorter overloads only supply named defaults and
+delegate to that canonical overload. Factories implement only the canonical
+shape; they do not duplicate convenience overloads.
+
+Input widgets may consume keyboard and mouse events while visibly recording a
+value. Runtime polling, binding activation, registration, persistence, and
+global `KeyMapping` mutation are outside the common GUI library.

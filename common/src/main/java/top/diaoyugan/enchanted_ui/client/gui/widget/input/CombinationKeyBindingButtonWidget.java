@@ -8,10 +8,13 @@ import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
-import top.diaoyugan.enchanted_ui.api.client.input.CombinationKeyBinding;
 import top.diaoyugan.enchanted_ui.api.client.gui.UILocalization;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -19,8 +22,8 @@ import java.util.stream.Collectors;
 
 public class CombinationKeyBindingButtonWidget extends Button.Plain {
     private final Component label;
-    private final Supplier<CombinationKeyBinding> getter;
-    private final Consumer<CombinationKeyBinding> setter;
+    private final Supplier<? extends Collection<String>> getter;
+    private final Consumer<List<String>> setter;
     private final UILocalization.KeyBindingMessages messages;
 
     private boolean listening = false;
@@ -32,8 +35,8 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
             int width,
             int height,
             Component label,
-            Supplier<CombinationKeyBinding> getter,
-            Consumer<CombinationKeyBinding> setter
+            Supplier<? extends Collection<String>> getter,
+            Consumer<List<String>> setter
     ) {
         this(
                 x,
@@ -53,8 +56,8 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
             int width,
             int height,
             Component label,
-            Supplier<CombinationKeyBinding> getter,
-            Consumer<CombinationKeyBinding> setter,
+            Supplier<? extends Collection<String>> getter,
+            Consumer<List<String>> setter,
             UILocalization.KeyBindingMessages messages
     ) {
         super(
@@ -130,17 +133,16 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
         return super.mouseReleased(event);
     }
 
-    public void tick() {
+    public boolean keyReleased(KeyEvent event) {
         if (!listening) {
-            return;
+            return false;
         }
 
-        for (InputConstants.Key key : pendingKeys) {
-            if (key.getType() == InputConstants.Type.KEYBOARD && !InputConstants.isKeyDown(key.getValue())) {
-                finishBinding();
-                return;
-            }
+        if (pendingKeys.contains(InputConstants.getKey(event))) {
+            finishBinding();
+            return true;
         }
+        return false;
     }
 
     // -------------------------
@@ -148,13 +150,13 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
     // -------------------------
 
     private void finishBinding() {
-        setter.accept(CombinationKeyBinding.of(pendingKeys));
+        setter.accept(pendingKeys.stream().map(InputConstants.Key::getName).toList());
         listening = false;
         refreshMessage();
     }
 
-    public void applyExternalBinding(CombinationKeyBinding binding) {
-        setter.accept(binding);
+    public void applyExternalBinding(Collection<String> binding) {
+        setter.accept(List.copyOf(binding));
         listening = false;
         pendingKeys.clear();
         refreshMessage();
@@ -169,7 +171,7 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
     }
 
     private Component formatMessage() {
-        CombinationKeyBinding binding = getter.get();
+        List<InputConstants.Key> binding = deserialize(getter.get());
 
         if (listening) {
             return messages.listening(label);
@@ -179,12 +181,24 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
             return messages.none(label);
         }
 
-        String text = binding.keys().stream()
+        String text = binding.stream()
                 .map(InputConstants.Key::getDisplayName)
                 .map(Component::getString)
                 .collect(Collectors.joining(" + "));
 
         return messages.current(label, text);
+    }
+
+    private static List<InputConstants.Key> deserialize(Collection<String> names) {
+        Objects.requireNonNull(names, "key names");
+        List<InputConstants.Key> keys = new ArrayList<>(names.size());
+        for (String name : names) {
+            InputConstants.Key key = InputConstants.getKey(Objects.requireNonNull(name, "key name"));
+            if (!key.equals(InputConstants.UNKNOWN) && !keys.contains(key)) {
+                keys.add(key);
+            }
+        }
+        return List.copyOf(keys);
     }
 
     // -------------------------

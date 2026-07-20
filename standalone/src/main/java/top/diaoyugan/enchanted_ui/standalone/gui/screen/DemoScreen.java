@@ -19,7 +19,6 @@ import top.diaoyugan.enchanted_ui.api.client.gui.UISlider;
 import top.diaoyugan.enchanted_ui.api.client.gui.UISummaryItem;
 import top.diaoyugan.enchanted_ui.api.client.gui.UITextField;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIWidget;
-import top.diaoyugan.enchanted_ui.api.client.input.CombinationKeyBinding;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,7 +55,7 @@ public class DemoScreen extends UISidebarConfigScreen {
     private String themePreset = "Classic";
     private int inputTabShows = 0;
 
-    private CombinationKeyBinding comboKeys = CombinationKeyBinding.EMPTY;
+    private List<String> comboKeys = List.of();
     private final Set<String> enabledPanels = new HashSet<>(List.of("Map", "Stats"));
     private InputConstants.Key demoKeyValue = InputConstants.getKey("key.keyboard.g");
     private final KeyMapping demoKey = new KeyMapping("enchantedui.demo.dummy", InputConstants.KEY_G, KeyMapping.Category.MISC);
@@ -209,12 +208,10 @@ public class DemoScreen extends UISidebarConfigScreen {
                         key -> {
                             demoKeyValue = key;
                             demoKey.setKey(key);
-                        },
-                        demoKey::getTranslatedKeyMessage,
-                        demoKey,
-                        true
+                            KeyMapping.resetMapping();
+                        }
                 ).tooltip(Component.literal("This is a demo control for capturing one key binding."));
-                form.combinationKeyBinding(
+                form.keyCombination(
                         Component.literal("Key Combination"),
                         () -> comboKeys,
                         v -> comboKeys = v
@@ -510,7 +507,7 @@ public class DemoScreen extends UISidebarConfigScreen {
         editableEntries.addAll(List.of("Custom ore", "Custom log"));
         enabledPanels.clear();
         enabledPanels.addAll(List.of("Map", "Stats"));
-        comboKeys = CombinationKeyBinding.EMPTY;
+        comboKeys = List.of();
         demoKeyValue = InputConstants.getKey("key.keyboard.g");
         demoKey.setKey(demoKeyValue);
         KeyMapping.resetMapping();

@@ -2,60 +2,25 @@ package top.diaoyugan.enchanted_ui.client.gui.builder;
 
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import top.diaoyugan.enchanted_ui.api.client.gui.UILocalization;
-import top.diaoyugan.enchanted_ui.api.client.gui.UITextValidator;
-import top.diaoyugan.enchanted_ui.api.client.gui.UISummaryItem;
 import top.diaoyugan.enchanted_ui.client.gui.layout.HorizontalLayout;
 import top.diaoyugan.enchanted_ui.client.gui.layout.VerticalLayout;
 import top.diaoyugan.enchanted_ui.client.gui.widget.button.IconButton;
 import top.diaoyugan.enchanted_ui.client.gui.widget.button.TextureButton;
-import top.diaoyugan.enchanted_ui.client.gui.widget.display.EmptyStateWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.display.ErrorStateWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.display.InfoBlockWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.display.KeyValueRowWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.display.LoadingStateWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.display.ProgressBarWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.display.ReadonlyListWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.display.StatusBadgeWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.display.SummaryBlockWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.input.CombinationKeyBindingButtonWidget;
-import top.diaoyugan.enchanted_ui.api.client.input.CombinationKeyBinding;
-import top.diaoyugan.enchanted_ui.client.gui.widget.input.KeyBindingButtonWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.input.ValidatedTextFieldWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.list.DropdownListWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.list.EditableDropdownListWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.list.MultiSelectDropdownWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.list.SearchableSelectDropdownWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.list.SelectDropdownWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.option.BooleanOptionWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.option.ColorPreviewWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.option.NumericSliderOptionWidget;
-import top.diaoyugan.enchanted_ui.client.gui.widget.option.TextWidget;
-import com.mojang.blaze3d.platform.InputConstants;
-import net.minecraft.client.KeyMapping;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
-import java.util.function.DoubleConsumer;
-import java.util.function.DoubleSupplier;
 import java.util.function.Function;
-import java.util.function.IntFunction;
 import java.util.function.IntConsumer;
-import java.util.function.IntSupplier;
-import java.util.function.LongConsumer;
-import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.ApiStatus;
@@ -125,6 +90,10 @@ public final class UI {
         }
 
         default boolean keyPressed(Form form, KeyEvent event) {
+            return false;
+        }
+
+        default boolean keyReleased(Form form, KeyEvent event) {
             return false;
         }
     }
@@ -201,7 +170,6 @@ public final class UI {
 
         public void tick() {
             if (lastForm == null) return;
-            lastForm.tick();
             spec.tick(lastForm);
         }
 
@@ -209,6 +177,12 @@ public final class UI {
             if (lastForm == null) return false;
             if (lastForm.keyPressed(event)) return true;
             return spec.keyPressed(lastForm, event);
+        }
+
+        public boolean keyReleased(KeyEvent event) {
+            if (lastForm == null) return false;
+            if (lastForm.keyReleased(event)) return true;
+            return spec.keyReleased(lastForm, event);
         }
 
         public boolean hasUnsavedChanges() {
@@ -234,6 +208,7 @@ public final class UI {
         private final VerticalLayout layout;
         private final List<AbstractWidget> widgets;
         private final FormStateController state;
+        private final FormInteractionRegistry interactions;
         private final FormInputFactory inputs;
         private final FormDisplayFactory display;
 
@@ -243,7 +218,8 @@ public final class UI {
                     contentWidth,
                     ctx.vertical(contentWidth, startY, gap),
                     new ArrayList<>(),
-                    new FormStateController()
+                    new FormStateController(),
+                    new FormInteractionRegistry()
             );
         }
 
@@ -252,14 +228,16 @@ public final class UI {
                 int contentWidth,
                 VerticalLayout layout,
                 List<AbstractWidget> widgets,
-                FormStateController state
+                FormStateController state,
+                FormInteractionRegistry interactions
         ) {
             this.ctx = Objects.requireNonNull(ctx, "ctx");
             this.contentWidth = contentWidth;
             this.layout = layout;
             this.widgets = widgets;
             this.state = state;
-            this.inputs = new FormInputFactory(contentWidth, layout, widgets, state);
+            this.interactions = interactions;
+            this.inputs = new FormInputFactory(contentWidth, layout, widgets, state, interactions);
             this.display = new FormDisplayFactory(contentWidth, layout, widgets);
         }
 
@@ -277,6 +255,14 @@ public final class UI {
 
         public List<AbstractWidget> widgets() {
             return widgets;
+        }
+
+        public FormInputFactory inputs() {
+            return inputs;
+        }
+
+        public FormDisplayFactory display() {
+            return display;
         }
 
         public boolean validate() {
@@ -303,24 +289,12 @@ public final class UI {
             state.markClean();
         }
 
-        public void tick() {
-            for (AbstractWidget w : widgets) {
-                if (w instanceof CombinationKeyBindingButtonWidget combo) {
-                    combo.tick();
-                }
-            }
+        public boolean keyPressed(KeyEvent event) {
+            return interactions.keyPressed(event);
         }
 
-        public boolean keyPressed(KeyEvent event) {
-            boolean handled = false;
-            for (AbstractWidget w : widgets) {
-                if (w instanceof KeyBindingButtonWidget single) {
-                    handled |= single.keyPressed(event);
-                } else if (w instanceof CombinationKeyBindingButtonWidget combo) {
-                    handled |= combo.keyPressed(event);
-                }
-            }
-            return handled;
+        public boolean keyReleased(KeyEvent event) {
+            return interactions.keyReleased(event);
         }
 
         public Form space(int height) {
@@ -334,112 +308,21 @@ public final class UI {
             return widget;
         }
 
-        public Form section(Component title, Consumer<Form> builder) {
-            return section(title, 0, builder);
-        }
-
         public Form section(Component title, int indent, Consumer<Form> builder) {
-            title(title);
+            display.title(title);
             Form nested = new Form(
                     ctx,
                     Math.max(40, contentWidth - indent),
                     new VerticalLayout(layout.x() + indent, layout.y(), layout.gap()),
                     widgets,
-                    state
+                    state,
+                    interactions
             );
             builder.accept(nested);
             layout.setY(nested.layout.y());
             return this;
         }
 
-        public TextWidget title(Component text) {
-            TextWidget w = new TextWidget(layout.x(), layout.y(), text);
-            widgets.add(w);
-            layout.next(10);
-            return w;
-        }
-
-        public ProgressBarWidget progressBar(Component label, DoubleSupplier progressSupplier) {
-            return display.progressBar(label, progressSupplier);
-        }
-
-        public ProgressBarWidget progressBar(Component label, int width, DoubleSupplier progressSupplier, int fillColor) {
-            return display.progressBar(label, width, progressSupplier, fillColor);
-        }
-
-        public ProgressBarWidget progressBar(Component label, int width, DoubleSupplier progressSupplier, Supplier<Component> valueSupplier, int fillColor) {
-            return display.progressBar(label, width, progressSupplier, valueSupplier, fillColor);
-        }
-
-        public KeyValueRowWidget keyValueRow(Component label, Supplier<Component> valueSupplier) {
-            return display.keyValueRow(label, valueSupplier);
-        }
-
-        public StatusBadgeWidget statusBadge(Component label, Supplier<Component> statusSupplier) {
-            return display.statusBadge(label, statusSupplier);
-        }
-
-        public StatusBadgeWidget statusBadge(Component label, Supplier<Component> statusSupplier, IntSupplier colorSupplier) {
-            return display.statusBadge(label, statusSupplier, colorSupplier);
-        }
-
-        public EmptyStateWidget emptyState(Component title, Component description) {
-            return display.emptyState(title, description);
-        }
-
-        public EmptyStateWidget emptyState(Component title, Component description, int height) {
-            return display.emptyState(title, description, height);
-        }
-
-        public InfoBlockWidget infoBlock(Component title, Component message) {
-            return display.infoBlock(title, message);
-        }
-
-        public InfoBlockWidget infoBlock(Component title, Component message, int accentColor) {
-            return display.infoBlock(title, message, accentColor);
-        }
-
-        public LoadingStateWidget loadingState(Component title, Component message) {
-            return display.loadingState(title, message);
-        }
-
-        public ErrorStateWidget errorState(Component title, Component message) {
-            return display.errorState(title, message);
-        }
-
-        public ErrorStateWidget errorState(Component title, Component message, Component actionLabel, Runnable action) {
-            return display.errorState(title, message, actionLabel, action);
-        }
-
-        public ReadonlyListWidget readonlyList(Component label, Supplier<List<Component>> entriesSupplier) {
-            return display.readonlyList(label, entriesSupplier);
-        }
-
-        public ReadonlyListWidget readonlyList(Component label, Supplier<List<Component>> entriesSupplier, int visibleRows) {
-            return display.readonlyList(label, entriesSupplier, visibleRows);
-        }
-
-        public ReadonlyListWidget readonlyList(
-                Component label,
-                Supplier<List<Component>> entriesSupplier,
-                int visibleRows,
-                Component emptyText,
-                IntFunction<Component> overflowText
-        ) {
-            return display.readonlyList(label, entriesSupplier, visibleRows, emptyText, overflowText);
-        }
-
-        public SummaryBlockWidget summaryBlock(Component title, Supplier<List<UISummaryItem>> itemsSupplier) {
-            return display.summaryBlock(title, itemsSupplier);
-        }
-
-        public SummaryBlockWidget summaryBlock(Component title, Supplier<List<UISummaryItem>> itemsSupplier, int rows) {
-            return display.summaryBlock(title, itemsSupplier, rows);
-        }
-
-        public SummaryBlockWidget summaryBlock(Component title, Supplier<List<UISummaryItem>> itemsSupplier, int rows, Component emptyText) {
-            return display.summaryBlock(title, itemsSupplier, rows, emptyText);
-        }
 
         public BooleanOptionWidget toggle(Component label, BooleanSupplier getter, Consumer<Boolean> setter) {
             BooleanOptionWidget w = new BooleanOptionWidget(
@@ -453,10 +336,6 @@ public final class UI {
             widgets.add(w);
             layout.next(20);
             return w;
-        }
-
-        public Button button(Component label, Runnable action) {
-            return button(label, contentWidth, action);
         }
 
         public Button button(Component label, int width, Runnable action) {
@@ -567,311 +446,6 @@ public final class UI {
             return List.of(left, right);
         }
 
-        public NumericSliderOptionWidget intSlider(
-                Component label,
-                int min,
-                int max,
-                IntSupplier getter,
-                IntConsumer setter,
-                boolean percentage
-        ) {
-            return inputs.intSlider(label, min, max, getter, setter, percentage);
-        }
-
-        public NumericSliderOptionWidget intSlider(
-                Component label,
-                int width,
-                int min,
-                int max,
-                IntSupplier getter,
-                IntConsumer setter,
-                boolean percentage
-        ) {
-            return inputs.intSlider(label, width, min, max, getter, setter, percentage);
-        }
-
-        public NumericSliderOptionWidget longSlider(
-                Component label,
-                long min,
-                long max,
-                long step,
-                LongSupplier getter,
-                LongConsumer setter,
-                boolean percentage
-        ) {
-            return inputs.longSlider(label, min, max, step, getter, setter, percentage);
-        }
-
-        public NumericSliderOptionWidget longSlider(
-                Component label,
-                int width,
-                long min,
-                long max,
-                long step,
-                LongSupplier getter,
-                LongConsumer setter,
-                boolean percentage
-        ) {
-            return inputs.longSlider(label, width, min, max, step, getter, setter, percentage);
-        }
-
-        public NumericSliderOptionWidget floatSlider(
-                Component label,
-                float min,
-                float max,
-                float step,
-                Supplier<Float> getter,
-                Consumer<Float> setter,
-                boolean percentage
-        ) {
-            return inputs.floatSlider(label, min, max, step, getter, setter, percentage);
-        }
-
-        public NumericSliderOptionWidget floatSlider(
-                Component label,
-                int width,
-                float min,
-                float max,
-                float step,
-                Supplier<Float> getter,
-                Consumer<Float> setter,
-                boolean percentage
-        ) {
-            return inputs.floatSlider(label, width, min, max, step, getter, setter, percentage);
-        }
-
-        public NumericSliderOptionWidget doubleSlider(
-                Component label,
-                double min,
-                double max,
-                double step,
-                DoubleSupplier getter,
-                DoubleConsumer setter,
-                boolean percentage
-        ) {
-            return inputs.doubleSlider(label, min, max, step, getter, setter, percentage);
-        }
-
-        public NumericSliderOptionWidget doubleSlider(
-                Component label,
-                int width,
-                double min,
-                double max,
-                double step,
-                DoubleSupplier getter,
-                DoubleConsumer setter,
-                boolean percentage
-        ) {
-            return inputs.doubleSlider(label, width, min, max, step, getter, setter, percentage);
-        }
-
-        public ValidatedTextFieldWidget textField(
-                Component label,
-                Supplier<String> getter,
-                Consumer<String> setter
-        ) {
-            return inputs.textField(label, getter, setter);
-        }
-
-        public ValidatedTextFieldWidget textField(
-                Component label,
-                Supplier<String> getter,
-                Consumer<String> setter,
-                UITextValidator validator
-        ) {
-            return inputs.textField(label, getter, setter, validator);
-        }
-
-        public ValidatedTextFieldWidget textField(
-                Component label,
-                int width,
-                Supplier<String> getter,
-                Consumer<String> setter,
-                UITextValidator validator
-        ) {
-            return inputs.textField(label, width, getter, setter, validator);
-        }
-
-        public ValidatedTextFieldWidget intField(
-                Component label,
-                IntSupplier getter,
-                IntConsumer setter
-        ) {
-            return inputs.intField(label, getter, setter);
-        }
-
-        public ValidatedTextFieldWidget intField(
-                Component label,
-                int min,
-                int max,
-                IntSupplier getter,
-                IntConsumer setter
-        ) {
-            return inputs.intField(label, min, max, getter, setter);
-        }
-
-        public ValidatedTextFieldWidget intField(
-                Component label,
-                int width,
-                IntSupplier getter,
-                IntConsumer setter
-        ) {
-            return inputs.intField(label, width, getter, setter);
-        }
-
-        public ValidatedTextFieldWidget intField(
-                Component label,
-                int width,
-                int min,
-                int max,
-                IntSupplier getter,
-                IntConsumer setter
-        ) {
-            return inputs.intField(label, width, min, max, getter, setter);
-        }
-
-        public ValidatedTextFieldWidget intField(
-                Component label,
-                int width,
-                int min,
-                int max,
-                IntSupplier getter,
-                IntConsumer setter,
-                UILocalization.FieldValidationMessages validationMessages
-        ) {
-            return inputs.intField(label, width, min, max, getter, setter, validationMessages);
-        }
-
-        public ValidatedTextFieldWidget doubleField(
-                Component label,
-                DoubleSupplier getter,
-                DoubleConsumer setter
-        ) {
-            return inputs.doubleField(label, getter, setter);
-        }
-
-        public ValidatedTextFieldWidget doubleField(
-                Component label,
-                double min,
-                double max,
-                DoubleSupplier getter,
-                DoubleConsumer setter
-        ) {
-            return inputs.doubleField(label, min, max, getter, setter);
-        }
-
-        public ValidatedTextFieldWidget doubleField(
-                Component label,
-                int width,
-                DoubleSupplier getter,
-                DoubleConsumer setter
-        ) {
-            return inputs.doubleField(label, width, getter, setter);
-        }
-
-        public ValidatedTextFieldWidget doubleField(
-                Component label,
-                int width,
-                double min,
-                double max,
-                DoubleSupplier getter,
-                DoubleConsumer setter
-        ) {
-            return inputs.doubleField(label, width, min, max, getter, setter);
-        }
-
-        public ValidatedTextFieldWidget doubleField(
-                Component label,
-                int width,
-                double min,
-                double max,
-                DoubleSupplier getter,
-                DoubleConsumer setter,
-                UILocalization.FieldValidationMessages validationMessages
-        ) {
-            return inputs.doubleField(label, width, min, max, getter, setter, validationMessages);
-        }
-
-        public MultiLineEditBox textArea(
-                Component label,
-                int height,
-                Supplier<String> getter,
-                Consumer<String> setter
-        ) {
-            return inputs.textArea(label, height, getter, setter);
-        }
-
-        public KeyBindingButtonWidget keyBinding(
-                Component label,
-                Supplier<InputConstants.Key> getter,
-                Consumer<InputConstants.Key> setter,
-                Supplier<Component> displaySupplier,
-                KeyMapping vanillaKeyMapping,
-                boolean syncVanilla
-        ) {
-            return inputs.keyBinding(label, getter, setter, displaySupplier, vanillaKeyMapping, syncVanilla);
-        }
-
-        public KeyBindingButtonWidget keyBinding(
-                Component label,
-                Supplier<InputConstants.Key> getter,
-                Consumer<InputConstants.Key> setter,
-                Supplier<Component> displaySupplier,
-                KeyMapping vanillaKeyMapping,
-                boolean syncVanilla,
-                UILocalization.KeyBindingMessages messages
-        ) {
-            return inputs.keyBinding(label, getter, setter, displaySupplier, vanillaKeyMapping, syncVanilla, messages);
-        }
-
-        public CombinationKeyBindingButtonWidget combinationKeyBinding(
-                Component label,
-                Supplier<CombinationKeyBinding> getter,
-                Consumer<CombinationKeyBinding> setter
-        ) {
-            return inputs.combinationKeyBinding(label, getter, setter);
-        }
-
-        public CombinationKeyBindingButtonWidget combinationKeyBinding(
-                Component label,
-                Supplier<CombinationKeyBinding> getter,
-                Consumer<CombinationKeyBinding> setter,
-                UILocalization.KeyBindingMessages messages
-        ) {
-            return inputs.combinationKeyBinding(label, getter, setter, messages);
-        }
-
-        public CombinationKeyBindingButtonWidget serializedCombinationKeyBinding(
-                Component label,
-                Supplier<? extends Collection<String>> getter,
-                Consumer<List<String>> setter
-        ) {
-            return inputs.serializedCombinationKeyBinding(label, getter, setter);
-        }
-
-        public CombinationKeyBindingButtonWidget serializedCombinationKeyBinding(
-                Component label,
-                Supplier<? extends Collection<String>> getter,
-                Consumer<List<String>> setter,
-                UILocalization.KeyBindingMessages messages
-        ) {
-            return inputs.serializedCombinationKeyBinding(label, getter, setter, messages);
-        }
-
-        public ColorGroup rgbaSlidersWithPreview(
-                Component title,
-                Supplier<Integer> rGetter,
-                IntConsumer rSetter,
-                Supplier<Integer> gGetter,
-                IntConsumer gSetter,
-                Supplier<Integer> bGetter,
-                IntConsumer bSetter,
-                Supplier<Integer> aGetter,
-                IntConsumer aSetter,
-                boolean alphaAsPercentage
-        ) {
-            return inputs.rgbaSlidersWithPreview(title, rGetter, rSetter, gGetter, gSetter, bGetter, bSetter, aGetter, aSetter, alphaAsPercentage);
-        }
 
         public ColorGroup rgbaSlidersWithPreview(
                 Component title,
@@ -889,158 +463,6 @@ public final class UI {
             return inputs.rgbaSlidersWithPreview(title, labels, rGetter, rSetter, gGetter, gSetter, bGetter, bSetter, aGetter, aSetter, alphaAsPercentage);
         }
 
-        public DropdownListWidget dropdownList(Component label, Supplier<List<Component>> entriesSupplier) {
-            return inputs.dropdownList(label, entriesSupplier);
-        }
-
-        public DropdownListWidget dropdownList(Component label, int width, Supplier<List<Component>> entriesSupplier, int visibleRows) {
-            return inputs.dropdownList(label, width, entriesSupplier, visibleRows);
-        }
-
-        public DropdownListWidget dropdownList(Component label, int width, Supplier<List<Component>> entriesSupplier, int visibleRows, Component emptyText) {
-            return inputs.dropdownList(label, width, entriesSupplier, visibleRows, emptyText);
-        }
-
-        public EditableDropdownListWidget editableDropdownList(
-                Component label,
-                Supplier<List<String>> getter,
-                Consumer<List<String>> setter,
-                Component inputHint
-        ) {
-            return inputs.editableDropdownList(label, getter, setter, inputHint);
-        }
-
-        public EditableDropdownListWidget editableDropdownList(
-                Component label,
-                int width,
-                Supplier<List<String>> getter,
-                Consumer<List<String>> setter,
-                Component inputHint,
-                Component addLabel,
-                int visibleRows
-        ) {
-            return inputs.editableDropdownList(label, width, getter, setter, inputHint, addLabel, visibleRows);
-        }
-
-        public EditableDropdownListWidget editableDropdownList(
-                Component label,
-                int width,
-                Supplier<List<String>> getter,
-                Consumer<List<String>> setter,
-                Component inputHint,
-                Component addLabel,
-                int visibleRows,
-                UITextValidator validator,
-                boolean allowDuplicates
-        ) {
-            return inputs.editableDropdownList(label, width, getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates);
-        }
-
-        public EditableDropdownListWidget editableDropdownList(
-                Component label,
-                int width,
-                Supplier<List<String>> getter,
-                Consumer<List<String>> setter,
-                Component inputHint,
-                Component addLabel,
-                int visibleRows,
-                UITextValidator validator,
-                boolean allowDuplicates,
-                Component duplicateEntryError,
-                Component emptyText
-        ) {
-            return inputs.editableDropdownList(label, width, getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates, duplicateEntryError, emptyText);
-        }
-
-        public <T> SelectDropdownWidget<T> select(
-                Component label,
-                Supplier<T> getter,
-                Consumer<T> setter,
-                Supplier<List<T>> entriesSupplier,
-                Function<T, Component> display
-        ) {
-            return inputs.select(label, getter, setter, entriesSupplier, display);
-        }
-
-        public <T> SelectDropdownWidget<T> select(
-                Component label,
-                int width,
-                Supplier<T> getter,
-                Consumer<T> setter,
-                Supplier<List<T>> entriesSupplier,
-                Function<T, Component> display,
-                int visibleRows
-        ) {
-            return inputs.select(label, width, getter, setter, entriesSupplier, display, visibleRows);
-        }
-
-        public <T> SelectDropdownWidget<T> select(
-                Component label,
-                int width,
-                Supplier<T> getter,
-                Consumer<T> setter,
-                Supplier<List<T>> entriesSupplier,
-                Function<T, Component> display,
-                int visibleRows,
-                Component noneText,
-                Component emptyText
-        ) {
-            return inputs.select(label, width, getter, setter, entriesSupplier, display, visibleRows, noneText, emptyText);
-        }
-
-        public <E extends Enum<E>> SelectDropdownWidget<E> enumSelect(
-                Component label,
-                Class<E> enumClass,
-                Supplier<E> getter,
-                Consumer<E> setter,
-                Function<E, Component> display
-        ) {
-            return inputs.enumSelect(label, enumClass, getter, setter, display);
-        }
-
-        public <T> SearchableSelectDropdownWidget<T> searchableSelect(
-                Component label,
-                Supplier<T> getter,
-                Consumer<T> setter,
-                Supplier<List<T>> entriesSupplier,
-                Function<T, Component> display,
-                Component searchHint
-        ) {
-            return inputs.searchableSelect(label, getter, setter, entriesSupplier, display, searchHint);
-        }
-
-        public <T> SearchableSelectDropdownWidget<T> searchableSelect(
-                Component label,
-                Supplier<T> getter,
-                Consumer<T> setter,
-                Supplier<List<T>> entriesSupplier,
-                Function<T, Component> display,
-                Component searchHint,
-                Component noneText,
-                Component emptyText
-        ) {
-            return inputs.searchableSelect(label, getter, setter, entriesSupplier, display, searchHint, noneText, emptyText);
-        }
-
-        public <T> MultiSelectDropdownWidget<T> multiSelect(
-                Component label,
-                Supplier<Set<T>> getter,
-                Consumer<Set<T>> setter,
-                Supplier<List<T>> entriesSupplier,
-                Function<T, Component> display
-        ) {
-            return inputs.multiSelect(label, getter, setter, entriesSupplier, display);
-        }
-
-        public <T> List<Button> radioGroup(
-                Component title,
-                Supplier<T> getter,
-                Consumer<T> setter,
-                Supplier<List<T>> entriesSupplier,
-                Function<T, Component> display
-        ) {
-            return inputs.radioGroup(title, getter, setter, entriesSupplier, display);
-        }
 
         private <T> void trackModelValue(
                 Supplier<T> currentValue,

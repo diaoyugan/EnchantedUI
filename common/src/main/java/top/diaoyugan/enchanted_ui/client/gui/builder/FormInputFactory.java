@@ -1,15 +1,14 @@
 package top.diaoyugan.enchanted_ui.client.gui.builder;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.network.chat.Component;
 import top.diaoyugan.enchanted_ui.api.client.gui.UILocalization;
-import top.diaoyugan.enchanted_ui.api.client.input.CombinationKeyBinding;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.ApiStatus;
 import top.diaoyugan.enchanted_ui.api.client.gui.UITextValidator;
 import top.diaoyugan.enchanted_ui.client.gui.layout.VerticalLayout;
 import top.diaoyugan.enchanted_ui.client.gui.widget.input.CombinationKeyBindingButtonWidget;
@@ -25,7 +24,6 @@ import top.diaoyugan.enchanted_ui.client.gui.widget.option.NumericSliderOptionWi
 import top.diaoyugan.enchanted_ui.client.gui.widget.option.TextWidget;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -41,69 +39,53 @@ import java.util.function.LongConsumer;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
-final class FormInputFactory {
+@ApiStatus.Internal
+public final class FormInputFactory {
     private final int contentWidth;
     private final VerticalLayout layout;
     private final List<AbstractWidget> widgets;
     private final FormStateController state;
+    private final FormInteractionRegistry interactions;
 
-    FormInputFactory(int contentWidth, VerticalLayout layout, List<AbstractWidget> widgets, FormStateController state) {
+    FormInputFactory(int contentWidth, VerticalLayout layout, List<AbstractWidget> widgets, FormStateController state, FormInteractionRegistry interactions) {
         this.contentWidth = contentWidth;
         this.layout = layout;
         this.widgets = widgets;
         this.state = state;
+        this.interactions = interactions;
     }
 
-    NumericSliderOptionWidget intSlider(Component label, int min, int max, IntSupplier getter, IntConsumer setter, boolean percentage) {
-        return intSlider(label, contentWidth, min, max, getter, setter, percentage);
-    }
 
-    NumericSliderOptionWidget intSlider(Component label, int width, int min, int max, IntSupplier getter, IntConsumer setter, boolean percentage) {
+    public NumericSliderOptionWidget intSlider(Component label, int width, int min, int max, IntSupplier getter, IntConsumer setter, boolean percentage) {
         return numericSlider(
                 layout.x(), layout.y(), width, label, min, max, 1.0D,
                 getter::getAsInt, value -> setter.accept((int) Math.round(value)), percentage
         );
     }
 
-    NumericSliderOptionWidget longSlider(Component label, long min, long max, long step, LongSupplier getter, LongConsumer setter, boolean percentage) {
-        return longSlider(label, contentWidth, min, max, step, getter, setter, percentage);
-    }
 
-    NumericSliderOptionWidget longSlider(Component label, int width, long min, long max, long step, LongSupplier getter, LongConsumer setter, boolean percentage) {
+    public NumericSliderOptionWidget longSlider(Component label, int width, long min, long max, long step, LongSupplier getter, LongConsumer setter, boolean percentage) {
         return numericSlider(
                 layout.x(), layout.y(), width, label, min, max, Math.max(1L, step),
                 getter::getAsLong, value -> setter.accept(Math.round(value)), percentage
         );
     }
 
-    NumericSliderOptionWidget floatSlider(Component label, float min, float max, float step, Supplier<Float> getter, Consumer<Float> setter, boolean percentage) {
-        return floatSlider(label, contentWidth, min, max, step, getter, setter, percentage);
-    }
 
-    NumericSliderOptionWidget floatSlider(Component label, int width, float min, float max, float step, Supplier<Float> getter, Consumer<Float> setter, boolean percentage) {
+    public NumericSliderOptionWidget floatSlider(Component label, int width, float min, float max, float step, Supplier<Float> getter, Consumer<Float> setter, boolean percentage) {
         return numericSlider(
                 layout.x(), layout.y(), width, label, min, max, step,
                 getter::get, value -> setter.accept((float) value), percentage
         );
     }
 
-    NumericSliderOptionWidget doubleSlider(Component label, double min, double max, double step, DoubleSupplier getter, DoubleConsumer setter, boolean percentage) {
-        return doubleSlider(label, contentWidth, min, max, step, getter, setter, percentage);
-    }
 
-    NumericSliderOptionWidget doubleSlider(Component label, int width, double min, double max, double step, DoubleSupplier getter, DoubleConsumer setter, boolean percentage) {
+    public NumericSliderOptionWidget doubleSlider(Component label, int width, double min, double max, double step, DoubleSupplier getter, DoubleConsumer setter, boolean percentage) {
         return numericSlider(layout.x(), layout.y(), width, label, min, max, step, getter, setter, percentage);
     }
 
-    ValidatedTextFieldWidget textField(Component label, Supplier<String> getter, Consumer<String> setter) {
-        return textField(label, contentWidth, getter, setter, UITextValidator.alwaysValid());
-    }
 
-    ValidatedTextFieldWidget textField(Component label, Supplier<String> getter, Consumer<String> setter, UITextValidator validator) {
-        return textField(label, contentWidth, getter, setter, validator);
-    }
-
-    ValidatedTextFieldWidget textField(Component label, int width, Supplier<String> getter, Consumer<String> setter, UITextValidator validator) {
+    public ValidatedTextFieldWidget textField(Component label, int width, Supplier<String> getter, Consumer<String> setter, UITextValidator validator) {
         title(label);
         ValidatedTextFieldWidget box = new ValidatedTextFieldWidget(layout.x(), layout.y(), width, 20, label, validator);
         box.setValue(getter.get());
@@ -116,23 +98,8 @@ final class FormInputFactory {
         return box;
     }
 
-    ValidatedTextFieldWidget intField(Component label, IntSupplier getter, IntConsumer setter) {
-        return intField(label, contentWidth, Integer.MIN_VALUE, Integer.MAX_VALUE, getter, setter);
-    }
 
-    ValidatedTextFieldWidget intField(Component label, int min, int max, IntSupplier getter, IntConsumer setter) {
-        return intField(label, contentWidth, min, max, getter, setter);
-    }
-
-    ValidatedTextFieldWidget intField(Component label, int width, IntSupplier getter, IntConsumer setter) {
-        return intField(label, width, Integer.MIN_VALUE, Integer.MAX_VALUE, getter, setter);
-    }
-
-    ValidatedTextFieldWidget intField(Component label, int width, int min, int max, IntSupplier getter, IntConsumer setter) {
-        return intField(label, width, min, max, getter, setter, UILocalization.FieldValidationMessages.intDefaults());
-    }
-
-    ValidatedTextFieldWidget intField(Component label, int width, int min, int max, IntSupplier getter, IntConsumer setter, UILocalization.FieldValidationMessages validationMessages) {
+    public ValidatedTextFieldWidget intField(Component label, int width, int min, int max, IntSupplier getter, IntConsumer setter, UILocalization.FieldValidationMessages validationMessages) {
         return typedTextField(
                 label, width,
                 () -> Integer.toString(getter.getAsInt()),
@@ -141,23 +108,8 @@ final class FormInputFactory {
         );
     }
 
-    ValidatedTextFieldWidget doubleField(Component label, DoubleSupplier getter, DoubleConsumer setter) {
-        return doubleField(label, contentWidth, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, getter, setter);
-    }
 
-    ValidatedTextFieldWidget doubleField(Component label, double min, double max, DoubleSupplier getter, DoubleConsumer setter) {
-        return doubleField(label, contentWidth, min, max, getter, setter);
-    }
-
-    ValidatedTextFieldWidget doubleField(Component label, int width, DoubleSupplier getter, DoubleConsumer setter) {
-        return doubleField(label, width, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, getter, setter);
-    }
-
-    ValidatedTextFieldWidget doubleField(Component label, int width, double min, double max, DoubleSupplier getter, DoubleConsumer setter) {
-        return doubleField(label, width, min, max, getter, setter, UILocalization.FieldValidationMessages.doubleDefaults());
-    }
-
-    ValidatedTextFieldWidget doubleField(Component label, int width, double min, double max, DoubleSupplier getter, DoubleConsumer setter, UILocalization.FieldValidationMessages validationMessages) {
+    public ValidatedTextFieldWidget doubleField(Component label, int width, double min, double max, DoubleSupplier getter, DoubleConsumer setter, UILocalization.FieldValidationMessages validationMessages) {
         return typedTextField(
                 label, width,
                 () -> formatDouble(getter.getAsDouble()),
@@ -166,7 +118,7 @@ final class FormInputFactory {
         );
     }
 
-    MultiLineEditBox textArea(Component label, int height, Supplier<String> getter, Consumer<String> setter) {
+    public MultiLineEditBox textArea(Component label, int height, Supplier<String> getter, Consumer<String> setter) {
         MultiLineEditBox box = MultiLineEditBox.builder()
                 .setX(layout.x())
                 .setY(layout.y())
@@ -181,47 +133,30 @@ final class FormInputFactory {
         return box;
     }
 
-    KeyBindingButtonWidget keyBinding(Component label, Supplier<InputConstants.Key> getter, Consumer<InputConstants.Key> setter, Supplier<Component> displaySupplier, KeyMapping vanillaKeyMapping, boolean syncVanilla) {
-        return keyBinding(label, getter, setter, displaySupplier, vanillaKeyMapping, syncVanilla, UILocalization.KeyBindingMessages.defaults());
-    }
 
-    KeyBindingButtonWidget keyBinding(Component label, Supplier<InputConstants.Key> getter, Consumer<InputConstants.Key> setter, Supplier<Component> displaySupplier, KeyMapping vanillaKeyMapping, boolean syncVanilla, UILocalization.KeyBindingMessages messages) {
+    public KeyBindingButtonWidget keyBinding(Component label, Supplier<InputConstants.Key> getter, Consumer<InputConstants.Key> setter, UILocalization.KeyBindingMessages messages) {
         KeyBindingButtonWidget widget = new KeyBindingButtonWidget(
                 layout.x(), layout.y(), contentWidth, 20, label,
-                getter, setter, displaySupplier, vanillaKeyMapping, syncVanilla, messages
+                getter, setter, messages
         );
         trackModelValue(getter, widget::applyExternalKey, Function.identity(), widget::refreshMessage);
+        interactions.onKeyPressed(widget::keyPressed);
         widgets.add(widget);
         layout.next(20);
         return widget;
     }
 
-    CombinationKeyBindingButtonWidget combinationKeyBinding(Component label, Supplier<CombinationKeyBinding> getter, Consumer<CombinationKeyBinding> setter) {
-        return combinationKeyBinding(label, getter, setter, UILocalization.KeyBindingMessages.defaults());
-    }
 
-    CombinationKeyBindingButtonWidget combinationKeyBinding(Component label, Supplier<CombinationKeyBinding> getter, Consumer<CombinationKeyBinding> setter, UILocalization.KeyBindingMessages messages) {
+    public CombinationKeyBindingButtonWidget keyCombination(Component label, Supplier<? extends java.util.Collection<String>> getter, Consumer<List<String>> setter, UILocalization.KeyBindingMessages messages) {
         CombinationKeyBindingButtonWidget widget = new CombinationKeyBindingButtonWidget(
                 layout.x(), layout.y(), contentWidth, 20, label, getter, setter, messages
         );
-        trackModelValue(getter, widget::applyExternalBinding, Function.identity(), widget::refreshMessage);
+        trackModelValue(() -> List.copyOf(getter.get()), widget::applyExternalBinding, List::copyOf, widget::refreshMessage);
+        interactions.onKeyPressed(widget::keyPressed);
+        interactions.onKeyReleased(widget::keyReleased);
         widgets.add(widget);
         layout.next(20);
         return widget;
-    }
-
-    CombinationKeyBindingButtonWidget serializedCombinationKeyBinding(Component label, Supplier<? extends java.util.Collection<String>> getter, Consumer<List<String>> setter) {
-        return serializedCombinationKeyBinding(label, getter, setter, UILocalization.KeyBindingMessages.defaults());
-    }
-
-    CombinationKeyBindingButtonWidget serializedCombinationKeyBinding(Component label, Supplier<? extends java.util.Collection<String>> getter, Consumer<List<String>> setter, UILocalization.KeyBindingMessages messages) {
-        Supplier<CombinationKeyBinding> bindingGetter = () -> CombinationKeyBinding.deserialize(getter.get());
-        Consumer<CombinationKeyBinding> bindingSetter = binding -> setter.accept(binding.serialize());
-        return combinationKeyBinding(label, bindingGetter, bindingSetter, messages);
-    }
-
-    UI.ColorGroup rgbaSlidersWithPreview(Component title, Supplier<Integer> rGetter, IntConsumer rSetter, Supplier<Integer> gGetter, IntConsumer gSetter, Supplier<Integer> bGetter, IntConsumer bSetter, Supplier<Integer> aGetter, IntConsumer aSetter, boolean alphaAsPercentage) {
-        return rgbaSlidersWithPreview(title, UILocalization.ColorLabels.defaults(), rGetter, rSetter, gGetter, gSetter, bGetter, bSetter, aGetter, aSetter, alphaAsPercentage);
     }
 
     UI.ColorGroup rgbaSlidersWithPreview(Component title, UILocalization.ColorLabels labels, Supplier<Integer> rGetter, IntConsumer rSetter, Supplier<Integer> gGetter, IntConsumer gSetter, Supplier<Integer> bGetter, IntConsumer bSetter, Supplier<Integer> aGetter, IntConsumer aSetter, boolean alphaAsPercentage) {
@@ -241,46 +176,16 @@ final class FormInputFactory {
         return new UI.ColorGroup(r, g, b, a, preview);
     }
 
-    DropdownListWidget dropdownList(Component label, Supplier<List<Component>> entriesSupplier) {
-        return dropdownList(label, contentWidth, entriesSupplier, 5);
-    }
 
-    DropdownListWidget dropdownList(Component label, int width, Supplier<List<Component>> entriesSupplier, int visibleRows) {
-        return dropdownList(label, width, entriesSupplier, visibleRows, UILocalization.frameworkText("dropdown.empty", "No entries"));
-    }
-
-    DropdownListWidget dropdownList(Component label, int width, Supplier<List<Component>> entriesSupplier, int visibleRows, Component emptyText) {
+    public DropdownListWidget dropdownList(Component label, int width, Supplier<List<Component>> entriesSupplier, int visibleRows, Component emptyText) {
         DropdownListWidget widget = new DropdownListWidget(layout.x(), layout.y(), width, label, entriesSupplier, visibleRows, emptyText);
         widgets.add(widget);
         layout.next(20);
         return widget;
     }
 
-    EditableDropdownListWidget editableDropdownList(Component label, Supplier<List<String>> getter, Consumer<List<String>> setter, Component inputHint) {
-        return editableDropdownList(label, contentWidth, getter, setter, inputHint, UILocalization.frameworkText("dropdown.add", "Add"), 5, UITextValidator.alwaysValid(), true);
-    }
 
-    EditableDropdownListWidget editableDropdownList(Component label, int width, Supplier<List<String>> getter, Consumer<List<String>> setter, Component inputHint, Component addLabel, int visibleRows) {
-        return editableDropdownList(label, width, getter, setter, inputHint, addLabel, visibleRows, UITextValidator.alwaysValid(), true);
-    }
-
-    EditableDropdownListWidget editableDropdownList(Component label, int width, Supplier<List<String>> getter, Consumer<List<String>> setter, Component inputHint, Component addLabel, int visibleRows, UITextValidator validator, boolean allowDuplicates) {
-        return editableDropdownList(
-                label,
-                width,
-                getter,
-                setter,
-                inputHint,
-                addLabel,
-                visibleRows,
-                validator,
-                allowDuplicates,
-                UILocalization.frameworkText("validation.duplicate_entry", "This entry already exists."),
-                UILocalization.frameworkText("dropdown.empty", "No entries")
-        );
-    }
-
-    EditableDropdownListWidget editableDropdownList(Component label, int width, Supplier<List<String>> getter, Consumer<List<String>> setter, Component inputHint, Component addLabel, int visibleRows, UITextValidator validator, boolean allowDuplicates, Component duplicateEntryError, Component emptyText) {
+    public EditableDropdownListWidget editableDropdownList(Component label, int width, Supplier<List<String>> getter, Consumer<List<String>> setter, Component inputHint, Component addLabel, int visibleRows, UITextValidator validator, boolean allowDuplicates, Component duplicateEntryError, Component emptyText) {
         EditableDropdownListWidget widget = new EditableDropdownListWidget(
                 layout.x(), layout.y(), width, label, getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates, duplicateEntryError, emptyText
         );
@@ -290,25 +195,8 @@ final class FormInputFactory {
         return widget;
     }
 
-    <T> SelectDropdownWidget<T> select(Component label, Supplier<T> getter, Consumer<T> setter, Supplier<List<T>> entriesSupplier, Function<T, Component> display) {
-        return select(label, contentWidth, getter, setter, entriesSupplier, display, 5);
-    }
 
-    <T> SelectDropdownWidget<T> select(Component label, int width, Supplier<T> getter, Consumer<T> setter, Supplier<List<T>> entriesSupplier, Function<T, Component> display, int visibleRows) {
-        return select(
-                label,
-                width,
-                getter,
-                setter,
-                entriesSupplier,
-                display,
-                visibleRows,
-                UILocalization.frameworkText("select.none", "None"),
-                UILocalization.frameworkText("dropdown.empty", "No entries")
-        );
-    }
-
-    <T> SelectDropdownWidget<T> select(Component label, int width, Supplier<T> getter, Consumer<T> setter, Supplier<List<T>> entriesSupplier, Function<T, Component> display, int visibleRows, Component noneText, Component emptyText) {
+    public <T> SelectDropdownWidget<T> select(Component label, int width, Supplier<T> getter, Consumer<T> setter, Supplier<List<T>> entriesSupplier, Function<T, Component> display, int visibleRows, Component noneText, Component emptyText) {
         SelectDropdownWidget<T> widget = new SelectDropdownWidget<>(layout.x(), layout.y(), width, label, getter, setter, entriesSupplier, display, visibleRows, noneText, emptyText);
         trackModelValue(getter, setter, Function.identity(), null);
         widgets.add(widget);
@@ -316,26 +204,9 @@ final class FormInputFactory {
         return widget;
     }
 
-    <E extends Enum<E>> SelectDropdownWidget<E> enumSelect(Component label, Class<E> enumClass, Supplier<E> getter, Consumer<E> setter, Function<E, Component> display) {
-        return select(label, getter, setter, () -> Arrays.asList(enumClass.getEnumConstants()), display);
-    }
-
-    <T> SearchableSelectDropdownWidget<T> searchableSelect(Component label, Supplier<T> getter, Consumer<T> setter, Supplier<List<T>> entriesSupplier, Function<T, Component> display, Component searchHint) {
-        return searchableSelect(
-                label,
-                getter,
-                setter,
-                entriesSupplier,
-                display,
-                searchHint,
-                UILocalization.frameworkText("select.none", "None"),
-                UILocalization.frameworkText("dropdown.empty", "No entries")
-        );
-    }
-
-    <T> SearchableSelectDropdownWidget<T> searchableSelect(Component label, Supplier<T> getter, Consumer<T> setter, Supplier<List<T>> entriesSupplier, Function<T, Component> display, Component searchHint, Component noneText, Component emptyText) {
+    public <T> SearchableSelectDropdownWidget<T> searchableSelect(Component label, int width, Supplier<T> getter, Consumer<T> setter, Supplier<List<T>> entriesSupplier, Function<T, Component> display, Component searchHint, int visibleRows, Component noneText, Component emptyText) {
         SearchableSelectDropdownWidget<T> widget = new SearchableSelectDropdownWidget<>(
-                layout.x(), layout.y(), contentWidth, label, getter, setter, entriesSupplier, display, searchHint, 5, noneText, emptyText
+                layout.x(), layout.y(), width, label, getter, setter, entriesSupplier, display, searchHint, visibleRows, noneText, emptyText
         );
         trackModelValue(getter, setter, Function.identity(), null);
         widgets.add(widget);
@@ -343,9 +214,9 @@ final class FormInputFactory {
         return widget;
     }
 
-    <T> MultiSelectDropdownWidget<T> multiSelect(Component label, Supplier<Set<T>> getter, Consumer<Set<T>> setter, Supplier<List<T>> entriesSupplier, Function<T, Component> display) {
+    public <T> MultiSelectDropdownWidget<T> multiSelect(Component label, int width, Supplier<Set<T>> getter, Consumer<Set<T>> setter, Supplier<List<T>> entriesSupplier, Function<T, Component> display, int visibleRows) {
         MultiSelectDropdownWidget<T> widget = new MultiSelectDropdownWidget<>(
-                layout.x(), layout.y(), contentWidth, label, getter, setter, entriesSupplier, display, 5
+                layout.x(), layout.y(), width, label, getter, setter, entriesSupplier, display, visibleRows
         );
         trackModelValue(getter, setter, value -> value == null ? Set.of() : new LinkedHashSet<>(value), null);
         widgets.add(widget);
@@ -353,7 +224,7 @@ final class FormInputFactory {
         return widget;
     }
 
-    <T> List<Button> radioGroup(Component title, Supplier<T> getter, Consumer<T> setter, Supplier<List<T>> entriesSupplier, Function<T, Component> display) {
+    public <T> List<Button> radioGroup(Component title, int width, Supplier<T> getter, Consumer<T> setter, Supplier<List<T>> entriesSupplier, Function<T, Component> display) {
         title(title);
         List<T> entries = entriesSupplier.get();
         List<Button> buttons = new ArrayList<>();
@@ -363,7 +234,7 @@ final class FormInputFactory {
                 for (Button candidate : buttons) {
                     candidate.setMessage(radioLabel(getter.get(), entries.get(buttons.indexOf(candidate)), display));
                 }
-            }).bounds(layout.x(), layout.y(), contentWidth, 20).build();
+            }).bounds(layout.x(), layout.y(), width, 20).build();
             widgets.add(button);
             buttons.add(button);
             layout.next(20);

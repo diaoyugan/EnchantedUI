@@ -59,6 +59,11 @@ public class UITabbedScreen extends BaseTabbedScreen {
             }
 
             @Override
+            public boolean keyReleased(net.minecraft.client.input.KeyEvent event) {
+                return page.keyReleased(event);
+            }
+
+            @Override
             public boolean hasUnsavedChanges() {
                 return page.hasUnsavedChanges();
             }

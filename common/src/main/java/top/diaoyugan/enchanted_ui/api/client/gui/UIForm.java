@@ -1,14 +1,13 @@
 package top.diaoyugan.enchanted_ui.api.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import top.diaoyugan.enchanted_ui.client.gui.builder.UI;
-import top.diaoyugan.enchanted_ui.api.client.input.CombinationKeyBinding;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -33,6 +32,13 @@ import java.util.function.Supplier;
  * namespace for user-facing text. EnchantedUI default keys are only fallbacks.
  */
 public final class UIForm {
+
+    private static final int DEFAULT_PROGRESS_COLOR = 0xFF3977C2;
+    private static final int DEFAULT_STATUS_COLOR = 0xFF3C6E47;
+    private static final int DEFAULT_INFO_ACCENT_COLOR = 0xFF3977C2;
+    private static final int DEFAULT_EMPTY_STATE_HEIGHT = 44;
+    private static final int DEFAULT_VISIBLE_ROWS = 5;
+    private static final int DEFAULT_SUMMARY_ROWS = 4;
 
     private final UI.Form delegate;
 
@@ -120,8 +126,7 @@ public final class UIForm {
      * overload with an explicit indent when a visual hierarchy is desired.
      */
     public UIForm section(Component title, Consumer<UIForm> builder) {
-        delegate.section(title, nested -> builder.accept(new UIForm(nested)));
-        return this;
+        return section(title, 0, builder);
     }
 
     /**
@@ -143,67 +148,73 @@ public final class UIForm {
      * Adds a simple text title row.
      */
     public UIWidget title(Component text) {
-        return UIWidget.wrap(delegate.title(text));
+        return UIWidget.wrap(delegate.display().title(text));
     }
 
     public UIWidget progressBar(Component label, DoubleSupplier progressSupplier) {
-        return UIWidget.wrap(delegate.progressBar(label, progressSupplier));
+        return progressBar(label, contentWidth(), progressSupplier, defaultProgressValue(progressSupplier), DEFAULT_PROGRESS_COLOR);
     }
 
     public UIWidget progressBar(Component label, int width, DoubleSupplier progressSupplier, int fillColor) {
-        return UIWidget.wrap(delegate.progressBar(label, width, progressSupplier, fillColor));
+        return progressBar(label, width, progressSupplier, defaultProgressValue(progressSupplier), fillColor);
     }
 
     public UIWidget progressBar(Component label, int width, DoubleSupplier progressSupplier, Supplier<Component> valueSupplier, int fillColor) {
-        return UIWidget.wrap(delegate.progressBar(label, width, progressSupplier, valueSupplier, fillColor));
+        return UIWidget.wrap(delegate.display().progressBar(label, width, progressSupplier, valueSupplier, fillColor));
     }
 
     public UIWidget keyValueRow(Component label, Supplier<Component> valueSupplier) {
-        return UIWidget.wrap(delegate.keyValueRow(label, valueSupplier));
+        return UIWidget.wrap(delegate.display().keyValueRow(label, valueSupplier));
     }
 
     public UIWidget statusBadge(Component label, Supplier<Component> statusSupplier) {
-        return UIWidget.wrap(delegate.statusBadge(label, statusSupplier));
+        return statusBadge(label, statusSupplier, () -> DEFAULT_STATUS_COLOR);
     }
 
     public UIWidget statusBadge(Component label, Supplier<Component> statusSupplier, IntSupplier colorSupplier) {
-        return UIWidget.wrap(delegate.statusBadge(label, statusSupplier, colorSupplier));
+        return UIWidget.wrap(delegate.display().statusBadge(label, statusSupplier, colorSupplier));
     }
 
     public UIWidget emptyState(Component title, Component description) {
-        return UIWidget.wrap(delegate.emptyState(title, description));
+        return emptyState(title, description, DEFAULT_EMPTY_STATE_HEIGHT);
     }
 
     public UIWidget emptyState(Component title, Component description, int height) {
-        return UIWidget.wrap(delegate.emptyState(title, description, height));
+        return UIWidget.wrap(delegate.display().emptyState(title, description, height));
     }
 
     public UIWidget infoBlock(Component title, Component message) {
-        return UIWidget.wrap(delegate.infoBlock(title, message));
+        return infoBlock(title, message, DEFAULT_INFO_ACCENT_COLOR);
     }
 
     public UIWidget infoBlock(Component title, Component message, int accentColor) {
-        return UIWidget.wrap(delegate.infoBlock(title, message, accentColor));
+        return UIWidget.wrap(delegate.display().infoBlock(title, message, accentColor));
     }
 
     public UIWidget loadingState(Component title, Component message) {
-        return UIWidget.wrap(delegate.loadingState(title, message));
+        return UIWidget.wrap(delegate.display().loadingState(title, message));
     }
 
     public UIWidget errorState(Component title, Component message) {
-        return UIWidget.wrap(delegate.errorState(title, message));
+        return errorState(title, message, null, null);
     }
 
     public UIWidget errorState(Component title, Component message, Component actionLabel, Runnable action) {
-        return UIWidget.wrap(delegate.errorState(title, message, actionLabel, action));
+        return UIWidget.wrap(delegate.display().errorState(title, message, actionLabel, action));
     }
 
     public UIWidget readonlyList(Component label, Supplier<List<Component>> entriesSupplier) {
-        return UIWidget.wrap(delegate.readonlyList(label, entriesSupplier));
+        return readonlyList(label, entriesSupplier, DEFAULT_VISIBLE_ROWS);
     }
 
     public UIWidget readonlyList(Component label, Supplier<List<Component>> entriesSupplier, int visibleRows) {
-        return UIWidget.wrap(delegate.readonlyList(label, entriesSupplier, visibleRows));
+        return readonlyList(
+                label,
+                entriesSupplier,
+                visibleRows,
+                UILocalization.frameworkText("display.empty", "No data"),
+                hiddenCount -> UILocalization.frameworkText("display.more", "+%d more", hiddenCount)
+        );
     }
 
     public UIWidget readonlyList(
@@ -213,19 +224,19 @@ public final class UIForm {
             Component emptyText,
             IntFunction<Component> overflowText
     ) {
-        return UIWidget.wrap(delegate.readonlyList(label, entriesSupplier, visibleRows, emptyText, overflowText));
+        return UIWidget.wrap(delegate.display().readonlyList(label, entriesSupplier, visibleRows, emptyText, overflowText));
     }
 
     public UIWidget summaryBlock(Component title, Supplier<List<UISummaryItem>> itemsSupplier) {
-        return UIWidget.wrap(delegate.summaryBlock(title, itemsSupplier));
+        return summaryBlock(title, itemsSupplier, DEFAULT_SUMMARY_ROWS);
     }
 
     public UIWidget summaryBlock(Component title, Supplier<List<UISummaryItem>> itemsSupplier, int rows) {
-        return UIWidget.wrap(delegate.summaryBlock(title, itemsSupplier, rows));
+        return summaryBlock(title, itemsSupplier, rows, UILocalization.frameworkText("display.empty", "No data"));
     }
 
     public UIWidget summaryBlock(Component title, Supplier<List<UISummaryItem>> itemsSupplier, int rows, Component emptyText) {
-        return UIWidget.wrap(delegate.summaryBlock(title, itemsSupplier, rows, emptyText));
+        return UIWidget.wrap(delegate.display().summaryBlock(title, itemsSupplier, rows, emptyText));
     }
 
     public UIWidget toggle(Component label, BooleanSupplier getter, Consumer<Boolean> setter) {
@@ -233,7 +244,7 @@ public final class UIForm {
     }
 
     public UIWidget button(Component label, Runnable action) {
-        return UIWidget.wrap(delegate.button(label, action));
+        return button(label, contentWidth(), action);
     }
 
     public UIWidget button(Component label, int width, Runnable action) {
@@ -260,10 +271,10 @@ public final class UIForm {
             BooleanSupplier rightGetter,
             Consumer<Boolean> rightSetter
     ) {
-        return delegate.toggleRow(leftLabel, leftGetter, leftSetter, rightLabel, rightGetter, rightSetter)
-                .stream()
-                .map(UIWidget::wrap)
-                .toList();
+        return toggleRow(
+                leftLabel, leftGetter, leftSetter, null,
+                rightLabel, rightGetter, rightSetter, null
+        );
     }
 
     public List<UIWidget> toggleRow(
@@ -276,12 +287,18 @@ public final class UIForm {
             Consumer<Boolean> rightSetter,
             Component rightTooltip
     ) {
-        List<UIWidget> row = toggleRow(
-                leftLabel, leftGetter, leftSetter,
-                rightLabel, rightGetter, rightSetter
-        );
-        row.getFirst().tooltip(leftTooltip);
-        row.getLast().tooltip(rightTooltip);
+        List<UIWidget> row = delegate.toggleRow(
+                        leftLabel, leftGetter, leftSetter,
+                        rightLabel, rightGetter, rightSetter
+                ).stream()
+                .map(UIWidget::wrap)
+                .toList();
+        if (leftTooltip != null) {
+            row.getFirst().tooltip(leftTooltip);
+        }
+        if (rightTooltip != null) {
+            row.getLast().tooltip(rightTooltip);
+        }
         return row;
     }
 
@@ -298,7 +315,7 @@ public final class UIForm {
             IntConsumer setter,
             boolean percentage
     ) {
-        return (UISlider) UIWidget.wrap(delegate.intSlider(label, min, max, getter, setter, percentage));
+        return intSlider(label, contentWidth(), min, max, getter, setter, percentage);
     }
 
     /**
@@ -313,7 +330,7 @@ public final class UIForm {
             IntConsumer setter,
             boolean percentage
     ) {
-        return (UISlider) UIWidget.wrap(delegate.intSlider(label, width, min, max, getter, setter, percentage));
+        return (UISlider) UIWidget.wrap(delegate.inputs().intSlider(label, width, min, max, getter, setter, percentage));
     }
 
     /**
@@ -328,7 +345,7 @@ public final class UIForm {
             LongConsumer setter,
             boolean percentage
     ) {
-        return (UISlider) UIWidget.wrap(delegate.longSlider(label, min, max, step, getter, setter, percentage));
+        return longSlider(label, contentWidth(), min, max, step, getter, setter, percentage);
     }
 
     public UISlider longSlider(
@@ -341,7 +358,7 @@ public final class UIForm {
             LongConsumer setter,
             boolean percentage
     ) {
-        return (UISlider) UIWidget.wrap(delegate.longSlider(label, width, min, max, step, getter, setter, percentage));
+        return (UISlider) UIWidget.wrap(delegate.inputs().longSlider(label, width, min, max, step, getter, setter, percentage));
     }
 
     /**
@@ -356,7 +373,7 @@ public final class UIForm {
             Consumer<Float> setter,
             boolean percentage
     ) {
-        return (UISlider) UIWidget.wrap(delegate.floatSlider(label, min, max, step, getter, setter, percentage));
+        return floatSlider(label, contentWidth(), min, max, step, getter, setter, percentage);
     }
 
     public UISlider floatSlider(
@@ -369,7 +386,7 @@ public final class UIForm {
             Consumer<Float> setter,
             boolean percentage
     ) {
-        return (UISlider) UIWidget.wrap(delegate.floatSlider(label, width, min, max, step, getter, setter, percentage));
+        return (UISlider) UIWidget.wrap(delegate.inputs().floatSlider(label, width, min, max, step, getter, setter, percentage));
     }
 
     /**
@@ -384,7 +401,7 @@ public final class UIForm {
             DoubleConsumer setter,
             boolean percentage
     ) {
-        return (UISlider) UIWidget.wrap(delegate.doubleSlider(label, min, max, step, getter, setter, percentage));
+        return doubleSlider(label, contentWidth(), min, max, step, getter, setter, percentage);
     }
 
     public UISlider doubleSlider(
@@ -397,7 +414,7 @@ public final class UIForm {
             DoubleConsumer setter,
             boolean percentage
     ) {
-        return (UISlider) UIWidget.wrap(delegate.doubleSlider(label, width, min, max, step, getter, setter, percentage));
+        return (UISlider) UIWidget.wrap(delegate.inputs().doubleSlider(label, width, min, max, step, getter, setter, percentage));
     }
 
     /**
@@ -408,7 +425,7 @@ public final class UIForm {
             Supplier<String> getter,
             Consumer<String> setter
     ) {
-        return (UITextField) UIWidget.wrap(delegate.textField(label, getter, setter));
+        return textField(label, contentWidth(), getter, setter, UITextValidator.alwaysValid());
     }
 
     public UITextField textField(
@@ -417,7 +434,7 @@ public final class UIForm {
             Consumer<String> setter,
             UITextValidator validator
     ) {
-        return (UITextField) UIWidget.wrap(delegate.textField(label, getter, setter, validator));
+        return textField(label, contentWidth(), getter, setter, validator);
     }
 
     public UITextField textField(
@@ -427,7 +444,7 @@ public final class UIForm {
             Consumer<String> setter,
             UITextValidator validator
     ) {
-        return (UITextField) UIWidget.wrap(delegate.textField(label, width, getter, setter, validator));
+        return (UITextField) UIWidget.wrap(delegate.inputs().textField(label, width, getter, setter, validator));
     }
 
     /**
@@ -438,7 +455,7 @@ public final class UIForm {
             IntSupplier getter,
             IntConsumer setter
     ) {
-        return (UITextField) UIWidget.wrap(delegate.intField(label, getter, setter));
+        return intField(label, contentWidth(), Integer.MIN_VALUE, Integer.MAX_VALUE, getter, setter, UILocalization.FieldValidationMessages.intDefaults());
     }
 
     /**
@@ -451,7 +468,7 @@ public final class UIForm {
             IntSupplier getter,
             IntConsumer setter
     ) {
-        return (UITextField) UIWidget.wrap(delegate.intField(label, min, max, getter, setter));
+        return intField(label, contentWidth(), min, max, getter, setter, UILocalization.FieldValidationMessages.intDefaults());
     }
 
     public UITextField intField(
@@ -460,7 +477,7 @@ public final class UIForm {
             IntSupplier getter,
             IntConsumer setter
     ) {
-        return (UITextField) UIWidget.wrap(delegate.intField(label, width, getter, setter));
+        return intField(label, width, Integer.MIN_VALUE, Integer.MAX_VALUE, getter, setter, UILocalization.FieldValidationMessages.intDefaults());
     }
 
     public UITextField intField(
@@ -471,7 +488,7 @@ public final class UIForm {
             IntSupplier getter,
             IntConsumer setter
     ) {
-        return (UITextField) UIWidget.wrap(delegate.intField(label, width, min, max, getter, setter));
+        return intField(label, width, min, max, getter, setter, UILocalization.FieldValidationMessages.intDefaults());
     }
 
     /**
@@ -486,7 +503,7 @@ public final class UIForm {
             IntConsumer setter,
             UILocalization.FieldValidationMessages validationMessages
     ) {
-        return (UITextField) UIWidget.wrap(delegate.intField(label, width, min, max, getter, setter, validationMessages));
+        return (UITextField) UIWidget.wrap(delegate.inputs().intField(label, width, min, max, getter, setter, validationMessages));
     }
 
     /**
@@ -497,7 +514,7 @@ public final class UIForm {
             DoubleSupplier getter,
             DoubleConsumer setter
     ) {
-        return (UITextField) UIWidget.wrap(delegate.doubleField(label, getter, setter));
+        return doubleField(label, contentWidth(), -Double.MAX_VALUE, Double.MAX_VALUE, getter, setter, UILocalization.FieldValidationMessages.doubleDefaults());
     }
 
     /**
@@ -510,7 +527,7 @@ public final class UIForm {
             DoubleSupplier getter,
             DoubleConsumer setter
     ) {
-        return (UITextField) UIWidget.wrap(delegate.doubleField(label, min, max, getter, setter));
+        return doubleField(label, contentWidth(), min, max, getter, setter, UILocalization.FieldValidationMessages.doubleDefaults());
     }
 
     public UITextField doubleField(
@@ -519,7 +536,7 @@ public final class UIForm {
             DoubleSupplier getter,
             DoubleConsumer setter
     ) {
-        return (UITextField) UIWidget.wrap(delegate.doubleField(label, width, getter, setter));
+        return doubleField(label, width, -Double.MAX_VALUE, Double.MAX_VALUE, getter, setter, UILocalization.FieldValidationMessages.doubleDefaults());
     }
 
     public UITextField doubleField(
@@ -530,7 +547,7 @@ public final class UIForm {
             DoubleSupplier getter,
             DoubleConsumer setter
     ) {
-        return (UITextField) UIWidget.wrap(delegate.doubleField(label, width, min, max, getter, setter));
+        return doubleField(label, width, min, max, getter, setter, UILocalization.FieldValidationMessages.doubleDefaults());
     }
 
     /**
@@ -545,7 +562,7 @@ public final class UIForm {
             DoubleConsumer setter,
             UILocalization.FieldValidationMessages validationMessages
     ) {
-        return (UITextField) UIWidget.wrap(delegate.doubleField(label, width, min, max, getter, setter, validationMessages));
+        return (UITextField) UIWidget.wrap(delegate.inputs().doubleField(label, width, min, max, getter, setter, validationMessages));
     }
 
     public UITextArea textArea(
@@ -554,25 +571,16 @@ public final class UIForm {
             Supplier<String> getter,
             Consumer<String> setter
     ) {
-        return (UITextArea) UIWidget.wrap(delegate.textArea(label, height, getter, setter));
+        return (UITextArea) UIWidget.wrap(delegate.inputs().textArea(label, height, getter, setter));
     }
 
-    /**
-     * Adds a key binding button.
-     * <p>
-     * Use {@code syncVanilla} when the control should also update the supplied vanilla key mapping.
-     */
+    /** Adds a control that records one keyboard key. */
     public UIWidget keyBinding(
             Component label,
             Supplier<InputConstants.Key> getter,
-            Consumer<InputConstants.Key> setter,
-            Supplier<Component> displaySupplier,
-            KeyMapping vanillaKeyMapping,
-            boolean syncVanilla
+            Consumer<InputConstants.Key> setter
     ) {
-        return UIWidget.wrap(
-                delegate.keyBinding(label, getter, setter, displaySupplier, vanillaKeyMapping, syncVanilla)
-        );
+        return keyBinding(label, getter, setter, UILocalization.KeyBindingMessages.defaults());
     }
 
     /**
@@ -582,67 +590,30 @@ public final class UIForm {
             Component label,
             Supplier<InputConstants.Key> getter,
             Consumer<InputConstants.Key> setter,
-            Supplier<Component> displaySupplier,
-            KeyMapping vanillaKeyMapping,
-            boolean syncVanilla,
             UILocalization.KeyBindingMessages messages
     ) {
-        return UIWidget.wrap(delegate.keyBinding(
-                label,
-                getter,
-                setter,
-                displaySupplier,
-                vanillaKeyMapping,
-                syncVanilla,
-                messages
-        ));
+        return UIWidget.wrap(delegate.inputs().keyBinding(label, getter, setter, messages));
     }
 
-    /**
-     * Adds a button for recording a key combination.
-     */
-    public UIWidget combinationKeyBinding(
+    /** Adds a control that records an ordered keyboard/mouse combination. */
+    public UIWidget keyCombination(
             Component label,
-            Supplier<CombinationKeyBinding> getter,
-            Consumer<CombinationKeyBinding> setter
+            Supplier<? extends java.util.Collection<String>> getter,
+            Consumer<List<String>> setter
     ) {
-        return UIWidget.wrap(delegate.combinationKeyBinding(label, getter, setter));
+        return keyCombination(label, getter, setter, UILocalization.KeyBindingMessages.defaults());
     }
 
     /**
      * Adds a key combination button with caller-owned generated text keys.
      */
-    public UIWidget combinationKeyBinding(
-            Component label,
-            Supplier<CombinationKeyBinding> getter,
-            Consumer<CombinationKeyBinding> setter,
-            UILocalization.KeyBindingMessages messages
-    ) {
-        return UIWidget.wrap(
-                delegate.combinationKeyBinding(label, getter, setter, messages)
-        );
-    }
-
-    /**
-     * Adds a combination binding backed directly by serialized input names.
-     * Values use names such as {@code key.keyboard.v} and {@code key.mouse.4}.
-     */
-    public UIWidget serializedCombinationKeyBinding(
-            Component label,
-            Supplier<? extends java.util.Collection<String>> getter,
-            Consumer<List<String>> setter
-    ) {
-        return UIWidget.wrap(delegate.serializedCombinationKeyBinding(label, getter, setter));
-    }
-
-    /** Adds a serialized combination binding with caller-owned generated text keys. */
-    public UIWidget serializedCombinationKeyBinding(
+    public UIWidget keyCombination(
             Component label,
             Supplier<? extends java.util.Collection<String>> getter,
             Consumer<List<String>> setter,
             UILocalization.KeyBindingMessages messages
     ) {
-        return UIWidget.wrap(delegate.serializedCombinationKeyBinding(label, getter, setter, messages));
+        return UIWidget.wrap(delegate.inputs().keyCombination(label, getter, setter, messages));
     }
 
     /**
@@ -666,8 +637,9 @@ public final class UIForm {
             IntConsumer aSetter,
             boolean alphaAsPercentage
     ) {
-        UI.ColorGroup colorGroup = delegate.rgbaSlidersWithPreview(
+        return rgbaSlidersWithPreview(
                 title,
+                UILocalization.ColorLabels.defaults(),
                 rGetter,
                 rSetter,
                 gGetter,
@@ -677,13 +649,6 @@ public final class UIForm {
                 aGetter,
                 aSetter,
                 alphaAsPercentage
-        );
-        return new UIColorGroup(
-                (UISlider) UIWidget.wrap(colorGroup.r()),
-                (UISlider) UIWidget.wrap(colorGroup.g()),
-                (UISlider) UIWidget.wrap(colorGroup.b()),
-                (UISlider) UIWidget.wrap(colorGroup.a()),
-                UIWidget.wrap(colorGroup.preview())
         );
     }
 
@@ -764,7 +729,7 @@ public final class UIForm {
      * Adds a read-only dropdown list.
      */
     public UIWidget dropdownList(Component label, Supplier<List<Component>> entriesSupplier) {
-        return UIWidget.wrap(delegate.dropdownList(label, entriesSupplier));
+        return dropdownList(label, contentWidth(), entriesSupplier, DEFAULT_VISIBLE_ROWS, dropdownEmptyText());
     }
 
     /**
@@ -775,7 +740,7 @@ public final class UIForm {
             Supplier<List<Component>> entriesSupplier,
             int visibleRows
     ) {
-        return UIWidget.wrap(delegate.dropdownList(label, contentWidth(), entriesSupplier, visibleRows));
+        return dropdownList(label, contentWidth(), entriesSupplier, visibleRows, dropdownEmptyText());
     }
 
     /**
@@ -787,7 +752,7 @@ public final class UIForm {
             int visibleRows,
             Component emptyText
     ) {
-        return UIWidget.wrap(delegate.dropdownList(label, contentWidth(), entriesSupplier, visibleRows, emptyText));
+        return dropdownList(label, contentWidth(), entriesSupplier, visibleRows, emptyText);
     }
 
     public UIWidget dropdownList(
@@ -796,7 +761,7 @@ public final class UIForm {
             Supplier<List<Component>> entriesSupplier,
             int visibleRows
     ) {
-        return UIWidget.wrap(delegate.dropdownList(label, width, entriesSupplier, visibleRows));
+        return dropdownList(label, width, entriesSupplier, visibleRows, dropdownEmptyText());
     }
 
     /**
@@ -809,7 +774,7 @@ public final class UIForm {
             int visibleRows,
             Component emptyText
     ) {
-        return UIWidget.wrap(delegate.dropdownList(label, width, entriesSupplier, visibleRows, emptyText));
+        return UIWidget.wrap(delegate.inputs().dropdownList(label, width, entriesSupplier, visibleRows, emptyText));
     }
 
     /**
@@ -821,7 +786,10 @@ public final class UIForm {
             Consumer<List<String>> setter,
             Component inputHint
     ) {
-        return UIWidget.wrap(delegate.editableDropdownList(label, getter, setter, inputHint));
+        return editableDropdownList(
+                label, contentWidth(), getter, setter, inputHint, dropdownAddLabel(), DEFAULT_VISIBLE_ROWS,
+                UITextValidator.alwaysValid(), true, duplicateEntryError(), dropdownEmptyText()
+        );
     }
 
     /**
@@ -835,8 +803,9 @@ public final class UIForm {
             Component addLabel,
             int visibleRows
     ) {
-        return UIWidget.wrap(
-                delegate.editableDropdownList(label, contentWidth(), getter, setter, inputHint, addLabel, visibleRows)
+        return editableDropdownList(
+                label, contentWidth(), getter, setter, inputHint, addLabel, visibleRows,
+                UITextValidator.alwaysValid(), true, duplicateEntryError(), dropdownEmptyText()
         );
     }
 
@@ -853,8 +822,9 @@ public final class UIForm {
             UITextValidator validator,
             boolean allowDuplicates
     ) {
-        return UIWidget.wrap(
-                delegate.editableDropdownList(label, contentWidth(), getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates)
+        return editableDropdownList(
+                label, contentWidth(), getter, setter, inputHint, addLabel, visibleRows,
+                validator, allowDuplicates, duplicateEntryError(), dropdownEmptyText()
         );
     }
 
@@ -873,8 +843,9 @@ public final class UIForm {
             Component duplicateEntryError,
             Component emptyText
     ) {
-        return UIWidget.wrap(
-                delegate.editableDropdownList(label, contentWidth(), getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates, duplicateEntryError, emptyText)
+        return editableDropdownList(
+                label, contentWidth(), getter, setter, inputHint, addLabel, visibleRows,
+                validator, allowDuplicates, duplicateEntryError, emptyText
         );
     }
 
@@ -887,8 +858,9 @@ public final class UIForm {
             Component addLabel,
             int visibleRows
     ) {
-        return UIWidget.wrap(
-                delegate.editableDropdownList(label, width, getter, setter, inputHint, addLabel, visibleRows)
+        return editableDropdownList(
+                label, width, getter, setter, inputHint, addLabel, visibleRows,
+                UITextValidator.alwaysValid(), true, duplicateEntryError(), dropdownEmptyText()
         );
     }
 
@@ -903,8 +875,9 @@ public final class UIForm {
             UITextValidator validator,
             boolean allowDuplicates
     ) {
-        return UIWidget.wrap(
-                delegate.editableDropdownList(label, width, getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates)
+        return editableDropdownList(
+                label, width, getter, setter, inputHint, addLabel, visibleRows,
+                validator, allowDuplicates, duplicateEntryError(), dropdownEmptyText()
         );
     }
 
@@ -925,7 +898,7 @@ public final class UIForm {
             Component emptyText
     ) {
         return UIWidget.wrap(
-                delegate.editableDropdownList(label, width, getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates, duplicateEntryError, emptyText)
+                delegate.inputs().editableDropdownList(label, width, getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates, duplicateEntryError, emptyText)
         );
     }
 
@@ -941,7 +914,10 @@ public final class UIForm {
             Supplier<List<T>> entriesSupplier,
             Function<T, Component> display
     ) {
-        return UIWidget.wrap(delegate.select(label, getter, setter, entriesSupplier, display));
+        return select(
+                label, contentWidth(), getter, setter, entriesSupplier, display, DEFAULT_VISIBLE_ROWS,
+                selectNoneText(), dropdownEmptyText()
+        );
     }
 
     /**
@@ -955,7 +931,10 @@ public final class UIForm {
             Function<T, Component> display,
             int visibleRows
     ) {
-        return UIWidget.wrap(delegate.select(label, contentWidth(), getter, setter, entriesSupplier, display, visibleRows));
+        return select(
+                label, contentWidth(), getter, setter, entriesSupplier, display, visibleRows,
+                selectNoneText(), dropdownEmptyText()
+        );
     }
 
     /**
@@ -971,7 +950,7 @@ public final class UIForm {
             Component noneText,
             Component emptyText
     ) {
-        return UIWidget.wrap(delegate.select(label, contentWidth(), getter, setter, entriesSupplier, display, visibleRows, noneText, emptyText));
+        return select(label, contentWidth(), getter, setter, entriesSupplier, display, visibleRows, noneText, emptyText);
     }
 
     /**
@@ -988,7 +967,7 @@ public final class UIForm {
             Component noneText,
             Component emptyText
     ) {
-        return UIWidget.wrap(delegate.select(label, width, getter, setter, entriesSupplier, display, visibleRows, noneText, emptyText));
+        return UIWidget.wrap(delegate.inputs().select(label, width, getter, setter, entriesSupplier, display, visibleRows, noneText, emptyText));
     }
 
     /**
@@ -1002,7 +981,10 @@ public final class UIForm {
             Function<T, Component> display,
             Component searchHint
     ) {
-        return UIWidget.wrap(delegate.searchableSelect(label, getter, setter, entriesSupplier, display, searchHint));
+        return searchableSelect(
+                label, contentWidth(), getter, setter, entriesSupplier, display, searchHint,
+                DEFAULT_VISIBLE_ROWS, selectNoneText(), dropdownEmptyText()
+        );
     }
 
     /**
@@ -1018,7 +1000,28 @@ public final class UIForm {
             Component noneText,
             Component emptyText
     ) {
-        return UIWidget.wrap(delegate.searchableSelect(label, getter, setter, entriesSupplier, display, searchHint, noneText, emptyText));
+        return searchableSelect(
+                label, contentWidth(), getter, setter, entriesSupplier, display, searchHint,
+                DEFAULT_VISIBLE_ROWS, noneText, emptyText
+        );
+    }
+
+    /** Adds a fully configurable searchable single-select dropdown. */
+    public <T> UIWidget searchableSelect(
+            Component label,
+            int width,
+            Supplier<T> getter,
+            Consumer<T> setter,
+            Supplier<List<T>> entriesSupplier,
+            Function<T, Component> display,
+            Component searchHint,
+            int visibleRows,
+            Component noneText,
+            Component emptyText
+    ) {
+        return UIWidget.wrap(delegate.inputs().searchableSelect(
+                label, width, getter, setter, entriesSupplier, display, searchHint, visibleRows, noneText, emptyText
+        ));
     }
 
     /**
@@ -1031,7 +1034,22 @@ public final class UIForm {
             Supplier<List<T>> entriesSupplier,
             Function<T, Component> display
     ) {
-        return UIWidget.wrap(delegate.multiSelect(label, getter, setter, entriesSupplier, display));
+        return multiSelect(label, contentWidth(), getter, setter, entriesSupplier, display, DEFAULT_VISIBLE_ROWS);
+    }
+
+    /** Adds a multi-select dropdown with explicit width and visible row count. */
+    public <T> UIWidget multiSelect(
+            Component label,
+            int width,
+            Supplier<Set<T>> getter,
+            Consumer<Set<T>> setter,
+            Supplier<List<T>> entriesSupplier,
+            Function<T, Component> display,
+            int visibleRows
+    ) {
+        return UIWidget.wrap(delegate.inputs().multiSelect(
+                label, width, getter, setter, entriesSupplier, display, visibleRows
+        ));
     }
 
     /**
@@ -1044,7 +1062,17 @@ public final class UIForm {
             Consumer<E> setter,
             Function<E, Component> display
     ) {
-        return UIWidget.wrap(delegate.enumSelect(label, enumClass, getter, setter, display));
+        return select(
+                label,
+                contentWidth(),
+                getter,
+                setter,
+                () -> List.of(enumClass.getEnumConstants()),
+                display,
+                DEFAULT_VISIBLE_ROWS,
+                selectNoneText(),
+                dropdownEmptyText()
+        );
     }
 
     /**
@@ -1057,9 +1085,45 @@ public final class UIForm {
             Supplier<List<T>> entriesSupplier,
             Function<T, Component> display
     ) {
-        return delegate.radioGroup(title, getter, setter, entriesSupplier, display)
+        return radioGroup(title, contentWidth(), getter, setter, entriesSupplier, display);
+    }
+
+    /** Adds a radio-button style group with an explicit button width. */
+    public <T> List<UIWidget> radioGroup(
+            Component title,
+            int width,
+            Supplier<T> getter,
+            Consumer<T> setter,
+            Supplier<List<T>> entriesSupplier,
+            Function<T, Component> display
+    ) {
+        return delegate.inputs().radioGroup(title, width, getter, setter, entriesSupplier, display)
                 .stream()
                 .map(UIWidget::wrap)
                 .toList();
+    }
+
+    private static Supplier<Component> defaultProgressValue(DoubleSupplier progressSupplier) {
+        return () -> Component.literal(String.format(
+                Locale.ROOT,
+                "%.0f%%",
+                Math.max(0.0D, Math.min(1.0D, progressSupplier.getAsDouble())) * 100.0D
+        ));
+    }
+
+    private static Component dropdownAddLabel() {
+        return UILocalization.frameworkText("dropdown.add", "Add");
+    }
+
+    private static Component dropdownEmptyText() {
+        return UILocalization.frameworkText("dropdown.empty", "No entries");
+    }
+
+    private static Component selectNoneText() {
+        return UILocalization.frameworkText("select.none", "None");
+    }
+
+    private static Component duplicateEntryError() {
+        return UILocalization.frameworkText("validation.duplicate_entry", "This entry already exists.");
     }
 }
