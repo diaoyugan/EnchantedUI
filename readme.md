@@ -4,9 +4,11 @@ English | [简体中文](readme_zhcn.md)
 
 EnchantedUI is a Minecraft client-side GUI framework for building modular screens, tabbed tools, settings panels, and reusable widgets.
 
-> Early development version
+> ⚠️ Early development version
 >  
 > The API is still moving. Expect refactors, missing abstractions, and breaking changes while the framework surface is being shaped.
+
+> ⚠️ The project's documentation is currently AI-generated and will be rewritten once the project is more mature.
 
 ## Current scope
 
