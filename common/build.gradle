@@ -34,7 +34,7 @@ tasks.named('jar', Jar) {
 
 tasks.register('verifyIsolation') {
     group = 'verification'
-    description = 'Checks that the common jar is a class-only, loader-neutral, relocatable library.'
+    description = 'Checks that the common jar is a class-only, loader-neutral, relocatable GUI library.'
     dependsOn tasks.named('jar')
 
     doLast {
@@ -61,11 +61,14 @@ tasks.register('verifyIsolation') {
             def text = source.getText('UTF-8')
             text.contains('net.fabricmc.') ||
                     text.contains('net.neoforged.') ||
+                    text.contains('org.lwjgl.') ||
+                    text.contains('InputConstants.isKeyDown') ||
+                    text.contains('KeyMapping.resetMapping') ||
                     text.contains('"eui.')
         }
 
         if (!forbiddenSource.empty) {
-            throw new GradleException("Common sources contain Loader APIs or public eui translation keys: ${forbiddenSource}")
+            throw new GradleException("Common sources cross the loader-neutral GUI boundary: ${forbiddenSource}")
         }
     }
 }

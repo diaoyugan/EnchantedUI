@@ -41,4 +41,8 @@ public interface UIPage {
     default boolean keyPressed(KeyEvent event) {
         return false;
     }
+
+    default boolean keyReleased(KeyEvent event) {
+        return false;
+    }
 }

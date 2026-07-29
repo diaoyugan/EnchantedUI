@@ -29,4 +29,8 @@ public interface UIFormSpec {
     default boolean keyPressed(UIForm form, KeyEvent event) {
         return false;
     }
+
+    default boolean keyReleased(UIForm form, KeyEvent event) {
+        return false;
+    }
 }

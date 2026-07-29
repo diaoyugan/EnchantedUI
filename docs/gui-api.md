@@ -289,11 +289,20 @@ that accept `UILocalization.FieldValidationMessages` to provide your own transla
 Keybinding:
 
 - `keyBinding(...)`
-- `combinationKeyBinding(...)`
+- `keyCombination(...)`
 
 Key binding helpers have fallback generated text for current, none, and
 listening states. Use the overloads that accept `UILocalization.KeyBindingMessages` when
 those labels should use your own namespace.
+
+`keyCombination(...)` records keyboard and mouse inputs as an ordered list of
+stable Minecraft input names such as `key.keyboard.v` and `key.mouse.4`. The
+getter may return any `Collection<String>` and the setter receives an immutable
+`List<String>`.
+
+These controls only edit values. EnchantedUI does not register bindings, poll
+whether they are active, persist them, or mutate a vanilla `KeyMapping`. Those
+runtime and configuration responsibilities belong to the consuming mod.
 
 Lists and selection:
 

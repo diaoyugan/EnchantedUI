@@ -25,6 +25,8 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
 
     private boolean expanded;
     private int scrollIndex;
+    private boolean draggingListScrollbar;
+    private double listScrollbarDragOffset;
 
     protected AbstractDropdownListWidget(int x, int y, int width, Component label, int visibleRows) {
         this(x, y, width, label, visibleRows, UILocalization.frameworkText("dropdown.empty", "No entries"));
@@ -183,6 +185,7 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         if (!active) {
             expanded = false;
+            draggingListScrollbar = false;
             setInnerFocus(false);
             return false;
         }
@@ -191,6 +194,7 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
         if (isHeaderHovered(mouseX, mouseY)) {
             expanded = !expanded;
             if (!expanded) {
+                draggingListScrollbar = false;
                 setInnerFocus(false);
             }
             playClickSound();
@@ -203,8 +207,14 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
 
         if (!overlayContains(mouseX, mouseY)) {
             expanded = false;
+            draggingListScrollbar = false;
             setInnerFocus(false);
             return false;
+        }
+
+        if (isListScrollbarHovered(mouseX, mouseY)) {
+            beginListScrollbarDrag(mouseY);
+            return true;
         }
 
         int clickedIndex = entryIndexAt(mouseX, mouseY);
@@ -219,13 +229,24 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
             return true;
         }
 
-        return mouseClickedInFooter(event, doubleClick, getX(), footerTop());
+        if (mouseClickedInFooter(event, doubleClick, getX(), footerTop())) {
+            return true;
+        }
+
+        // The overlay is visually above the page's widgets, so every click in
+        // its bounds must be consumed even when it lands on padding or a track.
+        return true;
     }
 
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
         if (!active || !expanded) {
+            draggingListScrollbar = false;
             return false;
+        }
+        if (draggingListScrollbar) {
+            draggingListScrollbar = false;
+            return true;
         }
         return mouseReleasedInFooter(event, getX(), footerTop());
     }
@@ -233,7 +254,12 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
         if (!expanded) {
+            draggingListScrollbar = false;
             return false;
+        }
+        if (draggingListScrollbar) {
+            updateScrollIndexFromMouse(event.y());
+            return true;
         }
         return mouseDraggedInFooter(event, dragX, dragY, getX(), footerTop());
     }
@@ -337,6 +363,7 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
 
     protected void collapse() {
         expanded = false;
+        draggingListScrollbar = false;
         setInnerFocus(false);
     }
 
@@ -363,7 +390,8 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
     private int entryIndexAt(double mouseX, double mouseY) {
         int listTop = listTop();
         int listBottom = listTop + listHeight();
-        if (mouseY < listTop || mouseY >= listBottom) {
+        int listRight = getRight() - PANEL_PADDING - (showsListScrollbar() ? SCROLLBAR_WIDTH + 2 : 0);
+        if (mouseX < getX() + PANEL_PADDING || mouseX >= listRight || mouseY < listTop || mouseY >= listBottom) {
             return -1;
         }
         int row = (int) ((mouseY - listTop) / ROW_HEIGHT);
@@ -394,14 +422,66 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
     }
 
     private void renderListScrollbar(GuiGraphicsExtractor guiGraphics, int x, int y, int height, int totalEntries) {
-        int visibleEntries = visibleEntryCount();
-        int thumbHeight = Math.max(16, (int) Math.round((visibleEntries / (double) totalEntries) * height));
-        int trackHeight = Math.max(0, height - thumbHeight);
-        int maxScrollIndex = Math.max(1, totalEntries - visibleEntries);
-        int thumbY = y + (int) Math.round((scrollIndex / (double) maxScrollIndex) * trackHeight);
+        int thumbHeight = listScrollbarThumbHeight(totalEntries);
+        int thumbY = listScrollbarThumbY(totalEntries, thumbHeight);
 
         guiGraphics.fill(x, y, x + SCROLLBAR_WIDTH, y + height, 0x66333333);
         guiGraphics.fill(x, thumbY, x + SCROLLBAR_WIDTH, thumbY + thumbHeight, 0xFF888888);
+    }
+
+    private boolean isListScrollbarHovered(double mouseX, double mouseY) {
+        int scrollbarLeft = getRight() - PANEL_PADDING - SCROLLBAR_WIDTH;
+        return showsListScrollbar()
+                && mouseX >= scrollbarLeft
+                && mouseX < scrollbarLeft + SCROLLBAR_WIDTH
+                && mouseY >= listTop()
+                && mouseY < listTop() + listHeight();
+    }
+
+    private void beginListScrollbarDrag(double mouseY) {
+        int totalEntries = entries().size();
+        int thumbHeight = listScrollbarThumbHeight(totalEntries);
+        int thumbY = listScrollbarThumbY(totalEntries, thumbHeight);
+        if (mouseY >= thumbY && mouseY < thumbY + thumbHeight) {
+            listScrollbarDragOffset = mouseY - thumbY;
+        } else {
+            listScrollbarDragOffset = thumbHeight / 2.0;
+            updateScrollIndexFromMouse(mouseY);
+        }
+        draggingListScrollbar = true;
+    }
+
+    private void updateScrollIndexFromMouse(double mouseY) {
+        int totalEntries = entries().size();
+        int maxScrollIndex = Math.max(0, totalEntries - visibleEntryCount());
+        if (maxScrollIndex == 0) {
+            scrollIndex = 0;
+            return;
+        }
+
+        int thumbHeight = listScrollbarThumbHeight(totalEntries);
+        int trackHeight = Math.max(1, listHeight() - thumbHeight);
+        double relative = (mouseY - listTop() - listScrollbarDragOffset) / trackHeight;
+        scrollIndex = (int) Math.round(clamp(relative, 0.0, 1.0) * maxScrollIndex);
+    }
+
+    private int listScrollbarThumbHeight(int totalEntries) {
+        int visibleEntries = visibleEntryCount();
+        return Math.min(
+                listHeight(),
+                Math.max(16, (int) Math.round((visibleEntries / (double) totalEntries) * listHeight()))
+        );
+    }
+
+    private int listScrollbarThumbY(int totalEntries, int thumbHeight) {
+        int trackHeight = Math.max(0, listHeight() - thumbHeight);
+        int maxScrollIndex = Math.max(1, totalEntries - visibleEntryCount());
+        double ratio = clamp(scrollIndex / (double) maxScrollIndex, 0.0, 1.0);
+        return listTop() + (int) Math.round(ratio * trackHeight);
+    }
+
+    private static double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     @Override

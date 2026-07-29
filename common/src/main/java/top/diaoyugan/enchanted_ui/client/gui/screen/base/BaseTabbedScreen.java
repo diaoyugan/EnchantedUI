@@ -476,6 +476,15 @@ public class BaseTabbedScreen extends Screen {
     }
 
     @Override
+    public boolean keyReleased(KeyEvent event) {
+        if (currentPage >= 0 && currentPage < tabs.size()
+                && tabs.get(currentPage).page.keyReleased(event)) {
+            return true;
+        }
+        return super.keyReleased(event);
+    }
+
+    @Override
     public boolean charTyped(net.minecraft.client.input.CharacterEvent event) {
         if (modal != null && modal.charTyped(event)) {
             return true;
@@ -762,6 +771,10 @@ public class BaseTabbedScreen extends Screen {
         }
 
         default boolean keyPressed(KeyEvent event) {
+            return false;
+        }
+
+        default boolean keyReleased(KeyEvent event) {
             return false;
         }
     }

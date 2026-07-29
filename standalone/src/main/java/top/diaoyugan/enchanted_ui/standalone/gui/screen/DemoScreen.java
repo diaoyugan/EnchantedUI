@@ -55,7 +55,7 @@ public class DemoScreen extends UISidebarConfigScreen {
     private String themePreset = "Classic";
     private int inputTabShows = 0;
 
-    private final Set<Integer> comboKeys = new HashSet<>();
+    private List<String> comboKeys = List.of();
     private final Set<String> enabledPanels = new HashSet<>(List.of("Map", "Stats"));
     private InputConstants.Key demoKeyValue = InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_G);
     private final KeyMapping demoKey = new KeyMapping("enchantedui.demo.dummy", InputConstants.KEY_G, KeyMapping.Category.MISC);
@@ -208,18 +208,13 @@ public class DemoScreen extends UISidebarConfigScreen {
                         key -> {
                             demoKeyValue = key;
                             demoKey.setKey(key);
-                        },
-                        demoKey::getTranslatedKeyMessage,
-                        demoKey,
-                        true
+                            KeyMapping.resetMapping();
+                        }
                 ).tooltip(Component.literal("This is a demo control for capturing one key binding."));
-                form.combinationKeyBinding(
+                form.keyCombination(
                         Component.literal("Key Combination"),
                         () -> comboKeys,
-                        v -> {
-                            comboKeys.clear();
-                            comboKeys.addAll(v);
-                        }
+                        v -> comboKeys = v
                 ).tooltip(Component.literal("This is a demo control for capturing multiple keys."));
 
                 UISlider passesSlider = form.intSlider(
@@ -512,7 +507,7 @@ public class DemoScreen extends UISidebarConfigScreen {
         editableEntries.addAll(List.of("Custom ore", "Custom log"));
         enabledPanels.clear();
         enabledPanels.addAll(List.of("Map", "Stats"));
-        comboKeys.clear();
+        comboKeys = List.of();
         demoKeyValue = InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_G);
         demoKey.setKey(demoKeyValue);
         KeyMapping.resetMapping();
