@@ -201,6 +201,7 @@ See [docs/internal-testing-usage.md](docs/internal-testing-usage.md) for the con
 ## Documentation
 
 - [docs/gui-api.md](docs/gui-api.md)
+- [docs/music-player.md](docs/music-player.md)
 - [docs/architecture.md](docs/architecture.md)
 - [docs/internal-testing-usage.md](docs/internal-testing-usage.md)
 

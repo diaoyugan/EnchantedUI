@@ -7,6 +7,8 @@ import net.minecraft.network.chat.Component;
 import top.diaoyugan.enchanted_ui.client.gui.widget.WidgetConditions;
 import top.diaoyugan.enchanted_ui.client.gui.widget.input.ValidatedTextFieldWidget;
 import top.diaoyugan.enchanted_ui.client.gui.widget.option.NumericSliderOptionWidget;
+import top.diaoyugan.enchanted_ui.api.client.gui.state.UIBinding;
+import top.diaoyugan.enchanted_ui.api.client.gui.state.UISubscription;
 
 /**
  * Base wrapper for widgets returned by the public API.
@@ -161,6 +163,19 @@ public class UIWidget {
     public UIWidget message(Component message) {
         delegate.setMessage(message);
         return this;
+    }
+
+    /** Binds this widget's message immediately and returns a detachable listener. */
+    public UISubscription bindMessage(UIBinding<Component> binding) {
+        return binding.subscribeNow(delegate::setMessage);
+    }
+
+    public UISubscription bindActive(UIBinding<Boolean> binding) {
+        return binding.subscribeNow(value -> WidgetConditions.setActiveState(delegate, value));
+    }
+
+    public UISubscription bindVisible(UIBinding<Boolean> binding) {
+        return binding.subscribeNow(value -> WidgetConditions.setVisibleState(delegate, value));
     }
 
     public UIWidget position(int x, int y) {

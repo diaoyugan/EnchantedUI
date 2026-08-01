@@ -3,6 +3,10 @@ package top.diaoyugan.enchanted_ui.api.client.gui;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
+import top.diaoyugan.enchanted_ui.api.client.gui.music.UIMusicPlayerModel;
+import top.diaoyugan.enchanted_ui.api.client.gui.music.UIMusicPlayerScreen;
+import top.diaoyugan.enchanted_ui.api.client.gui.music.UIMusicPlaylistController;
+import top.diaoyugan.enchanted_ui.api.client.gui.music.UIUserPlaylistScreen;
 
 /**
  * Small entrypoint for building EnchantedUI screens and form pages.
@@ -96,6 +100,21 @@ public final class EnchantedUI {
      */
     public static UIFormPage formPage(int contentWidth, int startY, int gap, UIFormSpec spec) {
         return new UIFormPage(contentWidth, startY, gap, spec);
+    }
+
+    /** Creates the responsive music-library preset with a fixed transport dock. */
+    public static UIMusicPlayerScreen musicPlayer(@Nullable Screen parent, Component title, UIMusicPlayerModel model) {
+        return new UIMusicPlayerScreen(parent, title, model);
+    }
+
+    /** Creates the persistence-neutral user-playlist management preset. */
+    public static UIUserPlaylistScreen userPlaylistEditor(@Nullable Screen parent, Component title, UIMusicPlaylistController controller) {
+        return new UIUserPlaylistScreen(parent, title, controller);
+    }
+
+    /** Creates the user-playlist editor with the framework-localized default title. */
+    public static UIUserPlaylistScreen userPlaylistEditor(@Nullable Screen parent, UIMusicPlaylistController controller) {
+        return userPlaylistEditor(parent, UILocalization.frameworkText("music.playlist.screen.title", "User playlists"), controller);
     }
 
 }

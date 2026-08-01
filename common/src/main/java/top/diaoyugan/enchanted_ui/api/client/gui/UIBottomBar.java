@@ -6,6 +6,7 @@ import net.minecraft.network.chat.Component;
 
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 
 @FunctionalInterface
 public interface UIBottomBar {
@@ -14,6 +15,20 @@ public interface UIBottomBar {
     static UIBottomBar none() {
         return (screen, centerX, bottomY) -> {
         };
+    }
+
+    /** Creates a fixed dock that may add any widgets, not just save/close buttons. */
+    static UIBottomBar dock(Consumer<DockContext> content) {
+        Objects.requireNonNull(content, "content");
+        return (screen, centerX, bottomY) -> content.accept(new DockContext(screen, centerX, bottomY));
+    }
+
+    record DockContext(UITabbedScreen screen, int centerX, int y) {
+        public <T extends net.minecraft.client.gui.components.events.GuiEventListener
+                & net.minecraft.client.gui.components.Renderable
+                & net.minecraft.client.gui.narration.NarratableEntry> T add(T widget) {
+            return screen.add(widget);
+        }
     }
 
     static UIBottomBar closeOnly(Component label) {

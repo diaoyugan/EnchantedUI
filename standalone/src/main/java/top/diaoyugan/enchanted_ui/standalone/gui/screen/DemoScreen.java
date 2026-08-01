@@ -114,6 +114,10 @@ public class DemoScreen extends UISidebarConfigScreen {
                     () -> Minecraft.getInstance().setScreenAndShow(new InfoDemoScreen(parent()))
             ).forEach(button -> button.tooltip(Component.literal("Switches to another EnchantedUI screen preset.")));
 
+            form.button(Component.literal("Open Music Player Preset"),
+                    () -> Minecraft.getInstance().setScreenAndShow(new MusicPlayerDemoScreen(parent())))
+                    .tooltip(Component.literal("Opens the responsive virtual-list and animated artwork demo."));
+
             form.toggleRow(
                     Component.literal("Feature A"),
                     () -> enabled,
