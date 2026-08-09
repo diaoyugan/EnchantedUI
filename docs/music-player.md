@@ -1,6 +1,6 @@
 # Music player UI preset
 
-The common module now includes a responsive music-library preset and reusable primitives for other dense screens.
+The common module includes a responsive music-library preset, but the preset is only one assembly of model-neutral controls. A mod can use the same controls to build a completely different music UI without extending or embedding `UIMusicPlayerPage`.
 
 ## Open the preset
 
@@ -16,6 +16,12 @@ The standalone integration demo can be opened from the main demo screen or direc
 
 ```text
 /enchantedui demo music
+```
+
+A second demo deliberately bypasses the preset and composes the generic image/text panel, filter bar, virtual list, and transport bar directly:
+
+```text
+/enchantedui demo music custom
 ```
 
 The preset is tuned for Minecraft's scaled GUI dimensions: it enables three columns from roughly 480 logical pixels, keeps a compact playlist sidebar plus a now-playing strip at common 320–480 widths, and only reduces the sidebar further at unusually narrow sizes. Its transport controls remain in the fixed bottom dock rather than scrolling with tracks.
@@ -42,7 +48,10 @@ UIVirtualList<Track, String> list = UIVirtualList.<Track, String>builder(Track::
 Other additions include:
 
 - `UISplitLayout`, `UIGridLayout`, `UIStackLayout`, `UIScreenLayout`, `UIScrollPane`, `UIInsets`, and `UIBounds`
-- `UIImageWidget` with contain/cover/stretch fitting, circle/rounded masking, rotation, scaling, opacity, pivot, border, background, shadow, and dynamic textures
+- `UIImageWidget` with contain/cover/stretch fitting, circle/rounded masking, rotation, scaling, opacity, pivot, border, background, shadow, dynamic textures, and an optional fallback `UIIcon`
+- `UIImageTextPanel` for horizontal summaries or vertical inspectors built from arbitrary image and text suppliers
+- `UIFilterBar` for a query field plus any number of supplier-backed actions
+- `UITransportBar` for model-neutral previous/primary/next/mode actions, normalized progress and volume, and elapsed/remaining timers
 - frame-time `UIAnimation` clocks with once/loop/ping-pong modes, pause continuity, easing, and reduced-motion control
 - `UIState`, `UIBinding`, `UIComputed`, and detachable `UISubscription`
 - public `UIIconButton` dynamic icon, toggle-selected, circular, tooltip, action, and narration support
@@ -136,3 +145,31 @@ UITimerWidget elapsed = new UITimerWidget(x, y + 18, 48, 16, countUp);
 ```
 
 The default music transport displays both elapsed and remaining time when space permits. The player model supplies track duration through `duration()` and normalized playback position through `progress()`.
+
+## Building a different music interface
+
+The preset adapters are optional. Generic controls accept only suppliers, values, and callbacks; they never reference `UIMusicTrack`, `UIMusicPlaylist`, or `UIPlaybackState`.
+
+```java
+UIImageTextPanel nowPlaying = UIImageTextPanel.builder(player::artwork)
+        .orientation(UIImageTextPanel.Orientation.HORIZONTAL)
+        .imageSize(48)
+        .line(player::title, () -> theme.colors().text())
+        .line(player::subtitle, () -> theme.colors().textMuted())
+        .build();
+
+UIFilterBar filter = UIFilterBar.builder()
+        .search(searchLabel, searchHint, query::get, query::set)
+        .action(64, sortLabel, sortNarration, player::cycleSort)
+        .build();
+
+UITransportBar transport = UITransportBar.builder()
+        .previous(previousLabel, previousNarration, player::previous)
+        .primary(primaryLabel, primaryNarration, player::togglePlayback)
+        .next(nextLabel, nextNarration, player::next)
+        .progress(progressNarration, player::progress, player::seek)
+        .duration(player::duration)
+        .build();
+```
+
+Each object builds ordinary Minecraft widgets inside a `UIBounds` region. The custom demo in `MusicPlayerDemoScreen.customLayout(...)` is the integration example for this path.

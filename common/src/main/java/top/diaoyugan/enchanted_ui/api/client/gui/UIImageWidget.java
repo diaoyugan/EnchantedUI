@@ -14,6 +14,7 @@ import java.util.function.Supplier;
 /** Version-neutral image widget with fit, masking and pivoted transforms. */
 public final class UIImageWidget extends AbstractWidget {
     private final Supplier<Identifier> texture;
+    private final UIIcon fallbackIcon;
     private final int textureWidth, textureHeight;
     private final boolean guiSprite;
     private final ImageFit fit;
@@ -24,7 +25,7 @@ public final class UIImageWidget extends AbstractWidget {
 
     private UIImageWidget(Builder b) {
         super(b.x, b.y, b.width, b.height, b.narration);
-        texture=b.texture; textureWidth=b.textureWidth; textureHeight=b.textureHeight; guiSprite=b.guiSprite;
+        texture=b.texture; fallbackIcon=b.fallbackIcon; textureWidth=b.textureWidth; textureHeight=b.textureHeight; guiSprite=b.guiSprite;
         fit=b.fit; mask=b.mask; rotation=b.rotation; scale=b.scale; opacity=b.opacity;
         pivotX=b.pivotX; pivotY=b.pivotY; background=b.background; border=b.border; shadow=b.shadow; cornerRadius=b.cornerRadius;
         active = false;
@@ -74,7 +75,10 @@ public final class UIImageWidget extends AbstractWidget {
 
     private void renderImage(GuiGraphicsExtractor g) {
         Identifier id = texture.get();
-        if (id == null) return;
+        if (id == null) {
+            renderFallbackIcon(g);
+            return;
+        }
         if (guiSprite) {
             g.blitSprite(RenderPipelines.GUI_TEXTURED, id, getX(), getY(), width, height, (float) clamp01(opacity.getAsDouble()));
             return;
@@ -95,11 +99,31 @@ public final class UIImageWidget extends AbstractWidget {
                 Math.round(sourceW), Math.round(sourceH), textureWidth, textureHeight, color);
     }
 
+    private void renderFallbackIcon(GuiGraphicsExtractor g) {
+        if (fallbackIcon == null) return;
+        int size = Math.min(width, height);
+        int x = getX() + (width - size) / 2;
+        int y = getY() + (height - size) / 2;
+        g.blit(
+                RenderPipelines.GUI_TEXTURED,
+                fallbackIcon.texture(),
+                x,
+                y,
+                fallbackIcon.u(),
+                fallbackIcon.v(),
+                size,
+                size,
+                fallbackIcon.textureWidth(),
+                fallbackIcon.textureHeight()
+        );
+    }
+
     private static double clamp01(double value) { return Math.max(0, Math.min(1, value)); }
     @Override protected void updateWidgetNarration(NarrationElementOutput output) {}
 
     public static final class Builder {
         private final Supplier<Identifier> texture;
+        private UIIcon fallbackIcon;
         private int x, y, width=64, height=64, textureWidth=256, textureHeight=256;
         private boolean guiSprite;
         private ImageFit fit=ImageFit.CONTAIN;
@@ -109,6 +133,7 @@ public final class UIImageWidget extends AbstractWidget {
         private int background, border, shadow, cornerRadius=8;
         private Component narration=Component.empty();
         private Builder(Supplier<Identifier> texture) { this.texture=Objects.requireNonNull(texture); }
+        public Builder fallbackIcon(UIIcon value){fallbackIcon=value;return this;}
         public Builder bounds(int x,int y,int width,int height){this.x=x;this.y=y;this.width=width;this.height=height;return this;}
         public Builder textureSize(int width,int height){textureWidth=Math.max(1,width);textureHeight=Math.max(1,height);return this;}
         public Builder guiSprite(boolean value){guiSprite=value;return this;}

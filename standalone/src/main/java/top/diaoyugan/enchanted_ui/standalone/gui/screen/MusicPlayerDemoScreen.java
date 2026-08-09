@@ -1,8 +1,19 @@
 package top.diaoyugan.enchanted_ui.standalone.gui.screen;
 
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIBottomBar;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIBuildContext;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIFilterBar;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIIcon;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIImageTextPanel;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIPage;
+import top.diaoyugan.enchanted_ui.api.client.gui.UITabbedScreen;
+import top.diaoyugan.enchanted_ui.api.client.gui.UITransportBar;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIVirtualList;
+import top.diaoyugan.enchanted_ui.api.client.gui.layout.UIBounds;
 import top.diaoyugan.enchanted_ui.api.client.gui.music.UIPlaybackState;
 import top.diaoyugan.enchanted_ui.api.client.gui.music.UIMusicPlayerModel;
 import top.diaoyugan.enchanted_ui.api.client.gui.music.UIMusicPlayerScreen;
@@ -44,6 +55,119 @@ public final class MusicPlayerDemoScreen extends UIMusicPlayerScreen {
         super.tick();
     }
 
+    /** Opens a deliberately different composition that does not use the music preset. */
+    public static Screen customLayout(Screen parent) {
+        return new CustomLayoutScreen(parent, new DemoPlayerModel());
+    }
+
+    private static final class CustomLayoutScreen extends UITabbedScreen {
+        private final DemoPlayerModel demo;
+        private final UITransportBar transport;
+        private UIVirtualList<UIMusicTrack, String> trackList;
+        private String query = "";
+
+        private CustomLayoutScreen(Screen parent, DemoPlayerModel demo) {
+            super(parent, Component.literal("Custom Music Workspace"));
+            this.demo = demo;
+            this.transport = UITransportBar.builder()
+                    .previous(() -> Component.literal("|<"), () -> Component.literal("Previous"), demo::previous)
+                    .primary(
+                            () -> Component.literal(demo.playbackState().get() == UIPlaybackState.PLAYING ? "||" : ">"),
+                            () -> Component.literal("Play or pause"),
+                            demo::togglePlayback
+                    )
+                    .next(() -> Component.literal(">|"), () -> Component.literal("Next"), demo::next)
+                    .progress(Component.literal("Position"), () -> demo.progress().get(), demo::seek)
+                    .volume(() -> Component.literal("V"), Component.literal("Volume"), () -> demo.volume().get(), demo::volume)
+                    .duration(() -> demo.duration().get())
+                    .elapsedTimer(Component.literal("Elapsed"))
+                    .maxWidth(520)
+                    .build();
+
+            headerTitle(Component.literal("Custom layout built from generic controls"));
+            tabsVisible(false);
+            contentViewport(12, 36, 12, 42);
+            tab(0, 0, 20, Component.empty(), new CustomPage());
+            bottomBar(UIBottomBar.dock(context -> transport
+                    .build(new UIBounds(8, context.y(), Math.max(0, width - 16), 20))
+                    .forEach(context::add)));
+        }
+
+        @Override
+        public void tick() {
+            demo.tick();
+            super.tick();
+        }
+
+        private final class CustomPage implements UIPage {
+            @Override
+            public List<AbstractWidget> build(UIBuildContext context) {
+                List<AbstractWidget> widgets = new ArrayList<>();
+                int left = context.viewportLeft();
+                int width = context.availableWidth();
+                int top = 40;
+
+                widgets.addAll(UIImageTextPanel.builder(() -> current() == null ? null : current().artwork())
+                        .orientation(UIImageTextPanel.Orientation.HORIZONTAL)
+                        .imageSize(46)
+                        .fallbackIcon(new UIIcon(DemoPlayerModel.DISC_13, 16, 16))
+                        .lineHeight(18)
+                        .line(
+                                () -> current() == null ? Component.literal("Nothing playing") : current().title(),
+                                () -> 0xFFFFFFFF
+                        )
+                        .line(
+                                () -> current() == null
+                                        ? Component.literal("Choose a track below")
+                                        : Component.literal("").append(current().artist()).append(" / ").append(current().album()),
+                                () -> 0xFFB7BBC5
+                        )
+                        .build()
+                        .build(new UIBounds(left, top, width, 46)));
+
+                UIFilterBar filter = UIFilterBar.builder()
+                        .search(
+                                Component.literal("Search this custom view"),
+                                Component.literal("Filter by title or artist"),
+                                () -> query,
+                                value -> {
+                                    query = value;
+                                    if (trackList != null) trackList.query(value);
+                                }
+                        )
+                        .action(
+                                72,
+                                () -> Component.literal("Play selected"),
+                                () -> Component.literal("Play the selected item"),
+                                () -> demo.play(demo.selectedTrack().get())
+                        )
+                        .build();
+                widgets.addAll(filter.build(new UIBounds(left, top + 52, width, 20)));
+
+                trackList = UIVirtualList.<UIMusicTrack, String>builder(UIMusicTrack::id)
+                        .bounds(left, top + 78, width, Math.max(48, context.screenHeight() - top - 126))
+                        .items(() -> demo.tracks().get())
+                        .selected(() -> demo.selectedTrack().get())
+                        .text(track -> Component.literal("").append(track.title()).append(" — ").append(track.artist()))
+                        .filter((track, value) -> (track.title().getString() + " " + track.artist().getString())
+                                .toLowerCase()
+                                .contains(value.toLowerCase()))
+                        .onSelect(demo::select)
+                        .onActivate(demo::play)
+                        .playing(track -> Objects.equals(track, demo.currentTrack().get()))
+                        .marqueeText(true)
+                        .build();
+                trackList.query(query);
+                widgets.add(trackList);
+                return widgets;
+            }
+
+            private UIMusicTrack current() {
+                return demo.currentTrack().get();
+            }
+        }
+    }
+
     private static final class DemoPlayerModel implements UIMusicPlayerModel {
         private static final double DEMO_TRACK_SECONDS = 18.0D;
         private static final Identifier DISC_13 = texture("minecraft:textures/item/music_disc_13.png");
@@ -58,7 +182,7 @@ public final class MusicPlayerDemoScreen extends UIMusicPlayerScreen {
                 track("bg_haggstrom", "Haggstrom", "C418", "Minecraft - Volume Alpha", "Vanilla file scan", DISC_CAT, "vanilla_alpha"),
                 track("disc_pigstep", "Pigstep", "Lena Raine", "Nether Update", "Vanilla file scan", DISC_PIGSTEP, "vanilla_discs"),
                 track("fav_otherside", "otherside", "Lena Raine", "Caves & Cliffs", "Vanilla file scan", DISC_OTHERSIDE, "vanilla_discs"),
-                track("disc_relic", "Relic", "Aaron Cherof", "Trails & Tales", "External file registration", DISC_13, "external_trails"),
+                track("disc_relic", "Relic", "Aaron Cherof", "Trails & Tales", "External file registration", null, "external_trails"),
                 track("fav_creator", "Creator - Music Box Version with an Intentionally Long Demo Name", "Lena Raine", "Tricky Trials Extended Soundtrack Collection", "External file registration", DISC_OTHERSIDE, "external_trials"),
                 track("disc_precipice", "Precipice", "Aaron Cherof", "Tricky Trials Extended Soundtrack Collection", "External file registration", DISC_PIGSTEP, "external_trials"),
                 track("bg_infinite", "Infinite Amethyst", "Lena Raine", "Caves & Cliffs", "External file registration", DISC_CAT, "external_caves")

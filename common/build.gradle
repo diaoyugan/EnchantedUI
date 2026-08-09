@@ -73,8 +73,93 @@ tasks.register('verifyIsolation') {
     }
 }
 
+tasks.register('verifyPresetBoundaries') {
+    group = 'verification'
+    description = 'Checks that reusable GUI controls do not depend on scenario-specific music types.'
+
+    doLast {
+        def musicPackage = 'top.diaoyugan.enchanted_ui.api.client.gui.music.'
+        def rootEntrypoint = file('src/main/java/top/diaoyugan/enchanted_ui/api/client/gui/EnchantedUI.java')
+        def leaks = fileTree('src/main/java') {
+            include '**/*.java'
+            exclude '**/api/client/gui/music/**'
+        }.findAll { source ->
+            source != rootEntrypoint && source.getText('UTF-8').contains(musicPackage)
+        }
+
+        if (!leaks.empty) {
+            throw new GradleException("Reusable GUI code depends on the music preset: ${leaks}")
+        }
+    }
+}
+
+tasks.register('verifyFormModelBoundary') {
+    group = 'verification'
+    description = 'Checks that the removed parallel UI.Form model is not reintroduced.'
+
+    doLast {
+        def legacyReferences = fileTree('src/main/java') {
+            include '**/*.java'
+        }.findAll { source ->
+            def text = source.getText('UTF-8')
+            text.contains('client.gui.builder.UI') || text.contains('UI.Form') || text.contains('UI.BuildContext')
+        }
+
+        if (!legacyReferences.empty) {
+            throw new GradleException("Sources reference the removed parallel form model: ${legacyReferences}")
+        }
+    }
+}
+
+tasks.register('verifyScreenRuntimeBoundary') {
+    group = 'verification'
+    description = 'Checks that extracted screen runtime responsibilities stay out of BaseTabbedScreen.'
+
+    doLast {
+        def baseScreen = file('src/main/java/top/diaoyugan/enchanted_ui/client/gui/screen/base/BaseTabbedScreen.java')
+        def text = baseScreen.getText('UTF-8')
+        def absorbedMembers = [
+                'layoutAutomaticTabs(',
+                'layoutVerticalTabs(',
+                'layoutHorizontalTabs(',
+                'shiftTabWindow(',
+                'revealCurrentTab(',
+                'closeConfirmed',
+                'pageAttached',
+                'private static final class PageView',
+                'private final class ModalDialog',
+                'private static final class ToastEntry',
+                'private static final class BottomBarBackdropWidget'
+        ].findAll { member -> text.contains(member) }
+
+        if (!absorbedMembers.empty) {
+            throw new GradleException("BaseTabbedScreen absorbed extracted runtime responsibilities: ${absorbedMembers}")
+        }
+
+        def collaboratorNames = [
+                'TabStripController',
+                'PageStackController',
+                'PageViewport',
+                'CloseCoordinator',
+                'ScreenModal',
+                'ToastController',
+                'BottomBarBackdropWidget'
+        ]
+        def collaboratorDirectory = file('src/main/java/top/diaoyugan/enchanted_ui/client/gui/screen/base')
+        def missingCollaborators = collaboratorNames.findAll { name ->
+            !new File(collaboratorDirectory, "${name}.java").isFile()
+        }
+        if (!missingCollaborators.empty) {
+            throw new GradleException("Screen runtime collaborators are missing: ${missingCollaborators}")
+        }
+    }
+}
+
 tasks.named('check') {
     dependsOn tasks.named('verifyIsolation')
+    dependsOn tasks.named('verifyPresetBoundaries')
+    dependsOn tasks.named('verifyFormModelBoundary')
+    dependsOn tasks.named('verifyScreenRuntimeBoundary')
 }
 
 tasks.withType(org.gradle.api.publish.maven.tasks.PublishToMavenRepository).configureEach {

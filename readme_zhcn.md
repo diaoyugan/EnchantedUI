@@ -45,7 +45,7 @@ EnchantedUI 已经不只是一个小型配置界面辅助库。当前代码库�
 - `UITextArea`
 - `UILocalization`
 
-旧的内部 builder 入口 `top.diaoyugan.enchanted_ui.client.gui.builder.UI` 仍然存在，但它应该被视为面向实现层的接口，而不是推荐给外部使用的首选入口。
+`UIForm`、`UIFormPage`、`UIFormSpec` 和 `UIBuildContext` 是唯一的表单模型。内部 factory 直接为这套模型构造控件，不再维护需要适配或镜像转发的另一套 builder API。
 
 ## 示例
 

@@ -53,7 +53,7 @@ Main entry helpers:
 - `UITextArea`
 - `UILocalization`
 
-The older internal builder entrypoint `top.diaoyugan.enchanted_ui.client.gui.builder.UI` still exists, but it should be treated as implementation-facing, not the preferred external surface.
+`UIForm`, `UIFormPage`, `UIFormSpec`, and `UIBuildContext` are the only form model. Internal factories construct widgets for that model; there is no parallel builder API to adapt or mirror.
 
 ## Example
 

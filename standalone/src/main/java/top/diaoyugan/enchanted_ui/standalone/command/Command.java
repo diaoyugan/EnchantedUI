@@ -16,7 +16,8 @@ public final class Command {
         SIDEBAR,
         TOP_TABS,
         INFO,
-        MUSIC
+        MUSIC,
+        MUSIC_CUSTOM
     }
 
     private Command() {
@@ -45,9 +46,12 @@ public final class Command {
                                 .executes(ctx -> {
                                     pendingScreen = PendingScreen.MUSIC;
                                     return 1;
-                                }))
-                )
-        );
+                                })
+                                .then(Commands.literal("custom")
+                                        .executes(ctx -> {
+                                            pendingScreen = PendingScreen.MUSIC_CUSTOM;
+                                            return 1;
+                                        })))));
     }
 
     public static void tick(Minecraft client) {
@@ -66,6 +70,7 @@ public final class Command {
             case TOP_TABS -> new TopTabbedDemoScreen(null);
             case INFO -> new InfoDemoScreen(null);
             case MUSIC -> new MusicPlayerDemoScreen(null);
+            case MUSIC_CUSTOM -> MusicPlayerDemoScreen.customLayout(null);
         });
     }
 }

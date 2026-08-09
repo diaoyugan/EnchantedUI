@@ -118,6 +118,10 @@ public class DemoScreen extends UISidebarConfigScreen {
                     () -> Minecraft.getInstance().setScreenAndShow(new MusicPlayerDemoScreen(parent())))
                     .tooltip(Component.literal("Opens the responsive virtual-list and animated artwork demo."));
 
+            form.button(Component.literal("Open Custom Music Layout"),
+                    () -> Minecraft.getInstance().setScreenAndShow(MusicPlayerDemoScreen.customLayout(parent())))
+                    .tooltip(Component.literal("Builds a different player directly from generic EUI controls."));
+
             form.toggleRow(
                     Component.literal("Feature A"),
                     () -> enabled,
