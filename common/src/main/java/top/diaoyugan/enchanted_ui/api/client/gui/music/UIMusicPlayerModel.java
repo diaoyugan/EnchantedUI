@@ -3,6 +3,7 @@ package top.diaoyugan.enchanted_ui.api.client.gui.music;
 import top.diaoyugan.enchanted_ui.api.client.gui.state.UIBinding;
 import java.util.List;
 import org.jetbrains.annotations.Nullable;
+import java.time.Duration;
 
 /** State and transport contract consumed by the reusable music-player preset. */
 public interface UIMusicPlayerModel {
@@ -13,6 +14,7 @@ public interface UIMusicPlayerModel {
     UIBinding<UIPlaybackState> playbackState();
     UIBinding<Double> progress();
     UIBinding<Double> volume();
+    default UIBinding<Duration> duration() { return UIBinding.constant(Duration.ZERO); }
     default UIBinding<UIPlaybackMode> playbackMode() { return UIBinding.constant(UIPlaybackMode.ALL_LOOP); }
     default List<UIPlaybackMode> playbackModes() { return List.of(UIPlaybackMode.SEQUENTIAL,UIPlaybackMode.ALL_LOOP,UIPlaybackMode.SINGLE_LOOP,UIPlaybackMode.SHUFFLE); }
     default void playbackMode(UIPlaybackMode mode) {}

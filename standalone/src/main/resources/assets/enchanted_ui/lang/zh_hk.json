@@ -28,6 +28,8 @@
   "top.diaoyugan.enchanted_ui.api.client.gui.text.music.now_playing.empty": "目前沒有播放曲目",
   "top.diaoyugan.enchanted_ui.api.client.gui.text.music.search.label": "搜尋曲目",
   "top.diaoyugan.enchanted_ui.api.client.gui.text.music.search.hint": "搜尋 / 篩選",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.music.timer.elapsed": "已播放時間",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.music.timer.remaining": "剩餘時間",
   "modmenu.nameTranslation.enchanted_ui": "Enchanted UI",
   "modmenu.descriptionTranslation.enchanted_ui": "一個用於 Minecraft 的 GUI API，用於建立模組化、可組合的 UI 介面。",
   "modmenu.summaryTranslation.enchanted_ui": "一個 Minecraft GUI API。",

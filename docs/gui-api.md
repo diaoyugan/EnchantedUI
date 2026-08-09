@@ -400,3 +400,15 @@ Reference implementation:
 
 - `standalone/src/main/java/top/diaoyugan/enchanted_ui/standalone/gui/screen/DemoScreen.java`
 
+## General dynamic controls
+
+Dense or continuously updated interfaces can use the public controls directly:
+
+- `UIDynamicButton`
+- `UINormalizedSlider`
+- `UIMarqueeLabel`
+- `UIVirtualList`
+- `UITimer` / `UITimerWidget`
+
+`UITimer.countUp()` and `UITimer.countDown(Duration)` use frame time rather than game ticks, preserve their position while paused, and can be reset, restarted, sought, or adjusted. These controls are not tied to the music-player preset.
+

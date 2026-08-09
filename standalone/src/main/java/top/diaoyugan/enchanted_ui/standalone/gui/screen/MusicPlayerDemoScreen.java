@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.time.Duration;
 
 /** Interactive integration demo for the responsive music-player preset. */
 public final class MusicPlayerDemoScreen extends UIMusicPlayerScreen {
@@ -85,6 +86,7 @@ public final class MusicPlayerDemoScreen extends UIMusicPlayerScreen {
         private final UIState<UIPlaybackState> playback = UIState.of(UIPlaybackState.PAUSED);
         private final UIState<Double> progress = UIState.of(0.0D);
         private final UIState<Double> volume = UIState.of(0.72D);
+        private final UIState<Duration> duration = UIState.of(Duration.ofSeconds((long)DEMO_TRACK_SECONDS));
         private final UIState<UIPlaybackMode> mode = UIState.of(UIPlaybackMode.ALL_LOOP);
         private final UIState<UIMusicSortOption> sort = UIState.of(UIMusicSortOption.DEFAULT);
         private final DemoPlaylistController playlistEditor = new DemoPlaylistController();
@@ -98,6 +100,7 @@ public final class MusicPlayerDemoScreen extends UIMusicPlayerScreen {
         @Override public UIBinding<UIPlaybackState> playbackState() { return playback; }
         @Override public UIBinding<Double> progress() { return progress; }
         @Override public UIBinding<Double> volume() { return volume; }
+        @Override public UIBinding<Duration> duration(){return duration;}
         @Override public UIBinding<UIPlaybackMode> playbackMode(){return mode;}
         @Override public void playbackMode(UIPlaybackMode value){mode.set(value);}
         @Override public UIBinding<UIMusicSortOption> sort(){return sort;}

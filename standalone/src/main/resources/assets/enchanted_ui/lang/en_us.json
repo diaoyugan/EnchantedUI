@@ -28,6 +28,8 @@
   "top.diaoyugan.enchanted_ui.api.client.gui.text.music.now_playing.empty": "Nothing playing",
   "top.diaoyugan.enchanted_ui.api.client.gui.text.music.search.label": "Search tracks",
   "top.diaoyugan.enchanted_ui.api.client.gui.text.music.search.hint": "Search / filter",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.music.timer.elapsed": "Elapsed time",
+  "top.diaoyugan.enchanted_ui.api.client.gui.text.music.timer.remaining": "Remaining time",
   "modmenu.nameTranslation.enchanted_ui": "Enchanted UI",
   "modmenu.descriptionTranslation.enchanted_ui": "A Minecraft GUI API for building modular and composable UI screens.",
   "modmenu.summaryTranslation.enchanted_ui": "A Minecraft GUI API.",

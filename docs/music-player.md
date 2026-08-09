@@ -86,3 +86,53 @@ The editor can also be opened directly:
 ```java
 Screen editor = EnchantedUI.userPlaylistEditor(parent, title, playlistController);
 ```
+
+## Configurable assembly
+
+`UIMusicPlayerScreen` is only a convenience assembly. Its content and transport controls are public, independent objects:
+
+```java
+UIMusicPlayerPage page = EnchantedUI.musicPlayerPage(model)
+        .bounds(ctx -> new UIBounds(24, 52, ctx.screenWidth() - 48, 180))
+        .showNavigation(true)
+        .showInspector(false)
+        .showSort(true)
+        .breakpoints(420, 620)
+        .navigationWidth(width -> 92)
+        .rowHeights(20, 24)
+        .extend(UIMusicPlayerPage.Region.CONTENT, region -> List.of(myExtraWidget))
+        .build();
+
+UIMusicTransportControls transport = EnchantedUI.musicTransport(model)
+        .volume(false)
+        .elapsedTimer(true)
+        .remainingTimer(true)
+        .maxWidth(480)
+        .build();
+
+Screen screen = EnchantedUI.musicPlayer(parent, title, page, transport);
+```
+
+The page can also be registered directly as a tab or composed into another screen. `UIMusicTransportControls.build(UIBounds)` returns ordinary public widgets that can be registered in any screen region. Every default page region can be hidden and rebuilt through region extensions.
+
+## Generic controls and timers
+
+The player uses general EUI controls rather than private player-only widgets:
+
+- `UIDynamicButton` for supplier-backed labels and independent narration
+- `UINormalizedSlider` for any normalized value
+- `UIMarqueeLabel` for overflowing text
+- `UITimer` for frame-time count-up and count-down state
+- `UITimerWidget` for timer state or normalized-progress duration display
+
+The previous `UISupplierButton`, `UIRangeSlider`, and `UIScrollingLabelWidget` names remain as deprecated compatibility aliases.
+
+```java
+UITimer countdown = UITimer.countDown(Duration.ofMinutes(5)).start();
+UITimer countUp = UITimer.countUp().start();
+
+UITimerWidget remaining = new UITimerWidget(x, y, 48, 16, countdown);
+UITimerWidget elapsed = new UITimerWidget(x, y + 18, 48, 16, countUp);
+```
+
+The default music transport displays both elapsed and remaining time when space permits. The player model supplies track duration through `duration()` and normalized playback position through `progress()`.

@@ -7,6 +7,8 @@ import top.diaoyugan.enchanted_ui.api.client.gui.music.UIMusicPlayerModel;
 import top.diaoyugan.enchanted_ui.api.client.gui.music.UIMusicPlayerScreen;
 import top.diaoyugan.enchanted_ui.api.client.gui.music.UIMusicPlaylistController;
 import top.diaoyugan.enchanted_ui.api.client.gui.music.UIUserPlaylistScreen;
+import top.diaoyugan.enchanted_ui.api.client.gui.music.UIMusicPlayerPage;
+import top.diaoyugan.enchanted_ui.api.client.gui.music.UIMusicTransportControls;
 
 /**
  * Small entrypoint for building EnchantedUI screens and form pages.
@@ -105,6 +107,26 @@ public final class EnchantedUI {
     /** Creates the responsive music-library preset with a fixed transport dock. */
     public static UIMusicPlayerScreen musicPlayer(@Nullable Screen parent, Component title, UIMusicPlayerModel model) {
         return new UIMusicPlayerScreen(parent, title, model);
+    }
+
+    /** Starts a reusable player-page builder for embedding in any EUI screen. */
+    public static UIMusicPlayerPage.Builder musicPlayerPage(UIMusicPlayerModel model) {
+        return UIMusicPlayerPage.builder(model);
+    }
+
+    /** Starts a reusable transport-control builder for placement in any screen region. */
+    public static UIMusicTransportControls.Builder musicTransport(UIMusicPlayerModel model) {
+        return UIMusicTransportControls.builder(model);
+    }
+
+    /** Creates a player preset from independently configured page and transport objects. */
+    public static UIMusicPlayerScreen musicPlayer(
+            @Nullable Screen parent,
+            Component title,
+            UIMusicPlayerPage page,
+            @Nullable UIMusicTransportControls transport
+    ) {
+        return new UIMusicPlayerScreen(parent, title, page, transport);
     }
 
     /** Creates the persistence-neutral user-playlist management preset. */
