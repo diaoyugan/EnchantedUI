@@ -28,13 +28,9 @@ artifacts {
     commonResources sourceSets.main.resources.sourceDirectories.singleFile
 }
 
-tasks.named('jar', Jar) {
-    exclude 'LICENSE'
-}
-
 tasks.register('verifyIsolation') {
     group = 'verification'
-    description = 'Checks that the common jar is a class-only, loader-neutral, relocatable GUI library.'
+    description = 'Checks that the common jar is a loader-neutral, relocatable GUI library.'
     dependsOn tasks.named('jar')
 
     doLast {
@@ -47,7 +43,6 @@ tasks.register('verifyIsolation') {
             include 'assets/**'
             include 'data/**'
             include 'pack.mcmeta'
-            include 'LICENSE'
             include '**/standalone/**'
         }.files
 
