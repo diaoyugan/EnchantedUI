@@ -29,7 +29,7 @@ public final class FormDisplayFactory {
     private final VerticalLayout layout;
     private final List<AbstractWidget> widgets;
 
-    FormDisplayFactory(int contentWidth, VerticalLayout layout, List<AbstractWidget> widgets) {
+    public FormDisplayFactory(int contentWidth, VerticalLayout layout, List<AbstractWidget> widgets) {
         this.contentWidth = contentWidth;
         this.layout = layout;
         this.widgets = widgets;

@@ -9,9 +9,17 @@ import top.diaoyugan.enchanted_ui.client.gui.render.sprite.WidgetState;
 import top.diaoyugan.enchanted_ui.client.gui.render.sprite.EnhancedWidgetSprites;
 import top.diaoyugan.enchanted_ui.client.gui.render.sprite.SpriteData;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BooleanSupplier;
+import top.diaoyugan.enchanted_ui.api.client.gui.theme.UIThemes;
+
 public class IconButton extends Button.Plain {
     private final EnhancedWidgetSprites iconSprites;
     private final int iconSize;
+    private final List<ConditionalIcon> conditionalIcons;
+    private final BooleanSupplier selected;
+    private final boolean circular;
 
 
     public IconButton(int x, int y, int width, int height,
@@ -19,18 +27,44 @@ public class IconButton extends Button.Plain {
                       int iconSize,
                       OnPress onPress) {
 
-        super(x, y, width, height, Component.empty(), onPress, Button.DEFAULT_NARRATION);
+        this(x, y, width, height, iconSprites, iconSize, onPress, List.of(), () -> false, false, Component.empty());
+    }
+
+    private IconButton(int x, int y, int width, int height,
+                       EnhancedWidgetSprites iconSprites, int iconSize, OnPress onPress,
+                       List<ConditionalIcon> conditionalIcons, BooleanSupplier selected,
+                       boolean circular, Component narration) {
+
+        super(x, y, width, height, narration, onPress, Button.DEFAULT_NARRATION);
 
         this.iconSprites = iconSprites;
         this.iconSize = iconSize;
+        this.conditionalIcons = conditionalIcons;
+        this.selected = selected;
+        this.circular = circular;
     }
 
     @Override
     public void extractContents(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
 
-        super.extractContents(g, mouseX, mouseY, partialTick);
+        if (!circular) {
+            super.extractContents(g, mouseX, mouseY, partialTick);
+        } else {
+            var colors = UIThemes.current().colors();
+            int color = selected.getAsBoolean() ? colors.accent() : isHoveredOrFocused() ? colors.surfaceHovered() : colors.surface();
+            int radius = Math.min(width, height) / 2;
+            for (int row = -radius; row < radius; row++) {
+                int half = (int)Math.sqrt(Math.max(0, radius * radius - row * row));
+                g.fill(getX() + width / 2 - half, getY() + height / 2 + row,
+                        getX() + width / 2 + half, getY() + height / 2 + row + 1, color);
+            }
+        }
 
-        SpriteData sprite = iconSprites.get(this.active, this.isHoveredOrFocused());
+        EnhancedWidgetSprites activeSprites = iconSprites;
+        for (ConditionalIcon conditional : conditionalIcons) {
+            if (conditional.condition().getAsBoolean()) { activeSprites = conditional.sprites(); break; }
+        }
+        SpriteData sprite = activeSprites.get(this.active, this.isHoveredOrFocused());
 
         int iconX = this.getX() + (this.width - iconSize) / 2;
         int iconY = this.getY() + (this.height - iconSize) / 2;
@@ -70,6 +104,10 @@ public class IconButton extends Button.Plain {
         private int iconSize = 16;
 
         private OnPress onPress = b -> {};
+        private final List<ConditionalIcon> conditionalIcons = new ArrayList<>();
+        private BooleanSupplier selected = () -> false;
+        private boolean circular;
+        private Component narration = Component.empty();
 
         public Builder(int x, int y, int width, int height) {
             this.x = x;
@@ -113,6 +151,31 @@ public class IconButton extends Button.Plain {
             return this;
         }
 
+        public Builder iconWhen(BooleanSupplier condition, Identifier texture, int texW, int texH) {
+            return iconWhen(condition, texture, texW, texH, u, v);
+        }
+
+        public Builder iconWhen(BooleanSupplier condition, Identifier texture, int texW, int texH, float u, float v) {
+            SpriteData sprite = new SpriteData(texture, u, v, texW, texH);
+            conditionalIcons.add(new ConditionalIcon(condition, new EnhancedWidgetSprites(sprite)));
+            return this;
+        }
+
+        public Builder selected(BooleanSupplier selected) {
+            this.selected = selected;
+            return this;
+        }
+
+        public Builder circular(boolean circular) {
+            this.circular = circular;
+            return this;
+        }
+
+        public Builder narration(Component narration) {
+            this.narration = narration;
+            return this;
+        }
+
         public IconButton build() {
 
             if (texture == null) {
@@ -136,8 +199,14 @@ public class IconButton extends Button.Plain {
                     x, y, width, height,
                     sprites,
                     iconSize,
-                    onPress
+                    onPress,
+                    List.copyOf(conditionalIcons),
+                    selected,
+                    circular,
+                    narration
             );
         }
     }
+
+    private record ConditionalIcon(BooleanSupplier condition, EnhancedWidgetSprites sprites) {}
 }

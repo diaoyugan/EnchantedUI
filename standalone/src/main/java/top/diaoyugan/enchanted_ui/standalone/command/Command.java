@@ -7,6 +7,7 @@ import net.minecraft.commands.Commands;
 import top.diaoyugan.enchanted_ui.standalone.gui.screen.DemoScreen;
 import top.diaoyugan.enchanted_ui.standalone.gui.screen.InfoDemoScreen;
 import top.diaoyugan.enchanted_ui.standalone.gui.screen.TopTabbedDemoScreen;
+import top.diaoyugan.enchanted_ui.standalone.gui.screen.MusicPlayerDemoScreen;
 
 public final class Command {
     private static PendingScreen pendingScreen;
@@ -14,7 +15,9 @@ public final class Command {
     private enum PendingScreen {
         SIDEBAR,
         TOP_TABS,
-        INFO
+        INFO,
+        MUSIC,
+        MUSIC_CUSTOM
     }
 
     private Command() {
@@ -39,8 +42,16 @@ public final class Command {
                                     pendingScreen = PendingScreen.INFO;
                                     return 1;
                                 }))
-                )
-        );
+                        .then(Commands.literal("music")
+                                .executes(ctx -> {
+                                    pendingScreen = PendingScreen.MUSIC;
+                                    return 1;
+                                })
+                                .then(Commands.literal("custom")
+                                        .executes(ctx -> {
+                                            pendingScreen = PendingScreen.MUSIC_CUSTOM;
+                                            return 1;
+                                        })))));
     }
 
     public static void tick(Minecraft client) {
@@ -58,6 +69,8 @@ public final class Command {
             case SIDEBAR -> new DemoScreen(null);
             case TOP_TABS -> new TopTabbedDemoScreen(null);
             case INFO -> new InfoDemoScreen(null);
+            case MUSIC -> new MusicPlayerDemoScreen(null);
+            case MUSIC_CUSTOM -> MusicPlayerDemoScreen.customLayout(null);
         });
     }
 }

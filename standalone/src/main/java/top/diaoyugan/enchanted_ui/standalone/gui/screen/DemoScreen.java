@@ -57,7 +57,7 @@ public class DemoScreen extends UISidebarConfigScreen {
 
     private List<String> comboKeys = List.of();
     private final Set<String> enabledPanels = new HashSet<>(List.of("Map", "Stats"));
-    private InputConstants.Key demoKeyValue = InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_G);
+    private InputConstants.Key demoKeyValue = InputConstants.getKey("key.keyboard.g");
     private final KeyMapping demoKey = new KeyMapping("enchantedui.demo.dummy", InputConstants.KEY_G, KeyMapping.Category.MISC);
     private final List<String> editableEntries = new ArrayList<>(List.of("Custom ore", "Custom log"));
     private final List<String> biomeOptions = List.of(
@@ -113,6 +113,14 @@ public class DemoScreen extends UISidebarConfigScreen {
                     Component.literal("Open Information Preset"),
                     () -> Minecraft.getInstance().setScreenAndShow(new InfoDemoScreen(parent()))
             ).forEach(button -> button.tooltip(Component.literal("Switches to another EnchantedUI screen preset.")));
+
+            form.button(Component.literal("Open Music Player Preset"),
+                    () -> Minecraft.getInstance().setScreenAndShow(new MusicPlayerDemoScreen(parent())))
+                    .tooltip(Component.literal("Opens the responsive virtual-list and animated artwork demo."));
+
+            form.button(Component.literal("Open Custom Music Layout"),
+                    () -> Minecraft.getInstance().setScreenAndShow(MusicPlayerDemoScreen.customLayout(parent())))
+                    .tooltip(Component.literal("Builds a different player directly from generic EUI controls."));
 
             form.toggleRow(
                     Component.literal("Feature A"),
@@ -508,7 +516,7 @@ public class DemoScreen extends UISidebarConfigScreen {
         enabledPanels.clear();
         enabledPanels.addAll(List.of("Map", "Stats"));
         comboKeys = List.of();
-        demoKeyValue = InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_G);
+        demoKeyValue = InputConstants.getKey("key.keyboard.g");
         demoKey.setKey(demoKeyValue);
         KeyMapping.resetMapping();
         textureClicks = 0;

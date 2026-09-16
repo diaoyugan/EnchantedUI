@@ -98,8 +98,9 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
             return false;
         }
 
-        InputConstants.Key key = InputConstants.Type.KEYSYM.getOrCreate(event.key());
-        if (event.key() == InputConstants.KEY_ESCAPE) {
+        InputConstants.Key key = InputConstants.getKey(event);
+        InputConstants.Key escape = InputConstants.getKey("key.keyboard.escape");
+        if (key.equals(escape)) {
             pendingKeys.clear();
             finishBinding();
             return true;
@@ -137,7 +138,7 @@ public class CombinationKeyBindingButtonWidget extends Button.Plain {
             return false;
         }
 
-        if (pendingKeys.contains(InputConstants.Type.KEYSYM.getOrCreate(event.key()))) {
+        if (pendingKeys.contains(InputConstants.getKey(event))) {
             finishBinding();
             return true;
         }

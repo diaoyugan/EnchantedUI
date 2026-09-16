@@ -93,7 +93,7 @@ public class KeyBindingButtonWidget extends Button.Plain {
         if (event.key() == InputConstants.KEY_ESCAPE) {
             key = InputConstants.UNKNOWN;
         } else {
-            key = InputConstants.Type.KEYSYM.getOrCreate(event.key());
+            key = InputConstants.getKey(event);
         }
 
         setter.accept(key);

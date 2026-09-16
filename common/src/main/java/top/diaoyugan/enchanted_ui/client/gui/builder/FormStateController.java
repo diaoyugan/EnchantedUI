@@ -1,6 +1,7 @@
 package top.diaoyugan.enchanted_ui.client.gui.builder;
 
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,14 +11,17 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-final class FormStateController {
+@ApiStatus.Internal
+public final class FormStateController {
     private final List<Runnable> savers = new ArrayList<>();
     private final List<BooleanSupplier> validators = new ArrayList<>();
     private final List<BooleanSupplier> dirtyTrackers = new ArrayList<>();
     private final List<Runnable> resetters = new ArrayList<>();
     private final List<Runnable> cleanMarkers = new ArrayList<>();
 
-    boolean validate() {
+    public FormStateController() {}
+
+    public boolean validate() {
         boolean valid = true;
         for (BooleanSupplier validator : validators) {
             valid &= validator.getAsBoolean();
@@ -25,7 +29,7 @@ final class FormStateController {
         return valid;
     }
 
-    boolean runSavers() {
+    public boolean runSavers() {
         if (!validate()) {
             return false;
         }
@@ -35,7 +39,7 @@ final class FormStateController {
         return true;
     }
 
-    boolean save() {
+    public boolean save() {
         if (!runSavers()) {
             return false;
         }
@@ -43,7 +47,7 @@ final class FormStateController {
         return true;
     }
 
-    boolean hasUnsavedChanges() {
+    public boolean hasUnsavedChanges() {
         for (BooleanSupplier tracker : dirtyTrackers) {
             if (tracker.getAsBoolean()) {
                 return true;
@@ -52,27 +56,27 @@ final class FormStateController {
         return false;
     }
 
-    void reload() {
+    public void reload() {
         for (Runnable resetter : resetters) {
             resetter.run();
         }
     }
 
-    void markClean() {
+    public void markClean() {
         for (Runnable marker : cleanMarkers) {
             marker.run();
         }
     }
 
-    void addValidator(BooleanSupplier validator) {
+    public void addValidator(BooleanSupplier validator) {
         validators.add(validator);
     }
 
-    void addSaver(Runnable saver) {
+    public void addSaver(Runnable saver) {
         savers.add(saver);
     }
 
-    <T> void trackModelValue(
+    public <T> void trackModelValue(
             Supplier<T> currentValue,
             Consumer<T> resetAction,
             Function<T, T> copy,
@@ -89,7 +93,7 @@ final class FormStateController {
         cleanMarkers.add(() -> snapshot.value = copy.apply(currentValue.get()));
     }
 
-    <T> void trackWidgetValue(
+    public <T> void trackWidgetValue(
             Supplier<T> widgetValue,
             Consumer<T> resetAction,
             Function<T, T> copy

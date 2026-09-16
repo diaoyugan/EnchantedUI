@@ -47,7 +47,7 @@ public final class FormInputFactory {
     private final FormStateController state;
     private final FormInteractionRegistry interactions;
 
-    FormInputFactory(int contentWidth, VerticalLayout layout, List<AbstractWidget> widgets, FormStateController state, FormInteractionRegistry interactions) {
+    public FormInputFactory(int contentWidth, VerticalLayout layout, List<AbstractWidget> widgets, FormStateController state, FormInteractionRegistry interactions) {
         this.contentWidth = contentWidth;
         this.layout = layout;
         this.widgets = widgets;
@@ -159,7 +159,7 @@ public final class FormInputFactory {
         return widget;
     }
 
-    UI.ColorGroup rgbaSlidersWithPreview(Component title, UILocalization.ColorLabels labels, Supplier<Integer> rGetter, IntConsumer rSetter, Supplier<Integer> gGetter, IntConsumer gSetter, Supplier<Integer> bGetter, IntConsumer bSetter, Supplier<Integer> aGetter, IntConsumer aSetter, boolean alphaAsPercentage) {
+    public FormColorGroup rgbaSlidersWithPreview(Component title, UILocalization.ColorLabels labels, Supplier<Integer> rGetter, IntConsumer rSetter, Supplier<Integer> gGetter, IntConsumer gSetter, Supplier<Integer> bGetter, IntConsumer bSetter, Supplier<Integer> aGetter, IntConsumer aSetter, boolean alphaAsPercentage) {
         title(title);
         int sliderWidth = 90;
         int sliderHeight = 20;
@@ -173,7 +173,7 @@ public final class FormInputFactory {
         NumericSliderOptionWidget g = intSlider(labels.green(), sliderWidth, 0, 255, gGetter::get, gSetter, false);
         NumericSliderOptionWidget b = intSlider(labels.blue(), sliderWidth, 0, 255, bGetter::get, bSetter, false);
         NumericSliderOptionWidget a = intSlider(labels.alpha(), sliderWidth, 0, 255, aGetter::get, aSetter, alphaAsPercentage);
-        return new UI.ColorGroup(r, g, b, a, preview);
+        return new FormColorGroup(r, g, b, a, preview);
     }
 
 

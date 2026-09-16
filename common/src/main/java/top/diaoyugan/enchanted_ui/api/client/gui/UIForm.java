@@ -2,12 +2,25 @@ package top.diaoyugan.enchanted_ui.api.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import top.diaoyugan.enchanted_ui.client.gui.builder.UI;
+import org.jetbrains.annotations.Nullable;
+import top.diaoyugan.enchanted_ui.client.gui.builder.FormColorGroup;
+import top.diaoyugan.enchanted_ui.client.gui.builder.FormDisplayFactory;
+import top.diaoyugan.enchanted_ui.client.gui.builder.FormInputFactory;
+import top.diaoyugan.enchanted_ui.client.gui.builder.FormInteractionRegistry;
+import top.diaoyugan.enchanted_ui.client.gui.builder.FormStateController;
+import top.diaoyugan.enchanted_ui.client.gui.layout.VerticalLayout;
+import top.diaoyugan.enchanted_ui.client.gui.widget.button.IconButton;
+import top.diaoyugan.enchanted_ui.client.gui.widget.button.TextureButton;
+import top.diaoyugan.enchanted_ui.client.gui.widget.option.BooleanOptionWidget;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -40,84 +53,124 @@ public final class UIForm {
     private static final int DEFAULT_VISIBLE_ROWS = 5;
     private static final int DEFAULT_SUMMARY_ROWS = 4;
 
-    private final UI.Form delegate;
+    private final UIBuildContext context;
+    private final int contentWidth;
+    private final VerticalLayout layout;
+    private final List<AbstractWidget> widgets;
+    private final FormStateController state;
+    private final FormInteractionRegistry interactions;
+    private final FormInputFactory inputs;
+    private final FormDisplayFactory display;
 
-    UIForm(UI.Form delegate) {
-        this.delegate = delegate;
+    UIForm(UIBuildContext context, int contentWidth, int startY, int gap) {
+        this(
+                context,
+                contentWidth,
+                context.vertical(contentWidth, startY, gap).delegate(),
+                new ArrayList<>(),
+                new FormStateController(),
+                new FormInteractionRegistry()
+        );
     }
 
-    UI.Form delegate() {
-        return delegate;
+    private UIForm(
+            UIBuildContext context,
+            int contentWidth,
+            VerticalLayout layout,
+            List<AbstractWidget> widgets,
+            FormStateController state,
+            FormInteractionRegistry interactions
+    ) {
+        this.context = Objects.requireNonNull(context, "context");
+        this.contentWidth = contentWidth;
+        this.layout = layout;
+        this.widgets = widgets;
+        this.state = state;
+        this.interactions = interactions;
+        this.inputs = new FormInputFactory(contentWidth, layout, widgets, state, interactions);
+        this.display = new FormDisplayFactory(contentWidth, layout, widgets);
     }
 
     /**
      * Returns the current build context, including screen size and layout helpers.
      */
     public UIBuildContext ctx() {
-        return new UIBuildContext(delegate.ctx());
+        return context;
     }
 
     /**
      * Width used by standard controls created by this form.
      */
     public int contentWidth() {
-        return delegate.contentWidth();
+        return contentWidth;
     }
 
     /**
      * Gives direct access to the vertical layout cursor for advanced positioning.
      */
     public UIVerticalLayout layout() {
-        return new UIVerticalLayout(delegate.layout());
+        return new UIVerticalLayout(layout);
     }
 
     /**
      * Returns widgets created by this form. This is mainly useful for advanced integrations.
      */
     public List<AbstractWidget> widgets() {
-        return delegate.widgets();
+        return widgets;
     }
 
     /**
      * Runs all field validators and returns {@code true} when the form can be saved.
      */
     public boolean validate() {
-        return delegate.validate();
+        return state.validate();
     }
 
     /**
      * Validates the form and runs registered save actions.
      */
     public boolean save() {
-        return delegate.save();
+        return state.save();
+    }
+
+    boolean runSavers() {
+        return state.runSavers();
+    }
+
+    boolean keyPressed(KeyEvent event) {
+        return interactions.keyPressed(event);
+    }
+
+    boolean keyReleased(KeyEvent event) {
+        return interactions.keyReleased(event);
     }
 
     /**
      * Returns whether current widget values differ from their last clean state.
      */
     public boolean hasUnsavedChanges() {
-        return delegate.hasUnsavedChanges();
+        return state.hasUnsavedChanges();
     }
 
     /**
      * Resets tracked widgets from their getters.
      */
     public void reload() {
-        delegate.reload();
+        state.reload();
     }
 
     /**
      * Marks the current form values as clean without changing them.
      */
     public void markClean() {
-        delegate.markClean();
+        state.markClean();
     }
 
     /**
      * Inserts vertical space before the next control.
      */
     public UIForm space(int height) {
-        delegate.space(height);
+        layout.next(height);
         return this;
     }
 
@@ -133,7 +186,17 @@ public final class UIForm {
      * Builds a titled nested section using a custom indent.
      */
     public UIForm section(Component title, int indent, Consumer<UIForm> builder) {
-        delegate.section(title, indent, nested -> builder.accept(new UIForm(nested)));
+        display.title(title);
+        UIForm nested = new UIForm(
+                context,
+                Math.max(40, contentWidth - indent),
+                new VerticalLayout(layout.x() + indent, layout.y(), layout.gap()),
+                widgets,
+                state,
+                interactions
+        );
+        builder.accept(nested);
+        layout.setY(nested.layout.y());
         return this;
     }
 
@@ -141,14 +204,16 @@ public final class UIForm {
      * Adds a vanilla widget to the form and advances the layout by {@code height}.
      */
     public UIWidget widget(AbstractWidget widget, int height) {
-        return UIWidget.wrap(delegate.widget(widget, height));
+        widgets.add(widget);
+        layout.next(height);
+        return UIWidget.wrap(widget);
     }
 
     /**
      * Adds a simple text title row.
      */
     public UIWidget title(Component text) {
-        return UIWidget.wrap(delegate.display().title(text));
+        return UIWidget.wrap(display.title(text));
     }
 
     public UIWidget progressBar(Component label, DoubleSupplier progressSupplier) {
@@ -160,11 +225,11 @@ public final class UIForm {
     }
 
     public UIWidget progressBar(Component label, int width, DoubleSupplier progressSupplier, Supplier<Component> valueSupplier, int fillColor) {
-        return UIWidget.wrap(delegate.display().progressBar(label, width, progressSupplier, valueSupplier, fillColor));
+        return UIWidget.wrap(display.progressBar(label, width, progressSupplier, valueSupplier, fillColor));
     }
 
     public UIWidget keyValueRow(Component label, Supplier<Component> valueSupplier) {
-        return UIWidget.wrap(delegate.display().keyValueRow(label, valueSupplier));
+        return UIWidget.wrap(display.keyValueRow(label, valueSupplier));
     }
 
     public UIWidget statusBadge(Component label, Supplier<Component> statusSupplier) {
@@ -172,7 +237,7 @@ public final class UIForm {
     }
 
     public UIWidget statusBadge(Component label, Supplier<Component> statusSupplier, IntSupplier colorSupplier) {
-        return UIWidget.wrap(delegate.display().statusBadge(label, statusSupplier, colorSupplier));
+        return UIWidget.wrap(display.statusBadge(label, statusSupplier, colorSupplier));
     }
 
     public UIWidget emptyState(Component title, Component description) {
@@ -180,7 +245,7 @@ public final class UIForm {
     }
 
     public UIWidget emptyState(Component title, Component description, int height) {
-        return UIWidget.wrap(delegate.display().emptyState(title, description, height));
+        return UIWidget.wrap(display.emptyState(title, description, height));
     }
 
     public UIWidget infoBlock(Component title, Component message) {
@@ -188,11 +253,11 @@ public final class UIForm {
     }
 
     public UIWidget infoBlock(Component title, Component message, int accentColor) {
-        return UIWidget.wrap(delegate.display().infoBlock(title, message, accentColor));
+        return UIWidget.wrap(display.infoBlock(title, message, accentColor));
     }
 
     public UIWidget loadingState(Component title, Component message) {
-        return UIWidget.wrap(delegate.display().loadingState(title, message));
+        return UIWidget.wrap(display.loadingState(title, message));
     }
 
     public UIWidget errorState(Component title, Component message) {
@@ -200,7 +265,7 @@ public final class UIForm {
     }
 
     public UIWidget errorState(Component title, Component message, Component actionLabel, Runnable action) {
-        return UIWidget.wrap(delegate.display().errorState(title, message, actionLabel, action));
+        return UIWidget.wrap(display.errorState(title, message, actionLabel, action));
     }
 
     public UIWidget readonlyList(Component label, Supplier<List<Component>> entriesSupplier) {
@@ -224,7 +289,7 @@ public final class UIForm {
             Component emptyText,
             IntFunction<Component> overflowText
     ) {
-        return UIWidget.wrap(delegate.display().readonlyList(label, entriesSupplier, visibleRows, emptyText, overflowText));
+        return UIWidget.wrap(display.readonlyList(label, entriesSupplier, visibleRows, emptyText, overflowText));
     }
 
     public UIWidget summaryBlock(Component title, Supplier<List<UISummaryItem>> itemsSupplier) {
@@ -236,11 +301,17 @@ public final class UIForm {
     }
 
     public UIWidget summaryBlock(Component title, Supplier<List<UISummaryItem>> itemsSupplier, int rows, Component emptyText) {
-        return UIWidget.wrap(delegate.display().summaryBlock(title, itemsSupplier, rows, emptyText));
+        return UIWidget.wrap(display.summaryBlock(title, itemsSupplier, rows, emptyText));
     }
 
     public UIWidget toggle(Component label, BooleanSupplier getter, Consumer<Boolean> setter) {
-        return UIWidget.wrap(delegate.toggle(label, getter, setter));
+        BooleanOptionWidget widget = new BooleanOptionWidget(
+                layout.x(), layout.y(), contentWidth, 20, label, getter, setter
+        );
+        state.trackModelValue(getter::getAsBoolean, setter, Function.identity(), null);
+        widgets.add(widget);
+        layout.next(20);
+        return UIWidget.wrap(widget);
     }
 
     public UIWidget button(Component label, Runnable action) {
@@ -248,7 +319,12 @@ public final class UIForm {
     }
 
     public UIWidget button(Component label, int width, Runnable action) {
-        return UIWidget.wrap(delegate.button(label, width, action));
+        Button button = Button.builder(label, ignored -> action.run())
+                .bounds(layout.x(), layout.y(), width, 20)
+                .build();
+        widgets.add(button);
+        layout.next(20);
+        return UIWidget.wrap(button);
     }
 
     public List<UIWidget> buttonRow(
@@ -257,10 +333,17 @@ public final class UIForm {
             Component rightLabel,
             Runnable rightAction
     ) {
-        return delegate.buttonRow(leftLabel, leftAction, rightLabel, rightAction)
-                .stream()
-                .map(UIWidget::wrap)
-                .toList();
+        int halfWidth = (contentWidth - 4) / 2;
+        Button left = Button.builder(leftLabel, ignored -> leftAction.run())
+                .bounds(layout.x(), layout.y(), halfWidth, 20)
+                .build();
+        Button right = Button.builder(rightLabel, ignored -> rightAction.run())
+                .bounds(layout.x() + halfWidth + 4, layout.y(), halfWidth, 20)
+                .build();
+        widgets.add(left);
+        widgets.add(right);
+        layout.next(20);
+        return List.of(UIWidget.wrap(left), UIWidget.wrap(right));
     }
 
     public List<UIWidget> toggleRow(
@@ -287,12 +370,19 @@ public final class UIForm {
             Consumer<Boolean> rightSetter,
             Component rightTooltip
     ) {
-        List<UIWidget> row = delegate.toggleRow(
-                        leftLabel, leftGetter, leftSetter,
-                        rightLabel, rightGetter, rightSetter
-                ).stream()
-                .map(UIWidget::wrap)
-                .toList();
+        int halfWidth = (contentWidth - 4) / 2;
+        BooleanOptionWidget left = new BooleanOptionWidget(
+                layout.x(), layout.y(), halfWidth, 20, leftLabel, leftGetter, leftSetter
+        );
+        BooleanOptionWidget right = new BooleanOptionWidget(
+                layout.x() + halfWidth + 4, layout.y(), halfWidth, 20, rightLabel, rightGetter, rightSetter
+        );
+        state.trackModelValue(leftGetter::getAsBoolean, leftSetter, Function.identity(), null);
+        state.trackModelValue(rightGetter::getAsBoolean, rightSetter, Function.identity(), null);
+        widgets.add(left);
+        widgets.add(right);
+        layout.next(20);
+        List<UIWidget> row = List.of(UIWidget.wrap(left), UIWidget.wrap(right));
         if (leftTooltip != null) {
             row.getFirst().tooltip(leftTooltip);
         }
@@ -330,7 +420,7 @@ public final class UIForm {
             IntConsumer setter,
             boolean percentage
     ) {
-        return (UISlider) UIWidget.wrap(delegate.inputs().intSlider(label, width, min, max, getter, setter, percentage));
+        return (UISlider) UIWidget.wrap(inputs.intSlider(label, width, min, max, getter, setter, percentage));
     }
 
     /**
@@ -358,7 +448,7 @@ public final class UIForm {
             LongConsumer setter,
             boolean percentage
     ) {
-        return (UISlider) UIWidget.wrap(delegate.inputs().longSlider(label, width, min, max, step, getter, setter, percentage));
+        return (UISlider) UIWidget.wrap(inputs.longSlider(label, width, min, max, step, getter, setter, percentage));
     }
 
     /**
@@ -386,7 +476,7 @@ public final class UIForm {
             Consumer<Float> setter,
             boolean percentage
     ) {
-        return (UISlider) UIWidget.wrap(delegate.inputs().floatSlider(label, width, min, max, step, getter, setter, percentage));
+        return (UISlider) UIWidget.wrap(inputs.floatSlider(label, width, min, max, step, getter, setter, percentage));
     }
 
     /**
@@ -414,7 +504,7 @@ public final class UIForm {
             DoubleConsumer setter,
             boolean percentage
     ) {
-        return (UISlider) UIWidget.wrap(delegate.inputs().doubleSlider(label, width, min, max, step, getter, setter, percentage));
+        return (UISlider) UIWidget.wrap(inputs.doubleSlider(label, width, min, max, step, getter, setter, percentage));
     }
 
     /**
@@ -444,7 +534,7 @@ public final class UIForm {
             Consumer<String> setter,
             UITextValidator validator
     ) {
-        return (UITextField) UIWidget.wrap(delegate.inputs().textField(label, width, getter, setter, validator));
+        return (UITextField) UIWidget.wrap(inputs.textField(label, width, getter, setter, validator));
     }
 
     /**
@@ -503,7 +593,7 @@ public final class UIForm {
             IntConsumer setter,
             UILocalization.FieldValidationMessages validationMessages
     ) {
-        return (UITextField) UIWidget.wrap(delegate.inputs().intField(label, width, min, max, getter, setter, validationMessages));
+        return (UITextField) UIWidget.wrap(inputs.intField(label, width, min, max, getter, setter, validationMessages));
     }
 
     /**
@@ -562,7 +652,7 @@ public final class UIForm {
             DoubleConsumer setter,
             UILocalization.FieldValidationMessages validationMessages
     ) {
-        return (UITextField) UIWidget.wrap(delegate.inputs().doubleField(label, width, min, max, getter, setter, validationMessages));
+        return (UITextField) UIWidget.wrap(inputs.doubleField(label, width, min, max, getter, setter, validationMessages));
     }
 
     public UITextArea textArea(
@@ -571,7 +661,7 @@ public final class UIForm {
             Supplier<String> getter,
             Consumer<String> setter
     ) {
-        return (UITextArea) UIWidget.wrap(delegate.inputs().textArea(label, height, getter, setter));
+        return (UITextArea) UIWidget.wrap(inputs.textArea(label, height, getter, setter));
     }
 
     /** Adds a control that records one keyboard key. */
@@ -592,7 +682,7 @@ public final class UIForm {
             Consumer<InputConstants.Key> setter,
             UILocalization.KeyBindingMessages messages
     ) {
-        return UIWidget.wrap(delegate.inputs().keyBinding(label, getter, setter, messages));
+        return UIWidget.wrap(inputs.keyBinding(label, getter, setter, messages));
     }
 
     /** Adds a control that records an ordered keyboard/mouse combination. */
@@ -613,7 +703,7 @@ public final class UIForm {
             Consumer<List<String>> setter,
             UILocalization.KeyBindingMessages messages
     ) {
-        return UIWidget.wrap(delegate.inputs().keyCombination(label, getter, setter, messages));
+        return UIWidget.wrap(inputs.keyCombination(label, getter, setter, messages));
     }
 
     /**
@@ -671,7 +761,7 @@ public final class UIForm {
             IntConsumer aSetter,
             boolean alphaAsPercentage
     ) {
-        UI.ColorGroup colorGroup = delegate.rgbaSlidersWithPreview(
+        FormColorGroup colorGroup = inputs.rgbaSlidersWithPreview(
                 title,
                 labels,
                 rGetter,
@@ -698,15 +788,21 @@ public final class UIForm {
             Identifier iconTexture,
             int texW,
             int texH,
-            Identifier hoverTexture,
+            @Nullable Identifier hoverTexture,
             int hoverTexW,
             int hoverTexH,
             int iconSize,
             Runnable action
     ) {
-        return UIWidget.wrap(delegate.iconButton(
-                buttonSize, iconTexture, texW, texH, hoverTexture, hoverTexW, hoverTexH, iconSize, action
-        ));
+        IconButton.Builder builder = new IconButton.Builder(layout.x(), layout.y(), buttonSize, buttonSize)
+                .icon(iconTexture, texW, texH)
+                .iconSize(iconSize)
+                .onPress(ignored -> action.run());
+        if (hoverTexture != null) builder.hoverIcon(hoverTexture, hoverTexW, hoverTexH);
+        IconButton button = builder.build();
+        widgets.add(button);
+        layout.next(buttonSize);
+        return UIWidget.wrap(button);
     }
 
     public UIWidget textureButton(
@@ -715,14 +811,19 @@ public final class UIForm {
             Identifier texture,
             int texW,
             int texH,
-            Identifier hoverTexture,
+            @Nullable Identifier hoverTexture,
             int hoverTexW,
             int hoverTexH,
             Runnable action
     ) {
-        return UIWidget.wrap(delegate.textureButton(
-                width, height, texture, texW, texH, hoverTexture, hoverTexW, hoverTexH, action
-        ));
+        TextureButton.Builder builder = new TextureButton.Builder(layout.x(), layout.y(), width, height)
+                .texture(texture, texW, texH)
+                .onPress(ignored -> action.run());
+        if (hoverTexture != null) builder.hoverTexture(hoverTexture, hoverTexW, hoverTexH);
+        TextureButton button = builder.build();
+        widgets.add(button);
+        layout.next(height);
+        return UIWidget.wrap(button);
     }
 
     /**
@@ -774,7 +875,7 @@ public final class UIForm {
             int visibleRows,
             Component emptyText
     ) {
-        return UIWidget.wrap(delegate.inputs().dropdownList(label, width, entriesSupplier, visibleRows, emptyText));
+        return UIWidget.wrap(inputs.dropdownList(label, width, entriesSupplier, visibleRows, emptyText));
     }
 
     /**
@@ -898,7 +999,7 @@ public final class UIForm {
             Component emptyText
     ) {
         return UIWidget.wrap(
-                delegate.inputs().editableDropdownList(label, width, getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates, duplicateEntryError, emptyText)
+                inputs.editableDropdownList(label, width, getter, setter, inputHint, addLabel, visibleRows, validator, allowDuplicates, duplicateEntryError, emptyText)
         );
     }
 
@@ -967,7 +1068,7 @@ public final class UIForm {
             Component noneText,
             Component emptyText
     ) {
-        return UIWidget.wrap(delegate.inputs().select(label, width, getter, setter, entriesSupplier, display, visibleRows, noneText, emptyText));
+        return UIWidget.wrap(inputs.select(label, width, getter, setter, entriesSupplier, display, visibleRows, noneText, emptyText));
     }
 
     /**
@@ -1019,7 +1120,7 @@ public final class UIForm {
             Component noneText,
             Component emptyText
     ) {
-        return UIWidget.wrap(delegate.inputs().searchableSelect(
+        return UIWidget.wrap(inputs.searchableSelect(
                 label, width, getter, setter, entriesSupplier, display, searchHint, visibleRows, noneText, emptyText
         ));
     }
@@ -1047,7 +1148,7 @@ public final class UIForm {
             Function<T, Component> display,
             int visibleRows
     ) {
-        return UIWidget.wrap(delegate.inputs().multiSelect(
+        return UIWidget.wrap(inputs.multiSelect(
                 label, width, getter, setter, entriesSupplier, display, visibleRows
         ));
     }
@@ -1097,7 +1198,7 @@ public final class UIForm {
             Supplier<List<T>> entriesSupplier,
             Function<T, Component> display
     ) {
-        return delegate.inputs().radioGroup(title, width, getter, setter, entriesSupplier, display)
+        return inputs.radioGroup(title, width, getter, setter, entriesSupplier, display)
                 .stream()
                 .map(UIWidget::wrap)
                 .toList();

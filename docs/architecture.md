@@ -3,7 +3,7 @@
 ## Layers
 
 1. `api.client.gui` is the consumer surface: presets, `UIForm`, `UIPage`, and widget wrappers.
-2. `client.gui.screen.base` owns the Minecraft `Screen` lifecycle, tabs, viewports, scrolling, dialogs, and closing.
+2. `client.gui.screen.base` owns the Minecraft `Screen` runtime. `BaseTabbedScreen` is the event/lifecycle bridge; package-private collaborators own concrete runtime state.
 3. `client.gui.builder` is the form engine. It shares one vertical cursor and dirty-state controller while input and display factories create widgets.
 4. `client.gui.widget` contains concrete widgets grouped by behavior.
 
@@ -23,18 +23,27 @@ New tabbed presets should extend `UIConfigScreenPreset` instead of copying its b
 ## Runtime invariants
 
 - Forms advance their layout cursor by each widget's final `getHeight()`.
-- `PageView` always derives scrolled positions from immutable base coordinates.
+- `PageViewport` always derives scrolled positions from immutable base coordinates.
 - Page widgets and expanded overlays share one clipped content viewport.
 - Responsive tab strips show complete buttons only and reveal hidden tabs through navigation, wheel input, or page selection.
 - `section(title, builder)` preserves parent alignment; indentation is explicit.
 
-`BaseTabbedScreen` keeps its lifecycle-local PageView, modal, and toast collaborators together. Extract them only when they can expose a stable interface without Screen bridge methods.
+`BaseTabbedScreen` is the Minecraft event and lifecycle bridge, not the implementation
+home for every screen feature. Its package-private collaborators have explicit ownership:
 
-`UIForm` is the only consumer-facing form surface. It delegates widget creation
-directly to `FormInputFactory` and `FormDisplayFactory`; internal `UI.Form` owns
-only shared layout, state, lifecycle, and the remaining compound controls. New
-controls should be added to a factory and exposed once through `UIForm`, without
-adding another forwarding method to `UI.Form`.
+- `TabStripController`: tab measurement, placement, overflow, navigation, and selection.
+- `PageStackController`: page definitions, active-page lifecycle, and event routing.
+- `PageViewport`: widget coordinates, clipping, scrolling, and expanded overlays.
+- `CloseCoordinator`: unsaved-change prompting and close confirmation.
+- `ScreenModal`, `ToastController`, and `BottomBarBackdropWidget`: transient presentation state.
+
+These collaborators remain package-private so the public screen API stays stable. Do not
+move their state back into `BaseTabbedScreen` merely to avoid a small bridge method.
+
+`UIForm` is the only consumer-facing form model and directly owns shared layout,
+state, interaction routing, and lifecycle data. It delegates widget creation to
+`FormInputFactory` and `FormDisplayFactory`. New controls should be added to a
+factory and exposed once through `UIForm`; there is no parallel internal form model.
 
 Every overloaded control family has one public canonical overload containing
 the complete parameter set. Shorter overloads only supply named defaults and
