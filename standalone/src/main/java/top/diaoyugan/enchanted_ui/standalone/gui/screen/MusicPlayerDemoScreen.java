@@ -11,7 +11,7 @@ import top.diaoyugan.enchanted_ui.api.client.gui.UIIcon;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIImageTextPanel;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIPage;
 import top.diaoyugan.enchanted_ui.api.client.gui.UITabbedScreen;
-import top.diaoyugan.enchanted_ui.api.client.gui.UITransportBar;
+import top.diaoyugan.enchanted_ui.api.client.gui.UIPlaybackControls;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIVirtualList;
 import top.diaoyugan.enchanted_ui.api.client.gui.layout.UIBounds;
 import top.diaoyugan.enchanted_ui.api.client.gui.music.UIPlaybackState;
@@ -62,25 +62,16 @@ public final class MusicPlayerDemoScreen extends UIMusicPlayerScreen {
 
     private static final class CustomLayoutScreen extends UITabbedScreen {
         private final DemoPlayerModel demo;
-        private final UITransportBar transport;
+        private final UIPlaybackControls transport;
         private UIVirtualList<UIMusicTrack, String> trackList;
         private String query = "";
 
         private CustomLayoutScreen(Screen parent, DemoPlayerModel demo) {
             super(parent, Component.literal("Custom Music Workspace"));
             this.demo = demo;
-            this.transport = UITransportBar.builder()
-                    .previous(() -> Component.literal("|<"), () -> Component.literal("Previous"), demo::previous)
-                    .primary(
-                            () -> Component.literal(demo.playbackState().get() == UIPlaybackState.PLAYING ? "||" : ">"),
-                            () -> Component.literal("Play or pause"),
-                            demo::togglePlayback
-                    )
-                    .next(() -> Component.literal(">|"), () -> Component.literal("Next"), demo::next)
-                    .progress(Component.literal("Position"), () -> demo.progress().get(), demo::seek)
-                    .volume(() -> Component.literal("V"), Component.literal("Volume"), () -> demo.volume().get(), demo::volume)
-                    .duration(() -> demo.duration().get())
-                    .elapsedTimer(Component.literal("Elapsed"))
+            this.transport = UIPlaybackControls.builder(demo)
+                    .playbackMode(false)
+                    .remainingTimer(false)
                     .maxWidth(520)
                     .build();
 

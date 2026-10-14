@@ -104,6 +104,16 @@ public final class EnchantedUI {
         return new UIFormPage(contentWidth, startY, gap, spec);
     }
 
+    /** Starts transport controls without requiring a music-library model. */
+    public static UIPlaybackControls.Builder playbackControls(UIPlaybackModel model) {
+        return UIPlaybackControls.builder(model);
+    }
+
+    /** Starts an editor for caller-defined collections and members. */
+    public static <C, T> UICollectionEditorScreen.Builder<C, T> collectionEditor(UICollectionController<C, T> controller) {
+        return UICollectionEditorScreen.builder(controller);
+    }
+
     /** Creates the responsive music-library preset with a fixed transport dock. */
     public static UIMusicPlayerScreen musicPlayer(@Nullable Screen parent, Component title, UIMusicPlayerModel model) {
         return new UIMusicPlayerScreen(parent, title, model);

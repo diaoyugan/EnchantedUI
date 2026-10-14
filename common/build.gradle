@@ -79,13 +79,31 @@ tasks.register('verifyPresetBoundaries') {
             include '**/*.java'
             exclude '**/api/client/gui/music/**'
         }.findAll { source ->
-            source != rootEntrypoint && source.getText('UTF-8').contains(musicPackage)
+            def text = source.getText('UTF-8')
+            source != rootEntrypoint && (text.contains(musicPackage) ||
+                    text.contains('UIMusic') || text.contains('UIUserPlaylist') ||
+                    text.contains('"music.'))
         }
 
         if (!leaks.empty) {
             throw new GradleException("Reusable GUI code depends on the music preset: ${leaks}")
         }
     }
+}
+
+sourceSets {
+    verification {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
+tasks.register('verifyWorkspaceLayout', JavaExec) {
+    group = 'verification'
+    description = 'Checks responsive workspace breakpoints and bounds without starting Minecraft.'
+    dependsOn tasks.named('verificationClasses')
+    classpath = sourceSets.verification.runtimeClasspath
+    mainClass = 'top.diaoyugan.enchanted_ui.api.client.gui.layout.UIWorkspaceLayoutTest'
 }
 
 tasks.register('verifyFormModelBoundary') {
@@ -151,6 +169,7 @@ tasks.register('verifyScreenRuntimeBoundary') {
 }
 
 tasks.named('check') {
+    dependsOn tasks.named('verifyWorkspaceLayout')
     dependsOn tasks.named('verifyIsolation')
     dependsOn tasks.named('verifyPresetBoundaries')
     dependsOn tasks.named('verifyFormModelBoundary')

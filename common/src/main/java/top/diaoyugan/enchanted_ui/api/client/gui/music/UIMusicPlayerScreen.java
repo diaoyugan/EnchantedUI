@@ -24,7 +24,7 @@ public class UIMusicPlayerScreen extends UITabbedScreen {
     public UIMusicPlayerScreen(@Nullable Screen parent,Component title,UIMusicPlayerModel model,UITheme theme){
         super(parent,title);Objects.requireNonNull(model);Objects.requireNonNull(theme);
         playerPage=UIMusicPlayerPage.builder(model).theme(theme).playlistEditorOpener(controller->Minecraft.getInstance().setScreenAndShow(
-                new UIUserPlaylistScreen(this,UILocalization.frameworkText("music.playlist.screen.title","User playlists"),controller))).build();
+                new UIUserPlaylistScreen(this,UILocalization.frameworkText("music.playlist.screen.title","User playlists"),controller,theme))).build();
         transportControls=UIMusicTransportControls.builder(model).theme(theme).build();configure(title);
     }
 

@@ -12,6 +12,7 @@ import top.diaoyugan.enchanted_ui.api.client.gui.UILocalization;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIPage;
 import top.diaoyugan.enchanted_ui.api.client.gui.UIVirtualList;
 import top.diaoyugan.enchanted_ui.api.client.gui.layout.UIBounds;
+import top.diaoyugan.enchanted_ui.api.client.gui.layout.UIWorkspaceLayout;
 import top.diaoyugan.enchanted_ui.api.client.gui.state.UISubscription;
 import top.diaoyugan.enchanted_ui.api.client.gui.theme.UITheme;
 import top.diaoyugan.enchanted_ui.api.client.gui.theme.UIThemes;
@@ -38,19 +39,13 @@ public final class UIMusicPlayerPage implements UIPage {
     private final UIMusicPlayerModel model;
     private final UITheme theme;
     private final Function<UIBuildContext, UIBounds> boundsFactory;
-    private final boolean showNavigation;
     private final boolean showSearch;
     private final boolean showSort;
-    private final boolean showNowPlaying;
-    private final boolean showInspector;
     private final boolean showPlaylistEditor;
-    private final int threeColumnAt;
-    private final int roomyAt;
     private final int compactRowHeight;
     private final int regularRowHeight;
     private final int compactArtworkSize;
-    private final IntUnaryOperator navigationWidth;
-    private final IntUnaryOperator inspectorWidth;
+    private final UIWorkspaceLayout layout;
     private final Consumer<UIMusicPlaylistController> playlistEditorOpener;
     @Nullable private final UIIcon artworkFallback;
     private final EnumMap<Region, List<RegionExtension>> extensions;
@@ -62,19 +57,23 @@ public final class UIMusicPlayerPage implements UIPage {
         model = builder.model;
         theme = builder.theme;
         boundsFactory = builder.boundsFactory;
-        showNavigation = builder.showNavigation;
         showSearch = builder.showSearch;
         showSort = builder.showSort;
-        showNowPlaying = builder.showNowPlaying;
-        showInspector = builder.showInspector;
         showPlaylistEditor = builder.showPlaylistEditor;
-        threeColumnAt = builder.threeColumnAt;
-        roomyAt = builder.roomyAt;
         compactRowHeight = builder.compactRowHeight;
         regularRowHeight = builder.regularRowHeight;
         compactArtworkSize = builder.compactArtworkSize;
-        navigationWidth = builder.navigationWidth;
-        inspectorWidth = builder.inspectorWidth;
+        UIWorkspaceLayout.Builder workspace = UIWorkspaceLayout.builder()
+                .navigation(builder.showNavigation)
+                .inspector(builder.showInspector)
+                .breakpoints(builder.threeColumnAt, builder.roomyAt)
+                .gap(theme.spacing().small())
+                .compactHeaderHeight(builder.showNowPlaying ? compactArtworkSize + 2 : 0)
+                .toolbarHeights(showSearch || showSort ? (builder.showNowPlaying ? 18 : 20) : 0,
+                        showSearch || showSort ? 20 : 0);
+        if (builder.navigationWidth != null) workspace.navigationWidth(builder.navigationWidth);
+        if (builder.inspectorWidth != null) workspace.inspectorWidth(builder.inspectorWidth);
+        layout = workspace.build();
         playlistEditorOpener = builder.playlistEditorOpener;
         artworkFallback = builder.artworkFallback;
         extensions = builder.copyExtensions();
@@ -96,76 +95,22 @@ public final class UIMusicPlayerPage implements UIPage {
     public List<AbstractWidget> build(UIBuildContext context) {
         subscriptions.forEach(UISubscription::close);
         subscriptions.clear();
+        tracks = null;
         List<AbstractWidget> widgets = new ArrayList<>();
         UIBounds page = boundsFactory.apply(context);
-        int gap = theme.spacing().small();
-        boolean roomy = page.width() >= roomyAt;
-        boolean threeColumn = showInspector && page.width() >= threeColumnAt;
-
-        int sidebar = showNavigation
-                ? Math.max(0, navigationWidth == null
-                        ? defaultNavigationWidth(page.width(), roomy, threeColumn)
-                        : navigationWidth.applyAsInt(page.width()))
-                : 0;
-        int inspector = threeColumn
-                ? Math.max(0, inspectorWidth == null ? (roomy ? 180 : 120) : inspectorWidth.applyAsInt(page.width()))
-                : 0;
-
-        sidebar = Math.min(sidebar, Math.max(0, page.width() - 120 - (sidebar > 0 ? gap : 0)));
-        inspector = Math.min(
-                inspector,
-                Math.max(0, page.width() - sidebar - 120 - (sidebar > 0 ? gap : 0) - (inspector > 0 ? gap : 0))
-        );
-
-        boolean compactNowPlaying = showNowPlaying && inspector == 0;
-        int contentX = page.x() + sidebar + (sidebar > 0 ? gap : 0);
-        int contentWidth = Math.max(
-                120,
-                page.width() - sidebar - inspector - (sidebar > 0 ? gap : 0) - (inspector > 0 ? gap : 0)
-        );
-        UIBounds navigationBounds = new UIBounds(page.x(), page.y(), sidebar, page.height());
-        UIBounds contentBounds = new UIBounds(contentX, page.y(), contentWidth, page.height());
-        UIBounds inspectorBounds = new UIBounds(
-                contentX + contentWidth + (inspector > 0 ? gap : 0),
-                page.y(),
-                inspector,
-                page.height()
-        );
-
-        if (sidebar > 0) buildNavigation(widgets, navigationBounds, threeColumn);
-
-        int toolbarY = page.y();
-        int listY = page.y();
-        if (compactNowPlaying) {
-            buildCompactNowPlaying(widgets, contentBounds);
-            toolbarY += compactArtworkSize + 2;
-            listY = toolbarY;
+        UIWorkspaceLayout.Regions regions = layout.layout(page);
+        if (regions.navigation().width() > 0) buildNavigation(widgets, regions.navigation(), !regions.compact());
+        if (regions.header().height() > 0) buildCompactNowPlaying(widgets, regions.header());
+        if (regions.toolbar().height() > 0) buildFilterBar(widgets, regions.toolbar());
+        if (regions.body().width() > 0 && regions.body().height() > 0) {
+            buildTracks(widgets, regions.body(), regions.header().height() > 0);
         }
-        if (showSearch || showSort) {
-            int toolbarHeight = compactNowPlaying ? 18 : 20;
-            buildFilterBar(widgets, new UIBounds(contentX, toolbarY, contentWidth, toolbarHeight));
-            listY = toolbarY + toolbarHeight + theme.spacing().small();
-        }
-        buildTracks(widgets, new UIBounds(
-                contentX,
-                listY,
-                contentWidth,
-                Math.max(36, page.height() - (listY - page.y()))
-        ), compactNowPlaying);
-
-        if (inspector > 0) buildInspector(widgets, inspectorBounds);
-        addExtensions(widgets, Region.NAVIGATION, navigationBounds);
-        addExtensions(widgets, Region.CONTENT, contentBounds);
-        addExtensions(widgets, Region.INSPECTOR, inspectorBounds);
+        if (!regions.compact()) buildInspector(widgets, regions.inspector());
+        addExtensions(widgets, Region.NAVIGATION, regions.navigation());
+        addExtensions(widgets, Region.CONTENT, regions.content());
+        addExtensions(widgets, Region.INSPECTOR, regions.inspector());
         addExtensions(widgets, Region.OVERLAY, page);
         return widgets;
-    }
-
-    private static int defaultNavigationWidth(int width, boolean roomy, boolean threeColumn) {
-        if (roomy) return 140;
-        if (threeColumn) return 96;
-        if (width >= 260) return Math.min(88, Math.max(72, width / 4));
-        return Math.min(64, Math.max(0, width / 4));
     }
 
     private void buildNavigation(List<AbstractWidget> widgets, UIBounds bounds, boolean threeColumn) {
@@ -256,6 +201,7 @@ public final class UIMusicPlayerPage implements UIPage {
                         .append(track.artist()).append(" - ").append(track.title()))
                 .filter((track, query) -> searchText(track).contains(query.toLowerCase()))
                 .playing(track -> Objects.equals(current(), track))
+                .selected(() -> model.selectedTrack().get())
                 .marqueeText(true)
                 .onSelect(model::select)
                 .onActivate(model::play)
@@ -265,7 +211,7 @@ public final class UIMusicPlayerPage implements UIPage {
         tracks.query(searchQuery);
         widgets.add(tracks);
         subscriptions.add(model.selectedTrack().subscribeNow(track -> {
-            if (track != null && tracks != null) tracks.selectKey(track.id());
+            if (track != null) tracks.selectKey(track.id());
         }));
     }
 
