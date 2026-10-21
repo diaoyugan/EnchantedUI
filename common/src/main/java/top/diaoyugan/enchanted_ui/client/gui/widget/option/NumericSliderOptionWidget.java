@@ -3,6 +3,8 @@ package top.diaoyugan.enchanted_ui.client.gui.widget.option;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.network.chat.Component;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Objects;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleFunction;
@@ -16,6 +18,8 @@ public class NumericSliderOptionWidget extends AbstractSliderButton {
     private final DoubleConsumer setter;
     private final Component label;
     private boolean percentage;
+    private int percentageDecimalPlaces;
+    private DoubleFunction<Component> percentageFormatter;
     private DoubleFunction<Component> valueFormatter;
     private String customValueKey;
 
@@ -56,7 +60,11 @@ public class NumericSliderOptionWidget extends AbstractSliderButton {
             valueText = valueFormatter.apply(numericValue);
         } else if (percentage) {
             double percent = (numericValue - min) * 100.0D / (max - min);
-            valueText = Component.literal(formatNumber(percent) + "%");
+            valueText = percentageFormatter != null
+                    ? percentageFormatter.apply(percent)
+                    : Component.literal(BigDecimal.valueOf(percent)
+                            .setScale(percentageDecimalPlaces, RoundingMode.HALF_UP)
+                            .stripTrailingZeros().toPlainString() + "%");
         } else {
             valueText = Component.literal(formatNumber(numericValue));
         }
@@ -83,6 +91,24 @@ public class NumericSliderOptionWidget extends AbstractSliderButton {
 
     public NumericSliderOptionWidget percentage(boolean percentage) {
         this.percentage = percentage;
+        updateMessage();
+        return this;
+    }
+
+    public NumericSliderOptionWidget percentageDecimalPlaces(int decimalPlaces) {
+        if (decimalPlaces < 0 || decimalPlaces > 15) {
+            throw new IllegalArgumentException("percentage decimal places must be between 0 and 15");
+        }
+        this.percentageDecimalPlaces = decimalPlaces;
+        updateMessage();
+        return this;
+    }
+
+    public NumericSliderOptionWidget setPercentageFormatter(DoubleFunction<Component> formatter) {
+        this.percentageFormatter = formatter;
+        this.customValueKey = null;
+        this.valueFormatter = null;
+        this.percentage = true;
         updateMessage();
         return this;
     }
