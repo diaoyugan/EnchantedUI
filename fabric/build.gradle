@@ -28,6 +28,8 @@ loom {
     runs {
         configureEach {
             generateRunConfig = true
+            // Generate IDEA Application configurations instead of Gradle task wrappers.
+            preferGradleTask = false
         }
     }
 }
