@@ -17,7 +17,7 @@ final class BottomBarBackdropWidget extends AbstractWidget {
     }
 
     @Override
-    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics) {
         if (!style.bottomBarBlur() && (style.bottomBarBackgroundColor() >>> 24) == 0) {
             return;
         }

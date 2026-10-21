@@ -2,7 +2,7 @@ package top.diaoyugan.enchanted_ui.client.gui.widget.button;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.pipeline.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import top.diaoyugan.enchanted_ui.client.gui.render.sprite.WidgetState;
@@ -45,10 +45,10 @@ public class IconButton extends Button.Plain {
     }
 
     @Override
-    public void extractContents(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
+    public void extractContents(GuiGraphicsExtractor g) {
 
         if (!circular) {
-            super.extractContents(g, mouseX, mouseY, partialTick);
+            super.extractContents(g);
         } else {
             var colors = UIThemes.current().colors();
             int color = selected.getAsBoolean() ? colors.accent() : isHoveredOrFocused() ? colors.surfaceHovered() : colors.surface();

@@ -112,15 +112,15 @@ final class PageViewport {
             positionWidgets();
             maxScroll = maxScroll();
         }
-        scrollBar.visible = maxScroll > 0;
+        scrollBar.setVisible(maxScroll > 0);
         scrollBar.active = maxScroll > 0;
     }
 
     void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         graphics.enableScissor(viewportLeft, viewportTop, viewportRight, viewportBottom);
         for (AbstractWidget widget : widgets) {
-            if (widget.visible) {
-                widget.extractRenderState(graphics, mouseX, mouseY, partialTick);
+            if (widget.isVisible()) {
+                widget.extractRenderState(graphics);
             }
         }
         graphics.disableScissor();
@@ -129,7 +129,7 @@ final class PageViewport {
     void extractOverlayRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         graphics.enableScissor(viewportLeft, viewportTop, viewportRight, viewportBottom);
         for (OverlayRenderableWidget overlay : overlays) {
-            if (overlay instanceof AbstractWidget widget && widget.visible) {
+            if (overlay instanceof AbstractWidget widget && widget.isVisible()) {
                 overlay.extractOverlayRenderState(graphics, mouseX, mouseY, partialTick);
             }
         }
@@ -142,7 +142,7 @@ final class PageViewport {
         }
         for (int i = overlays.size() - 1; i >= 0; i--) {
             OverlayRenderableWidget overlay = overlays.get(i);
-            if (overlay instanceof AbstractWidget widget && widget.visible && overlay.isOverlayExpanded()
+            if (overlay instanceof AbstractWidget widget && widget.isVisible() && overlay.isOverlayExpanded()
                     && widget.mouseClicked(event, doubleClick)) {
                 return true;
             }
@@ -156,7 +156,7 @@ final class PageViewport {
         }
         for (int i = overlays.size() - 1; i >= 0; i--) {
             OverlayRenderableWidget overlay = overlays.get(i);
-            if (overlay instanceof AbstractWidget widget && widget.visible && overlay.isOverlayExpanded()
+            if (overlay instanceof AbstractWidget widget && widget.isVisible() && overlay.isOverlayExpanded()
                     && widget.mouseReleased(event)) {
                 return true;
             }
@@ -170,7 +170,7 @@ final class PageViewport {
         }
         for (int i = overlays.size() - 1; i >= 0; i--) {
             OverlayRenderableWidget overlay = overlays.get(i);
-            if (overlay instanceof AbstractWidget widget && widget.visible && overlay.isOverlayExpanded()
+            if (overlay instanceof AbstractWidget widget && widget.isVisible() && overlay.isOverlayExpanded()
                     && widget.mouseDragged(event, dragX, dragY)) {
                 return true;
             }
@@ -184,7 +184,7 @@ final class PageViewport {
         }
         for (int i = overlays.size() - 1; i >= 0; i--) {
             OverlayRenderableWidget overlay = overlays.get(i);
-            if (overlay instanceof AbstractWidget widget && widget.visible && overlay.isOverlayExpanded()
+            if (overlay instanceof AbstractWidget widget && widget.isVisible() && overlay.isOverlayExpanded()
                     && widget.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
                 return true;
             }
@@ -195,7 +195,7 @@ final class PageViewport {
     boolean keyPressed(KeyEvent event) {
         for (int i = overlays.size() - 1; i >= 0; i--) {
             OverlayRenderableWidget overlay = overlays.get(i);
-            if (overlay instanceof AbstractWidget widget && widget.visible && overlay.isOverlayExpanded()
+            if (overlay instanceof AbstractWidget widget && widget.isVisible() && overlay.isOverlayExpanded()
                     && widget.keyPressed(event)) {
                 return true;
             }
@@ -206,7 +206,7 @@ final class PageViewport {
     boolean charTyped(CharacterEvent event) {
         for (int i = overlays.size() - 1; i >= 0; i--) {
             OverlayRenderableWidget overlay = overlays.get(i);
-            if (overlay instanceof AbstractWidget widget && widget.visible && overlay.isOverlayExpanded()
+            if (overlay instanceof AbstractWidget widget && widget.isVisible() && overlay.isOverlayExpanded()
                     && widget.charTyped(event)) {
                 return true;
             }
@@ -217,7 +217,7 @@ final class PageViewport {
     boolean preeditUpdated(PreeditEvent event) {
         for (int i = overlays.size() - 1; i >= 0; i--) {
             OverlayRenderableWidget overlay = overlays.get(i);
-            if (overlay instanceof AbstractWidget widget && widget.visible && overlay.isOverlayExpanded()
+            if (overlay instanceof AbstractWidget widget && widget.isVisible() && overlay.isOverlayExpanded()
                     && widget.preeditUpdated(event)) {
                 return true;
             }
@@ -246,10 +246,10 @@ final class PageViewport {
             widget.setY(base.y() - scrollOffset);
             boolean conditionVisible = WidgetConditions.evaluateVisible(widget);
             boolean intersects = intersectsViewport(widget) || expandedOverlayIntersectsViewport(widget);
-            widget.visible = intersects && conditionVisible;
+            widget.setVisible(intersects && conditionVisible);
             widget.active = intersects && conditionVisible && WidgetConditions.evaluateActive(widget);
             WidgetConditions.refreshTooltip(widget);
-            if (!widget.visible) {
+            if (!widget.isVisible()) {
                 widget.setFocused(false);
             }
         }

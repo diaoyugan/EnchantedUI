@@ -43,9 +43,9 @@ public final class UIScrollPane extends AbstractWidget {
         return this;
     }
 
-    @Override protected void extractWidgetRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
+    @Override protected void extractWidgetRenderState(GuiGraphicsExtractor g) {
         g.enableScissor(getX(), getY(), getX() + width, getY() + height);
-        for (AbstractWidget child : children) child.extractRenderState(g, mouseX, mouseY, partialTick);
+        for (AbstractWidget child : children) child.extractRenderState(g);
         g.disableScissor();
         if (contentHeight > height) {
             int thumb = Math.max(12, height * height / contentHeight);

@@ -4,7 +4,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.pipeline.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import top.diaoyugan.enchanted_ui.client.gui.render.sprite.WidgetState;
@@ -40,7 +40,7 @@ public class TextureButton extends Button {
     /* ---------- 渲染 ---------- */
 
     @Override
-    public void extractContents(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractContents(GuiGraphicsExtractor guiGraphics) {
 
         SpriteData sprite = enhancedSprites.get(this.active, this.isHoveredOrFocused());
 

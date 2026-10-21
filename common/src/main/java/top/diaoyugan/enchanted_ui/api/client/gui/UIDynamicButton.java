@@ -22,6 +22,6 @@ public class UIDynamicButton extends Button.Plain {
         this.label=Objects.requireNonNull(label);this.narration=Objects.requireNonNull(narration);
     }
 
-    @Override public void extractContents(GuiGraphicsExtractor g,int mouseX,int mouseY,float partialTick){setMessage(label.get());super.extractContents(g,mouseX,mouseY,partialTick);}
+    @Override public void extractContents(GuiGraphicsExtractor g) {setMessage(label.get());super.extractContents(g);}
     @Override protected MutableComponent createNarrationMessage(){return wrapDefaultNarrationMessage(narration.get());}
 }

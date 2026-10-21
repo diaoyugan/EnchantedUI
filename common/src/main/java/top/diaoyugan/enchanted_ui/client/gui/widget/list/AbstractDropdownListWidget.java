@@ -75,7 +75,7 @@ abstract class AbstractDropdownListWidget extends AbstractWidget implements Over
     protected abstract void setInnerFocus(boolean focused);
 
     @Override
-    protected void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics) {
         int x = getX();
         int y = getY();
         int width = getWidth();

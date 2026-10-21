@@ -19,7 +19,7 @@ public final class UILabelWidget extends AbstractWidget {
         super(x,y,width,height,Component.empty()); this.text=Objects.requireNonNull(text); this.color=Objects.requireNonNull(color); this.align=align; active=false;
     }
     public UILabelWidget(int x,int y,int width,int height,Supplier<Component> text) { this(x,y,width,height,text,()->UIThemes.current().colors().text(),Align.LEFT); }
-    @Override protected void extractWidgetRenderState(GuiGraphicsExtractor g,int mouseX,int mouseY,float partialTick) {
+    @Override protected void extractWidgetRenderState(GuiGraphicsExtractor g) {
         Component value=text.get(); int textWidth=Minecraft.getInstance().font.width(value);
         int drawX=switch(align){case LEFT->getX();case CENTER->getX()+(width-textWidth)/2;case RIGHT->getX()+width-textWidth;};
         g.text(Minecraft.getInstance().font,value,drawX,getY()+(height-9)/2,color.get(),false);

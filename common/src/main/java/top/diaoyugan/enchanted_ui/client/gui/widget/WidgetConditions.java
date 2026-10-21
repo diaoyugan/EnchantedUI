@@ -40,7 +40,7 @@ public final class WidgetConditions {
     }
 
     public static void refresh(AbstractWidget widget) {
-        widget.visible = evaluateVisible(widget);
+        widget.setVisible(evaluateVisible(widget));
         widget.active = evaluateActive(widget);
         refreshTooltip(widget);
     }
@@ -59,7 +59,7 @@ public final class WidgetConditions {
 
     public static void setVisibleState(AbstractWidget widget, boolean visible) {
         BASE_VISIBLE.put(widget, visible);
-        widget.visible = visible;
+        widget.setVisible(visible);
     }
 
     public static void setActiveState(AbstractWidget widget, boolean active) {

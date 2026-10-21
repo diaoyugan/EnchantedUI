@@ -175,7 +175,7 @@ final class TabStripController {
         for (int i = 0; i < buttons.size(); i++) {
             Button button = buttons.get(i);
             boolean buttonVisible = !overflow || (i >= windowStart && i < windowStart + visibleCount);
-            button.visible = buttonVisible;
+            button.setVisible(buttonVisible);
             if (buttonVisible) {
                 int visibleIndex = overflow ? i - windowStart : i;
                 button.setX(layout.startX());
@@ -184,8 +184,8 @@ final class TabStripController {
             }
         }
 
-        previousButton.visible = overflow;
-        nextButton.visible = overflow;
+        previousButton.setVisible(overflow);
+        nextButton.setVisible(overflow);
         previousButton.active = windowStart > 0;
         nextButton.active = windowStart + visibleCount < buttons.size();
         previousButton.setX(layout.startX());
@@ -223,7 +223,7 @@ final class TabStripController {
         for (int i = 0; i < buttons.size(); i++) {
             Button button = buttons.get(i);
             boolean buttonVisible = !overflow || (i >= windowStart && i < windowStart + visibleCount);
-            button.visible = buttonVisible;
+            button.setVisible(buttonVisible);
             if (buttonVisible) {
                 int visibleIndex = overflow ? i - windowStart : i;
                 button.setX(contentStart + visibleIndex * (horizontalTabWidth + layout.gap()));
@@ -232,8 +232,8 @@ final class TabStripController {
             }
         }
 
-        previousButton.visible = overflow;
-        nextButton.visible = overflow;
+        previousButton.setVisible(overflow);
+        nextButton.setVisible(overflow);
         previousButton.active = windowStart > 0;
         nextButton.active = windowStart + visibleCount < buttons.size();
         previousButton.setX(layout.startX());

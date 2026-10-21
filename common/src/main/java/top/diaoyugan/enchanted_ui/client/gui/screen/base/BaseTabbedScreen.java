@@ -308,19 +308,26 @@ public class BaseTabbedScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
-        int backgroundMouseX = modal == null ? mouseX : Integer.MIN_VALUE;
-        int backgroundMouseY = modal == null ? mouseY : Integer.MIN_VALUE;
-        super.extractRenderState(guiGraphics, backgroundMouseX, backgroundMouseY, partialTick);
-        renderHeaderTitle(guiGraphics);
-        renderSidebarTitle(guiGraphics);
-        pageStack.extractRenderState(guiGraphics, backgroundMouseX, backgroundMouseY, partialTick);
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics) {
+        if (modal == null) {
+            extractScreenContents(guiGraphics);
+        } else {
+            guiGraphics.extractWithoutMouse(() -> extractScreenContents(guiGraphics));
+        }
         if (minecraft != null) {
             toasts.extractRenderState(guiGraphics, minecraft.font, width);
         }
         if (modal != null && minecraft != null) {
-            modal.extractRenderState(guiGraphics, minecraft.font, width, height, mouseX, mouseY, partialTick);
+            modal.extractRenderState(guiGraphics, minecraft.font, width, height,
+                    guiGraphics.mouseX(), guiGraphics.mouseY(), guiGraphics.partialTicks());
         }
+    }
+
+    private void extractScreenContents(GuiGraphicsExtractor guiGraphics) {
+        super.extractRenderState(guiGraphics);
+        renderHeaderTitle(guiGraphics);
+        renderSidebarTitle(guiGraphics);
+        pageStack.extractRenderState(guiGraphics, guiGraphics.mouseX(), guiGraphics.mouseY(), guiGraphics.partialTicks());
     }
 
     private void renderSidebarTitle(GuiGraphicsExtractor guiGraphics) {

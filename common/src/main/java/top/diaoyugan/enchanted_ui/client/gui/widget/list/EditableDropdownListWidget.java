@@ -130,7 +130,7 @@ public class EditableDropdownListWidget extends AbstractDropdownListWidget {
     protected void extractFooter(GuiGraphicsExtractor guiGraphics, int left, int top, int mouseX, int mouseY, float partialTick) {
         int inputWidth = getWidth() - (PANEL_PADDING * 2) - 40;
         input.setRectangle(inputWidth, ROW_HEIGHT, left + PANEL_PADDING, top);
-        input.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        input.extractRenderState(guiGraphics);
 
         int buttonLeft = left + getWidth() - PANEL_PADDING - 36;
         guiGraphics.fill(buttonLeft, top, buttonLeft + 36, top + ROW_HEIGHT, 0xFF2E5A2E);

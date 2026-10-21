@@ -14,7 +14,7 @@ public class TextWidget extends AbstractWidget {
     }
 
     @Override
-    protected void extractWidgetRenderState(GuiGraphicsExtractor guiGraphicsExtractor, int i, int i1, float v) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor guiGraphicsExtractor) {
         guiGraphicsExtractor.text(
                 Minecraft.getInstance().font,
                 getMessage(),

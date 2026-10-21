@@ -3,7 +3,7 @@ package top.diaoyugan.enchanted_ui.api.client.gui;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.pipeline.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
@@ -35,7 +35,7 @@ public final class UIImageWidget extends AbstractWidget {
     public static Builder builder(Supplier<Identifier> texture) { return new Builder(texture); }
 
     @Override
-    protected void extractWidgetRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor g) {
         if ((shadow >>> 24) != 0) g.fill(getX() + 2, getY() + 2, getX() + width + 3, getY() + height + 3, shadow);
         if ((background >>> 24) != 0) g.fill(getX(), getY(), getX() + width, getY() + height, background);
         float px = getX() + width * pivotX, py = getY() + height * pivotY;

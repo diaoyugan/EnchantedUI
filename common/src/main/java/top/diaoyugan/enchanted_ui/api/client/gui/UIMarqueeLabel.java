@@ -24,7 +24,7 @@ public class UIMarqueeLabel extends AbstractWidget {
         super(x,y,width,height,Component.empty());this.text=Objects.requireNonNull(text);this.color=Objects.requireNonNull(color);this.align=Objects.requireNonNull(align);
         animation=UIAnimation.pingPong().duration(Objects.requireNonNull(duration));active=false;
     }
-    @Override protected void extractWidgetRenderState(GuiGraphicsExtractor g,int mouseX,int mouseY,float partialTick){
+    @Override protected void extractWidgetRenderState(GuiGraphicsExtractor g) {
         Component value=text.get();int textWidth=Minecraft.getInstance().font.width(value);int drawX=getX();
         if(textWidth>width)drawX-=Math.round((textWidth-width)*animation.value());
         else if(align==UILabelWidget.Align.CENTER)drawX+=(width-textWidth)/2;

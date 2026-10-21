@@ -34,7 +34,7 @@ public class ColorPreviewWidget extends AbstractWidget {
 
 
     @Override
-    protected void extractWidgetRenderState(GuiGraphicsExtractor guiGraphicsExtractor, int i, int i1, float v) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor guiGraphicsExtractor) {
         int color = 0xFF000000 | (red.get() << 16) | (green.get() << 8) | blue.get() | (alpha.get() << 24);
         guiGraphicsExtractor.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), color);
     }

@@ -53,7 +53,8 @@ public class ReadonlyListWidget extends AbstractWidget implements OverlayRendera
     }
 
     @Override
-    protected void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics) {
+        int mouseY = guiGraphics.mouseY();
         Minecraft minecraft = Minecraft.getInstance();
         int x = getX();
         int y = getY();

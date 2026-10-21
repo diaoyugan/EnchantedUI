@@ -31,7 +31,7 @@ public final class UITimerWidget extends AbstractWidget {
             return Duration.ofMillis(Math.max(0,Math.round(total.toMillis()*factor)));
         },UILabelWidget.Align.CENTER,false);
     }
-    @Override protected void extractWidgetRenderState(GuiGraphicsExtractor g,int mouseX,int mouseY,float partialTick){
+    @Override protected void extractWidgetRenderState(GuiGraphicsExtractor g) {
         Component text=Component.literal(format(value.get(),showHours));setMessage(text);int textWidth=Minecraft.getInstance().font.width(text);
         int drawX=switch(align){case LEFT->getX();case CENTER->getX()+(width-textWidth)/2;case RIGHT->getX()+width-textWidth;};
         g.text(Minecraft.getInstance().font,text,drawX,getY()+(height-9)/2,UIThemes.current().colors().textMuted(),false);

@@ -109,7 +109,9 @@ public final class UIVirtualList<T, K> extends AbstractWidget {
     public int firstVisibleIndex() { return scrollOffset / rowHeight; }
 
     @Override
-    protected void extractWidgetRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor g) {
+        int mouseX = g.mouseX();
+        int mouseY = g.mouseY();
         syncExternalSelection();
         List<T> items = visibleItems();
         clampScroll(items.size());

@@ -11,7 +11,9 @@ public abstract class BaseOptionWidget extends AbstractWidget {
     }
 
     @Override
-    protected void extractWidgetRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor g) {
+        int mouseX = g.mouseX();
+        int mouseY = g.mouseY();
         int x = getX();
         int y = getY();
         int w = getWidth();

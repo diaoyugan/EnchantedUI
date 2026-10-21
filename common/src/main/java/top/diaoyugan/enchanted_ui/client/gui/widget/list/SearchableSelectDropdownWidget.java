@@ -109,7 +109,7 @@ public class SearchableSelectDropdownWidget<T> extends AbstractDropdownListWidge
     @Override
     protected void extractFooter(GuiGraphicsExtractor guiGraphics, int left, int top, int mouseX, int mouseY, float partialTick) {
         search.setRectangle(getWidth() - (PANEL_PADDING * 2), ROW_HEIGHT, left + PANEL_PADDING, top);
-        search.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        search.extractRenderState(guiGraphics);
     }
 
     @Override

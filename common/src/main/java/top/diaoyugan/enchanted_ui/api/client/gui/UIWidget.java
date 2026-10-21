@@ -133,7 +133,7 @@ public class UIWidget {
     }
 
     public boolean visible() {
-        return delegate.visible;
+        return delegate.isVisible();
     }
 
     public boolean active() {

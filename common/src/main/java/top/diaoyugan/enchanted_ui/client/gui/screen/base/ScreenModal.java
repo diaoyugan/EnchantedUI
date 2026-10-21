@@ -108,7 +108,7 @@ final class ScreenModal {
         }
 
         for (Button button : buttons) {
-            button.extractRenderState(graphics, mouseX, mouseY, partialTick);
+            button.extractRenderState(graphics);
         }
     }
 
